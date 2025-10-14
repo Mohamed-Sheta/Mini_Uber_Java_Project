@@ -1,4 +1,4 @@
-package com.mycompany.uper_project;
+package Model;
 
 public class Passenger extends Person {
     private Location currentLocation;
@@ -64,7 +64,7 @@ public class Passenger extends Person {
         System.out.println("Email: " + getEmail());
         System.out.println("Wallet Balance: " + getWalletBalance());
         System.out.println("Credit Balance: " + getCreditBalance());
-        System.out.println("Rating: " + getAccountRating());
+//        System.out.println("Rating: " + getAccountRating());
     }
 }
 

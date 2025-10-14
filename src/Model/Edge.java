@@ -1,3 +1,5 @@
+package Model;
+
 public class Edge {
     private Location from ;
     private Location to;

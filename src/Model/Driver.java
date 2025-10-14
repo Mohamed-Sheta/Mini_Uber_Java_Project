@@ -1,3 +1,5 @@
+package Model;
+
 public class Driver extends Person {
     private String licensePlate;
     private String carModel;
@@ -11,12 +13,10 @@ public class Driver extends Person {
         this.active = active;
     }
 
-    public double getWalletBalance() {
-        return WalletBalance;
-    }
 
-    public double getCreditBalance() {
-        return creditBalance;
+    @Override
+    public void showProfile() {
+
     }
 
     public String getLicensePlate() {
@@ -28,7 +28,8 @@ public class Driver extends Person {
     }
 
     public void addAmount(double amount) {
-            WalletBalance += amount;
+        double currentBalance = getWalletBalance(); // جلب الرصيد الحالي باستخدام الـ Getter
+        updateWalletBalance(currentBalance + amount); // تحديث الرصيد باستخدام الـ Protected Setter
     }
 }
 
@@ -38,4 +39,3 @@ public class Driver extends Person {
 //        return currentLocation;
 //    }
 //
-}

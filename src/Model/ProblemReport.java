@@ -2,7 +2,8 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.mycompany.uper_project;
+package Model;
+import java.util.Set;
 
 /**
  *
@@ -14,11 +15,11 @@ import java.util.Set;
 
 public class ProblemReport {
     
-    protected static int reportId = 1000;
+    private static int reportId = 1000;
 //    protected RideManager rideManager;
-    protected LocalDateTime timestamp;
-    protected Set<ProblemType> types;
-    protected String details;
+private LocalDateTime timestamp;
+    private Set<ProblemType> types;
+    private String details;
     
 
 //    public ProblemReport(RideManager rideManager, Set<ProblemType> types, String details) {

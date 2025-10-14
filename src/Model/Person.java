@@ -1,4 +1,4 @@
-package com.mycompany.uper_project;
+package Model;
 
 public abstract class Person {
     private String userSSN;
