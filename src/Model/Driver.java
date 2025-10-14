@@ -31,6 +31,15 @@ public class Driver extends Person {
         double currentBalance = getWalletBalance(); // جلب الرصيد الحالي باستخدام الـ Getter
         updateWalletBalance(currentBalance + amount); // تحديث الرصيد باستخدام الـ Protected Setter
     }
+    public void RatePassenger(RideHistory hist, int rating) {
+        if (rating >= 1 && rating <= 5) {
+            hist.setPassengerRating(rating);
+            System.out.println("Passenger rated with: " + rating + " stars");
+        }
+        else{
+            System.out.println("invalid rating must be between 1 and 5");
+        }
+    }
 }
 
 

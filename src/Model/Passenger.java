@@ -54,6 +54,15 @@ public class Passenger extends Person {
         System.out.println("Remaining wallet balance: " + getWalletBalance());
         System.out.println("Remaining credit balance: " + getCreditBalance());
     }
+    public void RateDriver(RideHistory hist, int rating) {
+        if (rating >=1 && rating <=5) {
+            hist.setDriverRating(rating);
+            System.out.println("Driver rated with: " + rating + " stars");
+        }
+        else{
+            System.out.println("invalid rating must be between 1 and 5");
+        }
+    }
 
     @Override
     public void showProfile() {
