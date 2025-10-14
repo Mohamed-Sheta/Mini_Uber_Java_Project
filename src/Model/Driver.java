@@ -1,18 +1,8 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-package com.mycompany.uper_project;
-
-/**
- *
- * @author Mohamed
- */
-public class Driver extends Person{
-    protected String licensePlate;
-    protected String carModel;
-    protected boolean active;
-//    protected Location currentLocation;
+public class Driver extends Person {
+    private String licensePlate;
+    private String carModel;
+    private boolean active;
+    private Location currentLocation;
 
     public Driver(String licensePlate, String carModel, boolean active, String User_SSN, String name, String PhoneNumber, String Email, float WalletBalance, float creditBalance, int AccountRating) {
         super(User_SSN, name, PhoneNumber, Email, WalletBalance, creditBalance, AccountRating);
@@ -20,7 +10,6 @@ public class Driver extends Person{
         this.carModel = carModel;
         this.active = active;
     }
-
 
     public double getWalletBalance() {
         return WalletBalance;
@@ -38,7 +27,13 @@ public class Driver extends Person{
         return carModel;
     }
 
-    
+    public void addAmount(double amount) {
+            WalletBalance += amount;
+    }
+}
+
+
+
 //    public Location getCurrentLocation() {
 //        return currentLocation;
 //    }
