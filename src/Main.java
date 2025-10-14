@@ -1,4 +1,6 @@
-package Model;
+import Model.Location;
+import Model.MapGraph;
+
 public class Main {
     public static void main(String[] args) {
         Location cairo = new Location("Cairo", 30.0444, 31.2357);
