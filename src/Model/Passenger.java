@@ -33,27 +33,58 @@ public class Passenger extends Person {
         updateCreditBalance(creditBalance);
     }
 
-    public void reduceAmount(double amount) {
+    public boolean canAfford(double amount) {
         double total = getWalletBalance() + getCreditBalance();
-
-        if (total < amount) {
-            System.out.println("❌ Transaction rejected: Insufficient balance.");
-            System.out.println("Available total balance: " + total);
-            return;
-        }
-
-        if (getWalletBalance() >= amount) {
-            updateWalletBalance(getWalletBalance() - amount);
-        } else {
-            double remaining = amount - getWalletBalance();
-            updateWalletBalance(0);
-            updateCreditBalance(getCreditBalance() - remaining);
-        }
-
-        System.out.println("✅ Payment successful. Amount deducted: " + amount);
-        System.out.println("Remaining wallet balance: " + getWalletBalance());
-        System.out.println("Remaining credit balance: " + getCreditBalance());
+        return total >= amount;
     }
+
+    public boolean reduceAmount(double amount, String source) {
+        if (!canAfford(amount)) {
+            System.out.println("❌ Transaction rejected: Insufficient balance.");
+            System.out.println("Available total balance: " + (getWalletBalance() + getCreditBalance()));
+            return false;
+        }
+
+        switch (source.toLowerCase()) {
+            case "wallet":
+                if (getWalletBalance() >= amount) {
+                    updateWalletBalance(getWalletBalance() - amount);
+                    System.out.println("✅ Paid $" + amount + " from wallet.");
+                    return true;
+                } else {
+                    System.out.println("❌ Wallet balance insufficient.");
+                    return false;
+                }
+
+            case "credit":
+                if (getCreditBalance() >= amount) {
+                    updateCreditBalance(getCreditBalance() - amount);
+                    System.out.println("✅ Paid $" + amount + " from credit.");
+                    return true;
+                } else {
+                    System.out.println("❌ Credit balance insufficient.");
+                    return false;
+                }
+
+            case "auto": // default behavior (use both)
+                if (getWalletBalance() >= amount) {
+                    updateWalletBalance(getWalletBalance() - amount);
+                } else {
+                    double remaining = amount - getWalletBalance();
+                    updateWalletBalance(0);
+                    updateCreditBalance(getCreditBalance() - remaining);
+                }
+                System.out.println("✅ Payment successful. Amount deducted: " + amount);
+                System.out.println("Remaining wallet: " + getWalletBalance());
+                System.out.println("Remaining credit: " + getCreditBalance());
+                return true;
+
+            default:
+                System.out.println("⚠️ Invalid payment source. Use 'wallet', 'credit', or 'auto'.");
+                return false;
+        }
+    }
+
     public void RateDriver(RideHistory hist, int rating) {
         if (rating >=1 && rating <=5) {
             hist.setDriverRating(rating);
