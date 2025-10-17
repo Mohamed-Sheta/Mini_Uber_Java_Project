@@ -20,6 +20,9 @@ public class TestDatabase {
             // Clear tables to avoid duplicate key errors
             clearTables(conn);
 
+            // Populate problemtype table
+            populateProblemType(conn);
+
             // Initialize DAO objects
             LocationDAO locationDAO = new LocationDAO();
             EdgesDAO edgesDAO = new EdgesDAO();
@@ -228,11 +231,39 @@ public class TestDatabase {
             // 8️⃣ Test ProblemReportDAO
             // -------------------------------
             System.out.println("\n🚨 Testing ProblemReportDAO...");
-            Set<ProblemType> problemTypes = new HashSet<>();
-            problemTypes.add(ProblemType.DRIVER_BEHAVIOR);
-            problemTypes.add(ProblemType.FARE_DISPUTE);
-            int reportId = problemReportDAO.addProblemReport(rideHistory1.getHistoryId(), "Driver was rude and overcharged", problemTypes);
-            System.out.println("✅ ProblemReport inserted with ID: " + reportId);
+            // Problem Report 1
+            Set<ProblemType> problemTypes1 = new HashSet<>();
+            problemTypes1.add(ProblemType.DRIVER_BEHAVIOR);
+            problemTypes1.add(ProblemType.FARE_DISPUTE);
+            int reportId1 = problemReportDAO.addProblemReport(rideHistory1.getHistoryId(), "Driver was rude and overcharged", problemTypes1);
+            System.out.println("✅ ProblemReport inserted with ID: " + reportId1);
+
+            // Problem Report 2
+            Set<ProblemType> problemTypes2 = new HashSet<>();
+            problemTypes2.add(ProblemType.VEHICLE_CLEANLINESS);
+            problemTypes2.add(ProblemType.TECHNICAL_ISSUE);
+            int reportId2 = problemReportDAO.addProblemReport(rideHistory2.getHistoryId(), "Vehicle was in poor condition and had technical issues", problemTypes2);
+            System.out.println("✅ ProblemReport inserted with ID: " + reportId2);
+
+            // Problem Report 3
+            Set<ProblemType> problemTypes3 = new HashSet<>();
+            problemTypes3.add(ProblemType.FARE_DISPUTE);
+            int reportId3 = problemReportDAO.addProblemReport(rideHistory3.getHistoryId(), "Incorrect fare charged", problemTypes3);
+            System.out.println("✅ ProblemReport inserted with ID: " + reportId3);
+
+            // Problem Report 4
+            Set<ProblemType> problemTypes4 = new HashSet<>();
+            problemTypes4.add(ProblemType.DRIVER_BEHAVIOR);
+            problemTypes4.add(ProblemType.VEHICLE_CLEANLINESS);
+            int reportId4 = problemReportDAO.addProblemReport(rideHistory4.getHistoryId(), "Driver was unprofessional and car was dirty", problemTypes4);
+            System.out.println("✅ ProblemReport inserted with ID: " + reportId4);
+
+            // Problem Report 5
+            Set<ProblemType> problemTypes5 = new HashSet<>();
+            problemTypes5.add(ProblemType.TECHNICAL_ISSUE);
+            problemTypes5.add(ProblemType.FARE_DISPUTE);
+            int reportId5 = problemReportDAO.addProblemReport(rideHistory1.getHistoryId(), "Car had mechanical issues and fare was disputed", problemTypes5);
+            System.out.println("✅ ProblemReport inserted with ID: " + reportId5);
 
             // -------------------------------
             // 9️⃣ Final SELECT tests
@@ -267,16 +298,46 @@ public class TestDatabase {
     }
 
     private static void clearTables(Connection conn) throws SQLException {
-        String[] tables = {"ProblemReport", "RideHistory", "Payment", "Options", "Passenger", "Driver", "Edge", "Location"};
+        String[] tables = {"problemreport_type", "ProblemReport", "RideHistory", "Payment", "Options", "Passenger", "Driver", "Edge", "Location", "problemtype"};
         try (Statement stmt = conn.createStatement()) {
             stmt.execute("SET FOREIGN_KEY_CHECKS = 0"); // Disable foreign key checks
             for (String table : tables) {
-                stmt.executeUpdate("TRUNCATE TABLE " + table);
-                System.out.println("✅ Truncated table: " + table);
+                try {
+                    stmt.executeUpdate("TRUNCATE TABLE " + table);
+                    System.out.println("✅ Truncated table: " + table);
+                } catch (SQLException e) {
+                    System.out.println("⚠️ Table " + table + " not found, skipping truncation");
+                }
             }
             stmt.execute("SET FOREIGN_KEY_CHECKS = 1"); // Re-enable foreign key checks
         } catch (SQLException e) {
             System.err.println("❌ Failed to truncate tables: " + e.getMessage());
+            throw e;
+        }
+    }
+
+    private static void populateProblemType(Connection conn) throws SQLException {
+        String sql = "INSERT INTO problemtype (type_id, type_name) VALUES (?, ?) ON DUPLICATE KEY UPDATE type_name = VALUES(type_name)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, 1);
+            stmt.setString(2, "DRIVER_BEHAVIOR");
+            stmt.executeUpdate();
+
+            stmt.setInt(1, 2);
+            stmt.setString(2, "FARE_DISPUTE");
+            stmt.executeUpdate();
+
+            stmt.setInt(1, 3);
+            stmt.setString(2, "VEHICLE_CLEANLINESS");
+            stmt.executeUpdate();
+
+            stmt.setInt(1, 4);
+            stmt.setString(2, "TECHNICAL_ISSUE");
+            stmt.executeUpdate();
+
+            System.out.println("✅ Populated problemtype table");
+        } catch (SQLException e) {
+            System.err.println("❌ Failed to populate problemtype table: " + e.getMessage());
             throw e;
         }
     }
