@@ -1,23 +1,26 @@
-package com.mycompany.uper;
+package DAO;
+
+import Model.Option;
+import utils.connection;
 
 import java.sql.*;
 
 public class OptionDAO {
     public int addOption(Option option) throws SQLException {
-        String sql = "INSERT INTO `Option` (tips, donation_amount, donation_organization, is_tips_enabled, is_donation_enabled, is_rate_enabled) " +
-                     "VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO `OptionS` (tips, donation_amount, donation_organization, is_tips_enabled, is_donation_enabled, is_rate_enabled) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = ConnectionManager.getConnection();
+        try (Connection conn = connection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             stmt.setFloat(1, option.getTips());
             stmt.setFloat(2, option.getDonationAmount());
             stmt.setString(3, option.getDonationOrganization());
-            
+
             stmt.setBoolean(4, false);
             stmt.setBoolean(5, false);
             stmt.setBoolean(6, false);
-            
+
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected > 0) {
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
@@ -33,9 +36,9 @@ public class OptionDAO {
     }
 
     public Option getOptionById(int id) throws SQLException {
-        String sql = "SELECT * FROM `Option` WHERE option_id = ?";
-        
-        try (Connection conn = ConnectionManager.getConnection();
+        String sql = "SELECT * FROM `OptionS` WHERE option_id = ?";
+
+        try (Connection conn = connection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, id);

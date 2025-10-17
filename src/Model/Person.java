@@ -1,4 +1,5 @@
 package Model;
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Person {
@@ -8,19 +9,20 @@ public abstract class Person {
     private String email;
     private double walletBalance;
     private double creditBalance;
-    private int accountRating;
-    List<RideHistory> rideHistory;
+    private double accountRating;
+    private List<RideHistory> rideHistory;
 //    there is list of ridehistory
 
     public Person(String userSSN, String name, String phoneNumber, String email,
-                  double walletBalance, double creditBalance, int accountRating) {
+                  double walletBalance, double creditBalance, double accountRating) {
         this.userSSN = userSSN;
         this.name = name;
         this.phoneNumber = phoneNumber;
         this.email = email;
-        this.walletBalance = 0;
-        this.creditBalance = 0;
+        this.walletBalance = walletBalance;
+        this.creditBalance = creditBalance;
         this.accountRating = accountRating;
+        this.rideHistory = new ArrayList<RideHistory>();
     }
 
     public String getUserSSN() {
@@ -61,6 +63,7 @@ public abstract class Person {
     }
 
     public double getAverageRating() {
+        System.out.println("rideHistory is null: " + (rideHistory == null));
         int total = 0;
         int count = 0;
         for (RideHistory h : rideHistory) {

@@ -13,6 +13,7 @@ public class Payment
         this.paymentMethod = paymentMethod;
         this.options = options;
     }
+
     public void processPayment(Passenger passenger, Driver driver) {
         if (passenger == null || driver == null || amount <= 0) {
             System.out.println("❌ Payment failed: Invalid passenger/driver or invalid amount.");
@@ -48,6 +49,10 @@ public class Payment
         return "Payment ID: " + paymentId +
                 ", Amount: " + amount +
                 ", Method: " + paymentMethod.toString();
+    }
+
+    public void setPaymentId(int paymentId) {
+        this.paymentId = paymentId;
     }
 
     public int getPaymentId() {

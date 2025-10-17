@@ -4,10 +4,12 @@ public class Passenger extends Person {
     private Location currentLocation;
     private Location destination;
 
-    public Passenger(String userSSN, String name, String phoneNumber, String email,
-                     double walletBalance, double creditBalance, int accountRating) {
+    public Passenger(Location currentLocation, String userSSN, String name, String phoneNumber, String email, double walletBalance, double creditBalance, double accountRating) {
         super(userSSN, name, phoneNumber, email, walletBalance, creditBalance, accountRating);
+        this.currentLocation = currentLocation;
     }
+
+
 
     public Location getCurrentLocation() {
         return currentLocation;

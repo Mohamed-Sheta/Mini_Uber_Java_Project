@@ -1,4 +1,7 @@
-package com.mycompany.uper;
+package DAO;
+
+import Model.Location;
+import utils.connection;
 
 import java.sql.*;
 
@@ -10,7 +13,7 @@ public class LocationDAO {
         }
 
         String sql = "INSERT INTO Location (name, latitude, longitude) VALUES (?, ?, ?)";
-        try (Connection conn = ConnectionManager.getConnection();
+        try (Connection conn = connection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             stmt.setString(1, location.getName());
@@ -21,6 +24,7 @@ public class LocationDAO {
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     System.out.println("✅ Location saved with ID: " + generatedKeys.getInt(1));
+                    location.setId(generatedKeys.getInt(1));
                     return location;
                 } else {
                     throw new SQLException("Failed to create location, no ID obtained.");
@@ -29,9 +33,9 @@ public class LocationDAO {
         }
     }
 
-    private Location getLocationByNameLatLon(String name, double lat, double lon) throws SQLException {
+    public Location getLocationByNameLatLon(String name, double lat, double lon) throws SQLException {
         String sql = "SELECT name, latitude, longitude FROM Location WHERE name = ? AND latitude = ? AND longitude = ?";
-        try (Connection conn = ConnectionManager.getConnection();
+        try (Connection conn = connection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, name);
@@ -47,10 +51,9 @@ public class LocationDAO {
         return null;
     }
 
-    public int getLocationIdByName(String name, double lat, double lon) throws SQLException {
+    public int getLocationIdByName(String name, double lat, double lon, Connection conn) throws SQLException {
         String sql = "SELECT location_id FROM Location WHERE name = ? AND latitude = ? AND longitude = ?";
-        try (Connection conn = ConnectionManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, name);
             stmt.setDouble(2, lat);
             stmt.setDouble(3, lon);
@@ -61,5 +64,11 @@ public class LocationDAO {
             }
         }
         throw new SQLException("Location not found: " + name);
+    }
+
+    public int getLocationIdByName(String name, double lat, double lon) throws SQLException {
+        try (Connection conn = connection.getConnection()) {
+            return getLocationIdByName(name, lat, lon, conn);
+        }
     }
 }

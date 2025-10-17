@@ -24,5 +24,9 @@ public enum ProblemType {
     ACCOUNT_ISSUE,      // Problems with account balance or payment method
 
     // -----Other types-----
-    OTHER_ISSUE     // Any other issue not covered by the above categories
+    OTHER_ISSUE  ;   // Any other issue not covered by the above categories
+    private int ID;
+    public int getID() {
+        return ID;
+    }
 }
