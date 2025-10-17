@@ -1,4 +1,7 @@
-package com.mycompany.uper;
+package DAO;
+import Model.Location;
+import Model.Driver;
+import utils.connection;
 
 import java.sql.*;
 
@@ -7,10 +10,10 @@ public class DriverDAO {
 
     public boolean addDriver(Driver driver) throws SQLException {
         String sql = "INSERT INTO Driver (user_ssn, name, phone_number, email, wallet_balance, credit_balance, account_rating, " +
-                     "license_plate, car_model, is_active, current_location_id) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
-        try (Connection conn = ConnectionManager.getConnection();
+                "license_plate, car_model, is_active, current_location_id) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = connection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             // Save or get the location ID for currentLocation
@@ -26,7 +29,7 @@ public class DriverDAO {
             stmt.setString(4, driver.getEmail());
             stmt.setDouble(5, driver.getWalletBalance());
             stmt.setDouble(6, driver.getCreditBalance());
-            stmt.setInt(7, driver.getAccountRating());
+            stmt.setDouble(7, driver.getAverageRating());
             stmt.setString(8, driver.getLicensePlate());
             stmt.setString(9, driver.getCarModel());
             stmt.setBoolean(10, driver.isActive());
@@ -42,11 +45,11 @@ public class DriverDAO {
 
     public Driver getDriverBySSN(String ssn) throws SQLException {
         String sql = "SELECT d.*, l.name, l.latitude, l.longitude " +
-                    "FROM Driver d " +
-                    "LEFT JOIN Location l ON d.current_location_id = l.location_id " +
-                    "WHERE d.user_ssn = ?";
-        
-        try (Connection conn = ConnectionManager.getConnection();
+                "FROM Driver d " +
+                "LEFT JOIN Location l ON d.current_location_id = l.location_id " +
+                "WHERE d.user_ssn = ?";
+
+        try (Connection conn = connection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, ssn);
@@ -55,24 +58,24 @@ public class DriverDAO {
                     Location currentLocation = null;
                     if (rs.getString("name") != null) {
                         currentLocation = new Location(
-                            rs.getString("name"),
-                            rs.getDouble("latitude"),
-                            rs.getDouble("longitude")
+                                rs.getString("name"),
+                                rs.getDouble("latitude"),
+                                rs.getDouble("longitude")
                         );
                     }
 
                     return new Driver(
-                        rs.getString("license_plate"),
-                        rs.getString("car_model"),
-                        rs.getBoolean("is_active"),
-                        currentLocation,
-                        rs.getString("user_ssn"),
-                        rs.getString("name"),
-                        rs.getString("phone_number"),
-                        rs.getString("email"),
-                        rs.getDouble("wallet_balance"),
-                        rs.getDouble("credit_balance"),
-                        rs.getInt("account_rating")
+                            rs.getString("license_plate"),
+                            rs.getString("car_model"),
+                            rs.getBoolean("is_active"),
+                            currentLocation,
+                            rs.getString("user_ssn"),
+                            rs.getString("name"),
+                            rs.getString("phone_number"),
+                            rs.getString("email"),
+                            rs.getDouble("wallet_balance"),
+                            rs.getDouble("credit_balance"),
+                            rs.getInt("account_rating")
                     );
                 }
             }
@@ -95,8 +98,8 @@ public class DriverDAO {
 
         double newBalance = driver.getWalletBalance() + amount;
         String sql = "UPDATE Driver SET wallet_balance = ? WHERE user_ssn = ?";
-        
-        try (Connection conn = ConnectionManager.getConnection();
+
+        try (Connection conn = connection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setDouble(1, newBalance);
@@ -112,7 +115,7 @@ public class DriverDAO {
 
     private Integer getLocationId(Location location) throws SQLException {
         String sql = "SELECT location_id FROM Location WHERE name = ? AND latitude = ? AND longitude = ?";
-        try (Connection conn = ConnectionManager.getConnection();
+        try (Connection conn = connection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, location.getName());
             stmt.setDouble(2, location.getLatitude());

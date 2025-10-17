@@ -9,6 +9,18 @@ public class Option {
     private boolean isDonationEnabled = false;
     private boolean isRateEnabled = false;
 
+    public Option(float tips, float donationAmount, String donationOrganization) {
+        this.tips = tips;
+        this.donationAmount = donationAmount;
+        this.donationOrganization = donationOrganization;
+    }
+
+    public Option() {
+        tips = 0;
+        donationAmount = 0;
+        donationOrganization = "";
+    }
+
     public void giveDonation(Passenger passenger, double amount, String organization, String source) {
         if (!isDonationEnabled) {
             System.out.println("❌ Donations are currently disabled.");

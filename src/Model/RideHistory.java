@@ -1,7 +1,5 @@
 package Model;
 
-import java.util.List;
-
 public class RideHistory {
     private int historyId;
     // private Request request;
@@ -9,7 +7,18 @@ public class RideHistory {
     private Passenger passenger;
     private int passengerRating;
     private int driverRating;
+    public RideHistory(int historyId, Driver driver, Passenger passenger, int passengerRating, int driverRating) {
+        this.historyId = historyId;
+        this.driver = driver;
+        this.passenger = passenger;
+        this.passengerRating = 0;
+        this.driverRating = 0;
+    }
 
+
+    public void setHistoryId(int historyId) {
+        this.historyId = historyId;
+    }
 
     public int getDriverRating() {
         return driverRating;
@@ -26,7 +35,17 @@ public class RideHistory {
     public void setPassengerRating(int rating) {
         this.passengerRating = rating;
     }
+    public Driver getDriver() {
+        return driver;
+    }
 
+    public Passenger getPassenger() {
+        return passenger;
+    }
+
+    public int getHistoryId() {
+        return historyId;
+    }
 //    public static int getRideCounts(List<RideHistory> rides) {
 //        int count = 0;
 //        for (RideHistory h : rides) {
@@ -38,14 +57,6 @@ public class RideHistory {
 //        }
 //        return count;
 //    }
-
-    public RideHistory(int historyId, Driver driver, Passenger passenger, int passengerRating, int driverRating) {
-        this.historyId = historyId;
-        this.driver = driver;
-        this.passenger = passenger;
-        this.passengerRating = 0;
-        this.driverRating = 0;
-    }
 
     @Override
     public String toString() {

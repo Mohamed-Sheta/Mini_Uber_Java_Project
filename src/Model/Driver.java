@@ -6,17 +6,23 @@ public class Driver extends Person {
     private boolean active;
     private Location currentLocation;
 
-    public Driver(String licensePlate, String carModel, boolean active, String User_SSN, String name, String PhoneNumber, String Email, float WalletBalance, float creditBalance, int AccountRating) {
-        super(User_SSN, name, PhoneNumber, Email, WalletBalance, creditBalance, AccountRating);
+    public Driver(String licensePlate, String carModel, boolean active, Location currentLocation,
+                  String userSSN, String name, String phoneNumber, String email,
+                  double walletBalance, double creditBalance, double accountRating) {
+        super(userSSN, name, phoneNumber, email, walletBalance, creditBalance, accountRating);
         this.licensePlate = licensePlate;
         this.carModel = carModel;
         this.active = active;
+        this.currentLocation = currentLocation;
     }
 
 
     @Override
     public void showProfile() {
 
+    }
+    public boolean isActive() {
+        return active;
     }
 
     public String getLicensePlate() {
@@ -31,6 +37,7 @@ public class Driver extends Person {
         double currentBalance = getWalletBalance(); // جلب الرصيد الحالي باستخدام الـ Getter
         updateWalletBalance(currentBalance + amount); // تحديث الرصيد باستخدام الـ Protected Setter
     }
+
     public void RatePassenger(RideHistory hist, int rating) {
         if (rating >= 1 && rating <= 5) {
             hist.setPassengerRating(rating);
@@ -40,11 +47,8 @@ public class Driver extends Person {
             System.out.println("invalid rating must be between 1 and 5");
         }
     }
+    public Location getCurrentLocation() {
+        return currentLocation;
+    }
 }
-
-
-
-//    public Location getCurrentLocation() {
-//        return currentLocation;
-//    }
 //
