@@ -27,9 +27,9 @@ public class EdgesDAO {
             stmt.setInt(4, edge.getEstimated_time());
 
             stmt.executeUpdate();
-            System.out.println("✅ Edge inserted successfully with from_id=" + fromId + " and to_id=" + toId);
+            System.out.println(" Edge inserted successfully with from_id=" + fromId + " and to_id=" + toId);
         } catch (SQLException e) {
-            System.err.println("❌ Error inserting edge: " + e.getMessage());
+            System.err.println(" Error inserting edge: " + e.getMessage());
             throw e;
         }
     }
@@ -60,9 +60,9 @@ public class EdgesDAO {
                 Edge edge = new Edge(from, to, rs.getDouble("distance"), rs.getInt("estimated_time"));
                 edges.add(edge);
             }
-            System.out.println("✅ Retrieved " + edges.size() + " edges");
+            System.out.println(" Retrieved " + edges.size() + " edges");
         } catch (SQLException e) {
-            System.err.println("❌ Error fetching edges: " + e.getMessage());
+            System.err.println(" Error fetching edges: " + e.getMessage());
             throw e;
         }
         return edges;

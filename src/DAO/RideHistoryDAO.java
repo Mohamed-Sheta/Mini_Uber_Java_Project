@@ -29,7 +29,7 @@ public class RideHistoryDAO {
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         rideHistory.setHistoryId(generatedKeys.getInt(1));
-                        System.out.println("✅ RideHistory saved with ID: " + rideHistory.getHistoryId());
+                        System.out.println(" RideHistory saved with ID: " + rideHistory.getHistoryId());
                     }
                 }
             }
@@ -50,7 +50,7 @@ public class RideHistoryDAO {
                     Passenger passenger = passengerDAO.getPassengerBySSN(rs.getString("passenger_ssn"));
 
                     if (driver == null || passenger == null) {
-                        System.err.println("❌ Driver or Passenger not found for RideHistory ID: " + historyId);
+                        System.err.println(" Driver or Passenger not found for RideHistory ID: " + historyId);
                         return null;
                     }
 
@@ -64,7 +64,7 @@ public class RideHistoryDAO {
                 }
             }
         }
-        System.out.println("❌ No RideHistory found with ID: " + historyId);
+        System.out.println(" No RideHistory found with ID: " + historyId);
         return null;
     }
 
@@ -80,7 +80,7 @@ public class RideHistoryDAO {
 
             boolean success = stmt.executeUpdate() > 0;
             if (success) {
-                System.out.println("✅ Updated ratings for RideHistory ID: " + historyId);
+                System.out.println(" Updated ratings for RideHistory ID: " + historyId);
             }
             return success;
         }
@@ -101,7 +101,7 @@ public class RideHistoryDAO {
                     Passenger passenger = passengerDAO.getPassengerBySSN(rs.getString("passenger_ssn"));
 
                     if (driver == null || passenger == null) {
-                        System.err.println("❌ Skipping RideHistory ID: " + rs.getInt("history_id") + " due to missing Driver or Passenger.");
+                        System.err.println(" Skipping RideHistory ID: " + rs.getInt("history_id") + " due to missing Driver or Passenger.");
                         continue;
                     }
 
@@ -116,7 +116,7 @@ public class RideHistoryDAO {
                 }
             }
         }
-        System.out.println("✅ Retrieved " + histories.size() + " ride histories for user SSN: " + userSSN);
+        System.out.println(" Retrieved " + histories.size() + " ride histories for user SSN: " + userSSN);
         return histories;
     }
 }

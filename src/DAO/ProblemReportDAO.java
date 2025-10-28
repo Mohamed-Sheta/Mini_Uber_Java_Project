@@ -60,10 +60,10 @@ public class ProblemReportDAO {
                 junctionStmt.executeBatch();
             }
             conn.commit();
-            System.out.println("✅ Problem Report ID " + generatedReportId + " saved with associated types.");
+            System.out.println(" Problem Report ID " + generatedReportId + " saved with associated types.");
             return generatedReportId;
         } catch (SQLException e) {
-            System.err.println("❌ Error adding Problem Report. Rolling back transaction: " + e.getMessage());
+            System.err.println(" Error adding Problem Report. Rolling back transaction: " + e.getMessage());
             if (conn != null) {
                 conn.rollback();
             }
