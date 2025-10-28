@@ -23,7 +23,7 @@ public class LocationDAO {
 
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
-                    System.out.println("✅ Location saved with ID: " + generatedKeys.getInt(1));
+                    System.out.println(" Location saved with ID: " + generatedKeys.getInt(1));
                     location.setId(generatedKeys.getInt(1));
                     return location;
                 } else {

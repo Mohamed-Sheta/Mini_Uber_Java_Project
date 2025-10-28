@@ -1,7 +1,7 @@
 package Model;
 
 public class Driver extends Person {
-    private String licensePlate;
+     private String licensePlate;
     private String carModel;
     private boolean active;
     private Location currentLocation;

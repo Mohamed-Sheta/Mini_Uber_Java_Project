@@ -37,7 +37,7 @@ public class DriverDAO {
 
             boolean success = stmt.executeUpdate() > 0;
             if (success) {
-                System.out.println("✅ Driver " + driver.getName() + " added successfully.");
+                System.out.println(" Driver " + driver.getName() + " added successfully.");
             }
             return success;
         }
@@ -80,19 +80,19 @@ public class DriverDAO {
                 }
             }
         }
-        System.out.println("❌ No driver found with SSN: " + ssn);
+        System.out.println(" No driver found with SSN: " + ssn);
         return null;
     }
 
     public boolean addAmount(String ssn, double amount) throws SQLException {
         if (amount <= 0) {
-            System.err.println("❌ Invalid amount: " + amount + ". Amount must be positive.");
+            System.err.println(" Invalid amount: " + amount + ". Amount must be positive.");
             return false;
         }
 
         Driver driver = getDriverBySSN(ssn);
         if (driver == null) {
-            System.err.println("❌ Driver with SSN " + ssn + " not found.");
+            System.err.println(" Driver with SSN " + ssn + " not found.");
             return false;
         }
 
@@ -107,7 +107,7 @@ public class DriverDAO {
 
             boolean success = stmt.executeUpdate() > 0;
             if (success) {
-                System.out.println("✅ Added $" + amount + " to driver " + ssn + ". New balance: $" + newBalance);
+                System.out.println(" Added $" + amount + " to driver " + ssn + ". New balance: $" + newBalance);
             }
             return success;
         }

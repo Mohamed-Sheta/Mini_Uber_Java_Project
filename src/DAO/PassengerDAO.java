@@ -43,7 +43,7 @@ public class PassengerDAO {
 
             boolean success = stmt.executeUpdate() > 0;
             if (success) {
-                System.out.println("✅ Passenger " + passenger.getName() + " added successfully.");
+                System.out.println(" Passenger " + passenger.getName() + " added successfully.");
             }
             return success;
         }
@@ -96,7 +96,7 @@ public class PassengerDAO {
                 }
             }
         }
-        System.out.println("❌ No passenger found with SSN: " + ssn);
+        System.out.println(" No passenger found with SSN: " + ssn);
         return null;
     }
 

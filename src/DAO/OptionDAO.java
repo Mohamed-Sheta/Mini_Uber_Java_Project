@@ -26,7 +26,7 @@ public class OptionDAO {
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         int optionId = generatedKeys.getInt(1);
-                        System.out.println("✅ Option record saved with ID: " + optionId);
+                        System.out.println(" Option record saved with ID: " + optionId);
                         return optionId;
                     }
                 }

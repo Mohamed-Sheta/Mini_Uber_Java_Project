@@ -39,12 +39,12 @@ public class PaymentDAO {
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         payment.setPaymentId(generatedKeys.getInt(1));
-                        System.out.println("✅ Payment saved with ID: " + payment.getPaymentId());
+                        System.out.println(" Payment saved with ID: " + payment.getPaymentId());
                         return true;
                     }
                 }
             }
-            System.out.println("❌ Failed to save payment");
+            System.out.println(" Failed to save payment");
             return false;
         }
     }

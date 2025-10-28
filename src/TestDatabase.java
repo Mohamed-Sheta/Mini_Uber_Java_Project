@@ -15,7 +15,7 @@ public class TestDatabase {
         try {
             // Initialize connection
             conn = connection.getConnection();
-            System.out.println("✅ Connected to database successfully!\n");
+            System.out.println(" Connected to database successfully!\n");
 
             // Clear tables to avoid duplicate key errors
             clearTables(conn);
