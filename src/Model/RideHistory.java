@@ -1,20 +1,23 @@
-package Model;
+package com.mycompany.uper;
+
+import java.util.List;
 
 public class RideHistory {
-    private int historyId;
     // private Request request;
+    private static int idCounter = 1;
+    private int historyId;
     private Driver driver;
     private Passenger passenger;
     private int passengerRating;
     private int driverRating;
-    public RideHistory(int historyId, Driver driver, Passenger passenger, int passengerRating, int driverRating) {
-        this.historyId = historyId;
+
+    public RideHistory(Driver driver, Passenger passenger, int passengerRating, int driverRating) {
+        this.historyId = idCounter++;
         this.driver = driver;
         this.passenger = passenger;
-        this.passengerRating = 0;
-        this.driverRating = 0;
+        this.passengerRating = passengerRating;
+        this.driverRating = driverRating;
     }
-
 
     public void setHistoryId(int historyId) {
         this.historyId = historyId;
@@ -46,6 +49,7 @@ public class RideHistory {
     public int getHistoryId() {
         return historyId;
     }
+    
 //    public static int getRideCounts(List<RideHistory> rides) {
 //        int count = 0;
 //        for (RideHistory h : rides) {
@@ -69,4 +73,3 @@ public class RideHistory {
                 '}';
     }
 }
-

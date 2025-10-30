@@ -1,10 +1,10 @@
-package Model;
+package com.mycompany.uper;
 
 public class Edge {
-    private Location from ;
-    private Location to;
-    private double distance;
-    private int estimated_time;
+    protected Location from ;
+    protected Location to;
+    protected double distance;
+    protected int estimated_time;
 
     public Edge(Location from, Location to, double distance, int estimated_time) {
         this.from = from;

@@ -1,26 +1,19 @@
-package Model;
+package com.mycompany.uper;
+
+import java.util.List;
 
 public class Driver extends Person {
      private String licensePlate;
     private String carModel;
     private boolean active;
-    private Location currentLocation;
 
-    public Driver(String licensePlate, String carModel, boolean active, Location currentLocation,
-                  String userSSN, String name, String phoneNumber, String email,
-                  double walletBalance, double creditBalance, double accountRating) {
-        super(userSSN, name, phoneNumber, email, walletBalance, creditBalance, accountRating);
+    public Driver(String licensePlate, String carModel, boolean active, String userSSN, String name, String phoneNumber, String email, double walletBalance, double creditBalance, double accountRating, Location currentLocation, List<RideHistory> rideHistory) {
+        super(userSSN, name, phoneNumber, email, walletBalance, creditBalance, accountRating, currentLocation, rideHistory);
         this.licensePlate = licensePlate;
         this.carModel = carModel;
         this.active = active;
-        this.currentLocation = currentLocation;
     }
 
-
-    @Override
-    public void showProfile() {
-
-    }
     public boolean isActive() {
         return active;
     }
@@ -33,11 +26,6 @@ public class Driver extends Person {
         return carModel;
     }
 
-    public void addAmount(double amount) {
-        double currentBalance = getWalletBalance(); // جلب الرصيد الحالي باستخدام الـ Getter
-        updateWalletBalance(currentBalance + amount); // تحديث الرصيد باستخدام الـ Protected Setter
-    }
-
     public void RatePassenger(RideHistory hist, int rating) {
         if (rating >= 1 && rating <= 5) {
             hist.setPassengerRating(rating);
@@ -47,8 +35,19 @@ public class Driver extends Person {
             System.out.println("invalid rating must be between 1 and 5");
         }
     }
-    public Location getCurrentLocation() {
-        return currentLocation;
+    
+    @Override
+    public void showProfile() {
+        System.out.println("Driver Profile:");
+        System.out.println("Name: " + getName());
+        System.out.println("SSN: " + getUserSSN());
+        System.out.println("Phone: " + getPhoneNumber());
+        System.out.println("Email: " + getEmail());
+        System.out.println("Wallet Balance: $" + getWalletBalance());
+        System.out.println("Credit Balance: $" + getCreditBalance());
+        System.out.println("License Plate: " + licensePlate);
+        System.out.println("Car Model: " + carModel);
+        System.out.println("Active: " + active);
+        System.out.println("Current Location: " + (getCurrentLocation() != null ? getCurrentLocation().getName() : "Not set"));
     }
 }
-//

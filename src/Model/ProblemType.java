@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Enum.java to edit this template
  */
-package Model;
+package com.mycompany.uper;
 
 /**
  *
@@ -24,9 +24,5 @@ public enum ProblemType {
     ACCOUNT_ISSUE,      // Problems with account balance or payment method
 
     // -----Other types-----
-    OTHER_ISSUE  ;   // Any other issue not covered by the above categories
-    private int ID;
-    public int getID() {
-        return ID;
-    }
+    OTHER_ISSUE     // Any other issue not covered by the above categories
 }

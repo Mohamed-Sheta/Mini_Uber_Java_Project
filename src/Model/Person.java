@@ -1,4 +1,5 @@
-package Model;
+package com.mycompany.uper;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,11 +11,10 @@ public abstract class Person {
     private double walletBalance;
     private double creditBalance;
     private double accountRating;
+    private Location currentLocation; 
     private List<RideHistory> rideHistory;
-//    there is list of ridehistory
 
-    public Person(String userSSN, String name, String phoneNumber, String email,
-                  double walletBalance, double creditBalance, double accountRating) {
+    public Person(String userSSN, String name, String phoneNumber, String email, double walletBalance, double creditBalance, double accountRating, Location currentLocation, List<RideHistory> rideHistory) {
         this.userSSN = userSSN;
         this.name = name;
         this.phoneNumber = phoneNumber;
@@ -22,45 +22,22 @@ public abstract class Person {
         this.walletBalance = walletBalance;
         this.creditBalance = creditBalance;
         this.accountRating = accountRating;
-        this.rideHistory = new ArrayList<RideHistory>();
+        this.currentLocation = currentLocation;
+        this.rideHistory = rideHistory;
     }
 
-    public String getUserSSN() {
-        return userSSN;
-    }
+    public String getUserSSN() { return userSSN; }
+    public String getName() { return name; }
+    public String getPhoneNumber() { return phoneNumber; }
+    public String getEmail() { return email; }
+    public double getWalletBalance() { return walletBalance; }
+    public double getCreditBalance() { return creditBalance; }
+    public Location getCurrentLocation() {return currentLocation;}
+    public List<RideHistory> getRideHistory() {return rideHistory;}
+    public double getAccountRating() {return accountRating;}
 
-    public String getName() {
-        return name;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public double getWalletBalance() {
-        return walletBalance;
-    }
-
-    public double getCreditBalance() {
-        return creditBalance;
-    }
-
-//    public int getAccountRating() {
-//        return accountRating;
-//    add ride history
-//    }
-
-    protected void updateWalletBalance(double walletBalance) {
-        this.walletBalance = walletBalance;
-    }
-
-    protected void updateCreditBalance(double creditBalance) {
-        this.creditBalance = creditBalance;
-    }
+    protected void updateWalletBalance(double walletBalance) {this.walletBalance = walletBalance;}
+    protected void updateCreditBalance(double creditBalance) {this.creditBalance = creditBalance;}
 
     public double getAverageRating() {
         System.out.println("rideHistory is null: " + (rideHistory == null));
@@ -68,11 +45,9 @@ public abstract class Person {
         int count = 0;
         for (RideHistory h : rideHistory) {
             if (this instanceof Driver) {
-                // تقييم الراكب للسائق
                 total += h.getPassengerRating();
                 if (h.getPassengerRating() > 0) count++;
             } else if (this instanceof Passenger) {
-                // تقييم السائق للراكب
                 total += h.getDriverRating();
                 if (h.getDriverRating() > 0) count++;
             }

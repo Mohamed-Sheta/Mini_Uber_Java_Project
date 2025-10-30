@@ -1,29 +1,98 @@
-package Model;
+package com.mycompany.uper;
 
 public class Request {
-    private static int reqId=1000;
-    public Passenger p;
-    String status;
-    public Location Origin;
-    public Location destination;
-    public double distance;
-    double estimatedprice;
-    boolean can;
-    public static void setReqId(){
-        reqId++;
-    }
-    public void  pymenttransaction(){
-        double amount=distance*11.5;
-        if(p.canAfford(amount)){
-            System.out.println("requst is being proceed"+amount);
 
-        }
-        else{
-            System.out.println("cannot afford the price of the trip"+p.getWalletBalance()+p.getCreditBalance());
-        }
+    private static int requestCounter = 1;
+    private int requestId;
+    private Passenger passenger;
+    private Location origin;
+    private Location destination;
+    private Status status;
+    private double distance;
+    private int estimatedTime;
+    private Payment payment;
+
+    public Request(Passenger passenger, Location origin, Location destination,
+                   double distance, int estimatedTime) {
+
+        this.requestId = requestCounter++;
+        this.passenger = passenger;
+        this.origin = origin;
+        this.destination = destination;
+        this.distance = distance;
+        this.estimatedTime = estimatedTime;
+        this.status = Status.Pending;
+        this.payment = null;
     }
-    public void set_Distnace(){
-        MapGraph h=new MapGraph();
-        distance=h.shortestDistance(Origin,destination);
+
+    public Request getRequest() {
+        return this;
+    }
+
+    public int getRequestId() {
+        return requestId;
+    }
+
+    public Passenger getPassenger() {
+        return passenger;
+    }
+
+    public Location getOrigin() {
+        return origin;
+    }
+
+    public Location getDestination() {
+        return destination;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public double getDistance() {
+        return distance;
+    }
+
+    public int getEstimatedTime() {
+        return estimatedTime;
+    }
+
+    public Payment getPayment() {
+        return payment;
+    }
+
+    public void updateStatus(Status status) {
+        this.status = status;
+    }
+
+    // ✅ Updated to use Status ENUM
+//    public void PaymentTransaction(Payment payment, Driver driver) {
+//        if (payment != null) {
+//            this.payment = payment;
+//
+//            boolean success = payment.processPayment(passenger, driver);
+//
+//            if (success) {
+//                this.status = Status.Completed;
+//                System.out.println("✅ Payment processed successfully for Request ID: " + requestId);
+//            } else {
+//                this.status = Status.PaymentFailed;
+//                System.out.println("❌ Payment failed for Request ID: " + requestId);
+//            }
+//        }
+//    }
+
+    @Override
+    public String toString() {
+        return "Request{" +
+                "requestId=" + requestId +
+                ", passenger=" + passenger.getName() +
+                ", origin=" + origin.getName() +
+                ", destination=" + destination.getName() +
+                ", status='" + status + '\'' +
+                ", distance=" + distance +
+                ", estimatedTime=" + estimatedTime +
+                ", payment=" + (payment != null ? payment.getPaymentDetails() : "Not Paid") +
+                '}';
     }
 }

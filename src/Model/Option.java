@@ -1,19 +1,13 @@
-package Model;
+package com.mycompany.uper;
 
 public class Option {
-    private float tips;
-    private float donationAmount;
+    private double tips;
+    private double donationAmount;
     private String donationOrganization;
 
     private boolean isTipsEnabled = false;
     private boolean isDonationEnabled = false;
     private boolean isRateEnabled = false;
-
-    public Option(float tips, float donationAmount, String donationOrganization) {
-        this.tips = tips;
-        this.donationAmount = donationAmount;
-        this.donationOrganization = donationOrganization;
-    }
 
     public Option() {
         tips = 0;
@@ -21,35 +15,10 @@ public class Option {
         donationOrganization = "";
     }
 
-    public void giveDonation(Passenger passenger, double amount, String organization, String source) {
-        if (!isDonationEnabled) {
-            System.out.println("❌ Donations are currently disabled.");
-            return;
-        }
 
-        if (amount <1) {
-            System.out.println("❌ Invalid donation amount.");
-            return;
-        }
-
-        double total = passenger.getWalletBalance() + passenger.getCreditBalance();
-        if (total < amount) {
-            System.out.println("❌ Donation failed: Insufficient balance.");
-            System.out.println("Available total balance: " + total);
-            return;
-        }
-
-        passenger.reduceAmount(amount, source);
-
-        this.donationAmount = (float) amount;
-        this.donationOrganization = organization;
-
-        System.out.println("✅ " + passenger.getName() + " donated " + amount + " to " + organization);
-        System.out.println("Remaining wallet: " + passenger.getWalletBalance());
-        System.out.println("Remaining credit: " + passenger.getCreditBalance());
+    public void enableRating(boolean key) {
+        this.isRateEnabled = key;
     }
-
-
     public void enableTips(boolean key) {
         this.isTipsEnabled = key;
     }
@@ -58,19 +27,38 @@ public class Option {
         this.isDonationEnabled = key;
     }
 
-    public void setTipsAmount(float amount) {
-        if (isTipsEnabled) {
-            this.tips = amount;
-        } else {
-            System.out.println("Tips feature is disabled.");
+    public void giveDonation(double amount, String organization) {
+        if (!isDonationEnabled) {
+            System.out.println("❌ Donations are currently disabled.");
+            return;
         }
+        
+        if (amount < 1) {
+            System.out.println("❌ Invalid donation amount.");
+            return;
+        }
+        
+        this.donationAmount = amount;
+        this.donationOrganization = organization == null ? "" : organization;
+        
+        System.out.println("✅ Donation added: " + amount + " to " + this.donationOrganization);
+        System.out.println("ℹ️ Final deduction will happen during payment processing.");
+    }
+    
+    public void giveTips(double amount) {
+        if (!isTipsEnabled) {
+            System.out.println("Tips feature is disabled.");
+            return;
+        }
+        if (amount < 0) {
+            System.out.println("⚠️ Invalid tips amount.");
+            return;
+        }
+        this.tips = amount;
     }
 
-    public void enableRating(boolean key) {
-        this.isRateEnabled = key;
-    }
 
-    public float getTips() { return tips; }
-    public float getDonationAmount() { return donationAmount; }
+    public double getTips() { return tips; }
+    public double getDonationAmount() { return donationAmount; }
     public String getDonationOrganization() { return donationOrganization; }
 }

@@ -1,30 +1,11 @@
-package Model;
+package com.mycompany.uper;
+
+import java.util.List;
 
 public class Passenger extends Person {
-    private Location currentLocation;
-    private Location destination;
 
-    public Passenger(Location currentLocation, String userSSN, String name, String phoneNumber, String email, double walletBalance, double creditBalance, double accountRating) {
-        super(userSSN, name, phoneNumber, email, walletBalance, creditBalance, accountRating);
-        this.currentLocation = currentLocation;
-    }
-
-
-
-    public Location getCurrentLocation() {
-        return currentLocation;
-    }
-
-    public void setCurrentLocation(Location currentLocation) {
-        this.currentLocation = currentLocation;
-    }
-
-    public Location getDestination() {
-        return destination;
-    }
-
-    public void setDestination(Location destination) {
-        this.destination = destination;
+    public Passenger(String userSSN, String name, String phoneNumber, String email, double walletBalance, double creditBalance, double accountRating, Location currentLocation, List<RideHistory> rideHistory) {
+        super(userSSN, name, phoneNumber, email, walletBalance, creditBalance, accountRating, currentLocation, rideHistory);
     }
 
     public void setWalletBalance(double walletBalance) {
@@ -33,58 +14,6 @@ public class Passenger extends Person {
 
     public void setCreditBalance(double creditBalance) {
         updateCreditBalance(creditBalance);
-    }
-
-    public boolean canAfford(double amount) {
-        double total = getWalletBalance() + getCreditBalance();
-        return total >= amount;
-    }
-
-    public boolean reduceAmount(double amount, String source) {
-        if (!canAfford(amount)) {
-            System.out.println("❌ Transaction rejected: Insufficient balance.");
-            System.out.println("Available total balance: " + (getWalletBalance() + getCreditBalance()));
-            return false;
-        }
-
-        switch (source.toLowerCase()) {
-            case "wallet":
-                if (getWalletBalance() >= amount) {
-                    updateWalletBalance(getWalletBalance() - amount);
-                    System.out.println("✅ Paid $" + amount + " from wallet.");
-                    return true;
-                } else {
-                    System.out.println("❌ Wallet balance insufficient.");
-                    return false;
-                }
-
-            case "credit":
-                if (getCreditBalance() >= amount) {
-                    updateCreditBalance(getCreditBalance() - amount);
-                    System.out.println("✅ Paid $" + amount + " from credit.");
-                    return true;
-                } else {
-                    System.out.println("❌ Credit balance insufficient.");
-                    return false;
-                }
-
-            case "auto": // default behavior (use both)
-                if (getWalletBalance() >= amount) {
-                    updateWalletBalance(getWalletBalance() - amount);
-                } else {
-                    double remaining = amount - getWalletBalance();
-                    updateWalletBalance(0);
-                    updateCreditBalance(getCreditBalance() - remaining);
-                }
-                System.out.println("✅ Payment successful. Amount deducted: " + amount);
-                System.out.println("Remaining wallet: " + getWalletBalance());
-                System.out.println("Remaining credit: " + getCreditBalance());
-                return true;
-
-            default:
-                System.out.println("⚠️ Invalid payment source. Use 'wallet', 'credit', or 'auto'.");
-                return false;
-        }
     }
 
     public void RateDriver(RideHistory hist, int rating) {
@@ -106,7 +35,7 @@ public class Passenger extends Person {
         System.out.println("Email: " + getEmail());
         System.out.println("Wallet Balance: " + getWalletBalance());
         System.out.println("Credit Balance: " + getCreditBalance());
-//        System.out.println("Rating: " + getAccountRating());
+        System.out.println("Rating: " + getAccountRating());
     }
 }
 
