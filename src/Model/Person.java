@@ -1,5 +1,4 @@
-package com.mycompany.uper;
-
+package Model;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,8 +35,9 @@ public abstract class Person {
     public List<RideHistory> getRideHistory() {return rideHistory;}
     public double getAccountRating() {return accountRating;}
 
-    protected void updateWalletBalance(double walletBalance) {this.walletBalance = walletBalance;}
-    protected void updateCreditBalance(double creditBalance) {this.creditBalance = creditBalance;}
+
+    public void updateWalletBalance(double walletBalance) {this.walletBalance = walletBalance;}
+    public void updateCreditBalance(double creditBalance) {this.creditBalance = creditBalance;}
 
     public double getAverageRating() {
         System.out.println("rideHistory is null: " + (rideHistory == null));

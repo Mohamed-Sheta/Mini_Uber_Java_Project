@@ -1,4 +1,4 @@
-package com.mycompany.uper;
+package Model;
 
 import java.util.Objects;
 

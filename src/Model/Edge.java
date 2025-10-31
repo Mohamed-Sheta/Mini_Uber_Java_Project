@@ -1,4 +1,4 @@
-package com.mycompany.uper;
+package Model;
 
 public class Edge {
     protected Location from ;

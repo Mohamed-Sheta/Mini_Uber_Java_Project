@@ -1,4 +1,8 @@
-package com.mycompany.uper;
+package services;
+import Model.Driver;
+import Model.Option;
+import Model.Passenger;
+import Model.PaymentType;
 
 public class Payment
 {
@@ -75,9 +79,9 @@ public class Payment
         }
 
         double commission = amount * COMPANY_COMMISSION;
-        double amountAfterCommission = amount - commission;
+        double amountAfterCommission = amount - commission;//driver
 
-        double totalChargeToPassenger = amount;
+        double totalChargeToPassenger = amount;//passanger
         double driverNetAmount = amountAfterCommission;
 
         System.out.println("--- Processing Payment ID: " + paymentId + " ---");

@@ -1,9 +1,10 @@
-package com.mycompany.uper;
+package Model;
 
+import services.Request;
 import java.util.List;
 
 public class RideHistory {
-    // private Request request;
+     private Request request;
     private static int idCounter = 1;
     private int historyId;
     private Driver driver;
@@ -49,18 +50,18 @@ public class RideHistory {
     public int getHistoryId() {
         return historyId;
     }
-    
-//    public static int getRideCounts(List<RideHistory> rides) {
-//        int count = 0;
-//        for (RideHistory h : rides) {
-//            if (h.request != null &&
-//                    h.request.getStatus() != null &&
-//                    h.request.getStatus().equalsIgnoreCase("completed")) {
-//                count++;
-//            }
-//        }
-//        return count;
-//    }
+
+    public static int getRideCounts(List<RideHistory> rides) {
+        int count = 0;
+        for (RideHistory h : rides) {
+            if (h.request != null &&
+                    h.request.getStatus() != null &&
+                    h.request.getStatus()==Status.Completed) {
+                count++;
+            }
+        }
+        return count;
+    }
 
     @Override
     public String toString() {

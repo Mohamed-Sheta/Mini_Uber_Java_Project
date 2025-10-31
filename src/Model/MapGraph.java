@@ -1,13 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-package com.mycompany.uper;
-
-/**
- *
- * @author Mohamed
- */
+package Model;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +6,7 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Comparator;
 import java.util.Collections;
+
 
 public class MapGraph {
     private Map<Location, List<Edge>> adjacency_list;
@@ -80,4 +72,38 @@ public class MapGraph {
 
         return path;
     }
+
+    public double shortestDistance(Location start, Location target) {
+        Map<Location, Double> distance = new HashMap<>();
+        PriorityQueue<Location> pq = new PriorityQueue<>(Comparator.comparingDouble(distance::get));
+
+        for (Location loc : adjacency_list.keySet()) {
+            distance.put(loc, Double.MAX_VALUE);
+        }
+
+        distance.put(start, 0.0);
+        pq.add(start);
+
+        while (!pq.isEmpty()) {
+            Location current = pq.poll();
+            if (current.equals(target)) break;
+
+            for (Edge edge : adjacency_list.getOrDefault(current, Collections.emptyList())) {
+                Location neighbor = edge.getTo();
+                double newDist = distance.get(current) + edge.getDistance();
+
+                if (newDist < distance.getOrDefault(neighbor, Double.MAX_VALUE)) {
+                    distance.put(neighbor, newDist);
+                    pq.add(neighbor);
+                }
+            }
+        }
+
+        double finalDist = distance.getOrDefault(target, Double.MAX_VALUE);
+        if (finalDist == Double.MAX_VALUE) {
+            System.out.println("No path found from " + start.getName() + " to " + target.getName());
+        }
+        return finalDist;
+    }
+
 }

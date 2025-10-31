@@ -1,7 +1,7 @@
 import Model.Location;
 import Model.MapGraph;
 import Model.Passenger;
-import Model.Request;
+import services.Request;
 
 public class Main {
     public static void main(String[] args) {
@@ -33,28 +33,5 @@ public class Main {
 
         System.out.println("\nTotal Distance: " + totalDistance + " km");
 
-        Passenger passenger = new Passenger(
-                cairo,                // current location
-                "30102001",           // SSN
-                "Ahmed Ashraf",       // name
-                "01123456789",        // phone
-                "ahmed@email.com",    // email
-                20000,                // wallet balance
-                5000,                 // credit balance
-                4.5                   // rating
-        );
-        Request r1 = new Request();
-        r1.p = passenger;
-        r1.Origin = cairo;
-        r1.destination = aswan;
-
-        System.out.println("=== Trip Request Details ===");
-        System.out.println("From: " + r1.Origin.getName());
-        System.out.println("To: " + r1.destination.getName());
-        System.out.println("Passenger: " + passenger.getName());
-        r1.set_Distnace();
-        System.out.println(r1.distance);
-        r1.pymenttransaction();
     }
 }
-// كمان برضو تعمل time

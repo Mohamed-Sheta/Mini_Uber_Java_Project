@@ -1,6 +1,6 @@
 package DAO;
 
-import Model.Payment;
+import services.Payment;
 import Model.PaymentType;
 import utils.connection;
 

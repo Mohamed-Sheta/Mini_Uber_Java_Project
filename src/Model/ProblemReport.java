@@ -1,4 +1,4 @@
-package com.mycompany.uper;
+package Model;
 
 import java.time.LocalDateTime;
 import java.util.Set;
