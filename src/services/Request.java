@@ -62,7 +62,7 @@ public class Request {
         this.status = status;
     }
 
-    private int calculateEstimatedTime(double distance) {
+    public int calculateEstimatedTime(double distance) {
         double avgSpeedKmPerHour = 60.0;
         double timeInHours = distance / avgSpeedKmPerHour;
         return (int) (timeInHours * 60);

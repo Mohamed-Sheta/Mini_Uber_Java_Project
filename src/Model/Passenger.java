@@ -27,8 +27,8 @@ public class Passenger extends Person {
         }
     }
 
-    public Request request_ride(Location origin, Location destination, MapGraph mapGraph) {
-        if (origin == null || destination == null || mapGraph == null) {
+    public Request request_ride(Location origin, Location destination,MapGraph mapGraph) {
+        if (origin == null || destination == null) {
             System.out.println("Error: Origin, destination, and map cannot be null.");
             return null;
         }
