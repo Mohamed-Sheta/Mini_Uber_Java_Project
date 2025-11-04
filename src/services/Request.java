@@ -16,12 +16,22 @@ public class Request {
     public Request(Passenger passenger, Location origin, Location destination, Status status, MapGraph mapGraph) {
         this.requestId = requestCounter++;
         this.passenger = passenger;
-        this.origin = passenger.getCurrentLocation();
+        this.origin =origin;
         this.destination = destination;
         this.status = status;
 
         this.distance = mapGraph.shortestDistance(origin, destination);
+        if (this.distance == Double.MAX_VALUE) {
+            System.out.println("❌ ERROR: Request " + this.requestId + " failed. No valid path found from " + origin.getName() + " to " + destination.getName());
 
+            this.distance = 0.0;
+            this.estimatedTime = 0;
+            this.estimatedPrice = 0.0;
+            this.status = Status.Cancelled;
+
+            requestCounter--;
+            return;
+        }
         this.estimatedTime = calculateEstimatedTime(distance);
         this.estimatedPrice = calculateEstimatedPrice(distance);
     }
