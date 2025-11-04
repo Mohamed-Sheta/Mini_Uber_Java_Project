@@ -36,7 +36,7 @@ public class RideManager {
     // -------------------------------------------------------------------------------------------------------------------
 
     public Driver assignNearestDriver() {
-        if (availableDrivers.isEmpty()) {
+        if (availableDrivers.isEmpty() || availableDrivers == null) {
             System.out.println("⚠ No active drivers available to assign.");
             return null;
         }

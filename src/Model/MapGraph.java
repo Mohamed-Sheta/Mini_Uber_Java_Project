@@ -25,7 +25,7 @@ public class MapGraph {
         adjacency_list.get(from).add(new Edge(from, to, distance));
     }
 
-    public List<Location> dijkstraShortestPath(Location start, Location target) {
+    public List<Location> nodes_of_road(Location start, Location target) {
         Map<Location, Double> distance = new HashMap<>();
         Map<Location, Location> previous = new HashMap<>();
         PriorityQueue<Location> pq = new PriorityQueue<>(Comparator.comparingDouble(distance::get));
