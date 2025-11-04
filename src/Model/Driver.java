@@ -1,6 +1,8 @@
 package Model;
 
-import java.util.List;
+import services.Request;
+
+import java.util.*;
 
 public class Driver extends Person {
      private String licensePlate;
@@ -34,6 +36,49 @@ public class Driver extends Person {
         else{
             System.out.println("invalid rating must be between 1 and 5");
         }
+    }
+
+    public void viewRideRequests(Queue<Request> requests) {
+        if (requests.isEmpty()) {
+            System.out.println("🚫 No ride requests available.");
+            return;
+        }
+
+        System.out.println("\n📋 Ride Requests Sorted by Distance then Time:");
+
+        List<Request> list = new ArrayList<>(requests);
+
+        Collections.sort(list, Comparator
+                .comparingDouble(Request::getDistance)
+                .thenComparingInt(Request::getEstimatedTime));
+
+        for (Request req : list) {
+            System.out.println("- Passenger: " + req.getPassenger().getName()
+                    + " | Distance: " + req.getDistance() + " km"
+                    + " | Time: " + req.getEstimatedTime() + " min"
+                    + " | Status: " + req.getStatus());
+        }
+
+        requests.clear();
+        requests.addAll(list);
+    }
+
+    public boolean Accept_Request(Queue<Request> requests) {
+        if (requests.isEmpty()) {
+            System.out.println("⚠ No ride requests available to accept.");
+            return false;
+        }
+
+        Request req = requests.peek();
+        req.updateStatus(Status.Accepted);
+        System.out.println("✅ Request Accepted by Driver for Passenger: "
+                + req.getPassenger().getName()
+                + " | Distance: " + req.getDistance() + " km"
+                + " | Estimated Time: " + req.getEstimatedTime() + " min");
+
+        requests.remove(req);
+
+        return true;
     }
 
     public int getLatestPassengerRating() {

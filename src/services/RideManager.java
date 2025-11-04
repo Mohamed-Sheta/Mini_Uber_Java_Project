@@ -268,4 +268,8 @@ public class RideManager {
     public Driver getCurrentDriver() {
         return this.currentDriver;
     }
+
+    public Payment getPaymentProcessor() {
+        return paymentProcessor;
+    }
 }

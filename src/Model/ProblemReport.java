@@ -1,5 +1,7 @@
 package Model;
 
+import services.RideManager;
+
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -19,6 +21,7 @@ public class ProblemReport {
         this.details = details;
         this.timestamp = LocalDateTime.now();
     }
+
 
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;

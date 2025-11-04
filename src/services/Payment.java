@@ -67,7 +67,7 @@ public class Payment
         }
     }
 
-    private void addAmountToDriver(Driver driver, double amount) {
+    public void addAmountToDriver(Driver driver, double amount) {
         driver.updateWalletBalance(driver.getWalletBalance() + amount);
     }
 
