@@ -6,7 +6,7 @@ public class Driver extends Person {
      private String licensePlate;
     private String carModel;
     private boolean active;
-
+    private int latestPassengerRating = 0;
     public Driver(String licensePlate, String carModel, boolean active, String userSSN, String name, String phoneNumber, String email, double walletBalance, double creditBalance, double accountRating, Location currentLocation, List<RideHistory> rideHistory) {
         super(userSSN, name, phoneNumber, email, walletBalance, creditBalance, accountRating, currentLocation, rideHistory);
         this.licensePlate = licensePlate;
@@ -26,16 +26,19 @@ public class Driver extends Person {
         return carModel;
     }
 
-    public void RatePassenger(RideHistory hist, int rating) {
+    public void RatePassenger(int rating) {
         if (rating >= 1 && rating <= 5) {
-            hist.setPassengerRating(rating);
+            this.latestPassengerRating = rating;
             System.out.println("Passenger rated with: " + rating + " stars");
         }
         else{
             System.out.println("invalid rating must be between 1 and 5");
         }
     }
-    
+
+    public int getLatestPassengerRating() {
+        return latestPassengerRating;
+    }
     @Override
     public void showProfile() {
         System.out.println("Driver Profile:");

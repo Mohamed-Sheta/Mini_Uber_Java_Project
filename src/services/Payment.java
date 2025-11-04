@@ -116,11 +116,10 @@ public class Payment
         System.out.println("🔄 Updating payment... Old Amount: " + amount + 
                            " | Tips: " + tips + " | Donation: " + donation);
 
-        this.amount = newTotal; // ✅ Updating total amount
+        this.amount = newTotal;
 
         System.out.println("✅ New total amount to be paid: " + newTotal);
 
-        // ✅ بعد ما نعمل update ننفذ الـ process العادي
         processPayment(passenger, driver);
     }
 

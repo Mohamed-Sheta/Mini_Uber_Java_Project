@@ -7,7 +7,6 @@ public class Option {
 
     private boolean isTipsEnabled = false;
     private boolean isDonationEnabled = false;
-    private boolean isRateEnabled = false;
 
     public Option() {
         tips = 0;
@@ -16,9 +15,6 @@ public class Option {
     }
 
 
-    public void enableRating(boolean key) {
-        this.isRateEnabled = key;
-    }
     public void enableTips(boolean key) {
         this.isTipsEnabled = key;
     }

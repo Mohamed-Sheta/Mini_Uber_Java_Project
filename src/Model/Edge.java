@@ -4,13 +4,11 @@ public class Edge {
     protected Location from ;
     protected Location to;
     protected double distance;
-    protected int estimated_time;
 
-    public Edge(Location from, Location to, double distance, int estimated_time) {
+    public Edge(Location from, Location to, double distance) {
         this.from = from;
         this.to = to;
         this.distance = distance;
-        this.estimated_time = estimated_time;
     }
 
     public Location getFrom() {
@@ -25,9 +23,6 @@ public class Edge {
         return distance;
     }
 
-    public int getEstimated_time() {
-        return estimated_time;
-    }
 
     @Override
     public String toString() {
@@ -35,7 +30,6 @@ public class Edge {
                 "from=" + from +
                 ", to=" + to +
                 ", distance=" + distance +
-                ", estimated_time=" + estimated_time +
                 '}';
     }
 }

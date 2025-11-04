@@ -19,7 +19,6 @@ public class RideHistory {
         this.passengerRating = passengerRating;
         this.driverRating = driverRating;
     }
-
     public void setHistoryId(int historyId) {
         this.historyId = historyId;
     }

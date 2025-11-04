@@ -17,10 +17,10 @@ public class Main {
         Location newCairo = new Location("New Cairo", 30.0333, 31.4251);
 
         MapGraph graph = new MapGraph();
-        graph.addEdge(cairo, giza, 10, 15);
-        graph.addEdge(giza, alex, 200, 120);
-        graph.addEdge(cairo, newCairo, 30, 40);
-        graph.addEdge(newCairo, giza, 35, 45); // Bidirectional edges are not assumed, so we add a path back if needed
+        graph.addEdge(cairo, giza, 10);
+        graph.addEdge(giza, alex, 200);
+        graph.addEdge(cairo, newCairo, 30);
+        graph.addEdge(newCairo, giza, 35); // Bidirectional edges are not assumed, so we add a path back if needed
 
         // Test shortest path calculation (Dijkstra)
         List<Location> path = graph.dijkstraShortestPath(cairo, alex);
