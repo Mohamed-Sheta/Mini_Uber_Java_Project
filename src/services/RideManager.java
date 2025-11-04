@@ -1,6 +1,6 @@
 package services;
-
 import Model.*;
+
 import java.util.List;
 import java.util.Comparator;
 import java.util.stream.Collectors;
@@ -211,7 +211,7 @@ public class RideManager {
         this.driverWantsToRate = value;
     }
 
-    private int passengerRatingValue = 0;
+    private int passengerRatingValue = 0; 
     private int driverRatingValue = 0;
     public void setPassengerRatingValue(int value) {
         this.passengerRatingValue = value;
@@ -221,7 +221,7 @@ public class RideManager {
         this.driverRatingValue = value;
     }
 
-        private void saveRideHistory() {
+    private void saveRideHistory() {
         Passenger passenger = request.getPassenger();
         Driver driver = currentDriver;
 
@@ -259,5 +259,13 @@ public class RideManager {
         driver.getRideHistory().add(history);
 
         System.out.println("✅ RideHistory Saved! (ID: " + history.getHistoryId() + ")");
+    }
+
+    public Request getRequest() {
+        return this.request;
+    }
+
+    public Driver getCurrentDriver() {
+        return this.currentDriver;
     }
 }

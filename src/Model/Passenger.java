@@ -1,11 +1,12 @@
 package Model;
-
 import services.Request;
 
 import java.util.List;
+import java.util.Set;
 
 public class Passenger extends Person {
     private int latestDriverRating = 0;
+    
     public Passenger(String userSSN, String name, String phoneNumber, String email, double walletBalance, double creditBalance, double accountRating, Location currentLocation, List<RideHistory> rideHistory) {
         super(userSSN, name, phoneNumber, email, walletBalance, creditBalance, accountRating, currentLocation, rideHistory);
     }
@@ -17,6 +18,7 @@ public class Passenger extends Person {
     public void setCreditBalance(double creditBalance) {
         updateCreditBalance(creditBalance);
     }
+
     public void RateDriver(int rating) {
         if (rating >=1 && rating <=5) {
             this.latestDriverRating = rating;
@@ -30,32 +32,28 @@ public class Passenger extends Person {
     public int getLatestDriverRating() {
         return latestDriverRating;
     }
-    public Request request_ride(Location origin, Location destination,MapGraph mapGraph) {
-        if (origin == null || destination == null) {
-            System.out.println("Error: Origin, destination, and map cannot be null.");
-            return null;
+
+    
+    public void ReportProblem(RideManager manager, Set<ProblemType> types, String details) {
+        if (manager == null) {
+            System.out.println("ERROR: RideManager cannot be null.");
+            return;
         }
 
-        if (origin.equals(destination)) {
-            System.out.println("Error: Origin and destination cannot be the same.");
-            return null;
+        Request currentRequest = manager.getRequest();
+        if (currentRequest == null || !currentRequest.getPassenger().equals(this)) {
+            System.out.println("ERROR: Cannot report problem for a ride not linked to this passenger.");
+            return;
         }
 
-        // Create a new ride request with PENDING status
-        Request request = new Request(this, origin, destination, Status.Pending, mapGraph);
+        ProblemReport report = new ProblemReport(manager, types, details);
 
-        System.out.println("\nRide Request Submitted Successfully!");
-        System.out.println("Request ID: " + request.getRequestId());
-        System.out.println("From: " + origin);
-        System.out.println("To: " + destination);
-        System.out.println("Estimated Distance: " + String.format("%.2f", request.getDistance()) + " km");
-        System.out.println("Estimated Time: " + request.getEstimatedTime() + " minutes");
-        System.out.println("Estimated Price: $" + String.format("%.2f", request.getEstimatedPrice()));
-        System.out.println("Status: " + request.getStatus());
-
-        return request;
+        System.out.println("\n✅ Report Submitted!");
+        System.out.println("   Report ID: " + report.getReportId());
+        System.out.println("   Linked to RideManager successfully.");
     }
 
+    
     @Override
     public void showProfile() {
         System.out.println("Passenger Profile:");
@@ -68,25 +66,3 @@ public class Passenger extends Person {
         System.out.println("Rating: " + getAccountRating());
     }
 }
-
-
-
-//    public ProblemReport ReportProblem(RideManager manager, Set<ProblemType> types, String details) {
-//
-//        if (manager == null || !manager.getRequest().getPassenger().equals(this)) {
-//            System.out.println("ERROR: Cannot report problem for a ride not linked to this passenger.");
-//            return null;
-//        }
-//
-//        ProblemReport report = new ProblemReport(
-//            manager,
-//            types,
-//            details
-//        );
-//
-//        System.out.println("\n✅ Report Submitted!");
-//        System.out.println("   Report ID: " + report.getReportId());
-//        System.out.println("   Manager Linked.");
-//
-//        return report;
-//    }
