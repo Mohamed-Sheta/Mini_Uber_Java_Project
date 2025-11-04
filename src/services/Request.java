@@ -16,7 +16,7 @@ public class Request {
     public Request(Passenger passenger, Location origin, Location destination, Status status, MapGraph mapGraph) {
         this.requestId = requestCounter++;
         this.passenger = passenger;
-        this.origin = origin;
+        this.origin = passenger.getCurrentLocation();
         this.destination = destination;
         this.status = status;
 

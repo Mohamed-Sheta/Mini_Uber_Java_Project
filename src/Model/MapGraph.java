@@ -19,10 +19,10 @@ public class MapGraph {
         adjacency_list.putIfAbsent(X, new ArrayList<>());
     }
 
-    public void addEdge(Location from, Location to, double distance, int estimated_time) {
+    public void addEdge(Location from, Location to, double distance) {
         addLocarion(from);
         addLocarion(to);
-        adjacency_list.get(from).add(new Edge(from, to, distance, estimated_time));
+        adjacency_list.get(from).add(new Edge(from, to, distance));
     }
 
     public List<Location> dijkstraShortestPath(Location start, Location target) {

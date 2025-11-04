@@ -5,7 +5,7 @@ import services.Request;
 import java.util.List;
 
 public class Passenger extends Person {
-
+    private int latestDriverRating = 0;
     public Passenger(String userSSN, String name, String phoneNumber, String email, double walletBalance, double creditBalance, double accountRating, Location currentLocation, List<RideHistory> rideHistory) {
         super(userSSN, name, phoneNumber, email, walletBalance, creditBalance, accountRating, currentLocation, rideHistory);
     }
@@ -17,9 +17,9 @@ public class Passenger extends Person {
     public void setCreditBalance(double creditBalance) {
         updateCreditBalance(creditBalance);
     }
-    public void RateDriver(RideHistory hist, int rating) {
+    public void RateDriver(int rating) {
         if (rating >=1 && rating <=5) {
-            hist.setDriverRating(rating);
+            this.latestDriverRating = rating;
             System.out.println("Driver rated with: " + rating + " stars");
         }
         else{
@@ -27,6 +27,9 @@ public class Passenger extends Person {
         }
     }
 
+    public int getLatestDriverRating() {
+        return latestDriverRating;
+    }
     public Request request_ride(Location origin, Location destination,MapGraph mapGraph) {
         if (origin == null || destination == null) {
             System.out.println("Error: Origin, destination, and map cannot be null.");
