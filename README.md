@@ -1,4 +1,4 @@
-# 🚗 mini_uber_system
+# 🚗 MiniGo
 
 ## 📘 Overview
 **mini_uber_system** is a simplified ride-sharing management system inspired by Uber.  
@@ -63,7 +63,7 @@ Handles ride creation, driver assignment, and management of completed rides.
 `requestId`, `passenger`, `origin`, `destination`, `status`, `distance`, `estimatedTime`, `payment`  
 
 **Methods:**  
-`penaltyPassenger()`, `penaltyDriver()`, `getRequest()`, `paymentTransaction()`  
+`getRequest()`, `estimated_price`,`estimated_distance`
 
 **Description:**  
 Represents a ride request, storing trip details and payment information.
@@ -120,10 +120,10 @@ Manages problem reports related to driver behavior, disputes, or technical issue
 
 ### 10. Location
 **Attributes:**  
-`latitude`, `longitude`, `name`  
+ `name`  
 
 **Methods:**  
-`getLatitude()`, `getLongitude()`, `getName()`  
+ `getName()`  
 
 **Description:**  
 Represents a physical point used for ride origins and destinations.
@@ -132,10 +132,10 @@ Represents a physical point used for ride origins and destinations.
 
 ### 11. Edge
 **Attributes:**  
-`from`, `to`, `distance`, `estimatedTime`  
+`from`, `to`, `distance`
 
 **Methods:**  
-`getToLocation()`, `getDistance()`, `getTime()`  
+`getToLocation()`, `getDistance()` 
 
 **Description:**  
 Represents a path between two locations.
@@ -158,10 +158,10 @@ Models the city map and calculates the shortest route between two locations usin
 
 1. A **Passenger** uses `requestRide()` to create a new ride request.  
 2. The **RideManager** assigns the **nearest available Driver**.  
-3. The **Driver** can accept or reject the ride request.  
+3. The **Driver** can accept the ride request. 
 4. Once accepted, the **Request** object is created linking passenger, driver, and route details.  
 5. When the trip is completed:
-   - **Payment** is processed using `processPayment()`.  
+   - **Payment** is processed using `update_process_Payment()`.  
    - Optional **tips** or **donations** are added via **Options**.  
    - The trip is stored in **RideHistory**.  
 6. The **Passenger** can rate the **Driver** or report issues through **Problems**.  
@@ -193,11 +193,3 @@ Models the city map and calculates the shortest route between two locations usin
 - **MySQL (Database)**  
 - **UML Modeling (Visual Paradigm)**  
 - **Dijkstra Algorithm (for route calculation)**  
-
----
-
-## 👩‍💻 Author
-Developed as part of an **academic OOP and database project** to demonstrate:
-- Class design and inheritance  
-- Database integration via JDBC  
-- Real-world UML modeling and data persistence
