@@ -195,4 +195,4 @@ Models the city map and calculates the shortest route between two locations usin
 - **Dijkstra Algorithm (for route calculation)**
 ## 🎨 UI/UX
 **Glide Route Pro App – MiniGO UI/UX**  
-Explore the user interface and experience design here: [MiniGO UI/UX](https://glide-route-pro.lovable.app/?utm_source=chatgpt.com)
+Explore the user interface and experience design here: [MiniGO UI/UX]([https://glide-route-pro.lovable.app/?utm_source=chatgpt.com](https://uml-dark-mode-magic.lovable.app/))
