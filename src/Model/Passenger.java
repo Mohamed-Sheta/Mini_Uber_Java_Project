@@ -1,4 +1,5 @@
 package Model;
+import services.Payment;
 import services.Request;
 import services.RideManager;
 
@@ -48,7 +49,7 @@ public class Passenger extends Person {
 
         ProblemReport report = new ProblemReport(manager, types, details);
 
-        System.out.println("\n✅ Report Submitted!");
+        System.out.println("\n Report Submitted!");
         System.out.println("   Report ID: " + report.getReportId());
         System.out.println("   Linked to RideManager successfully.");
     }
@@ -66,6 +67,14 @@ public class Passenger extends Person {
 
         // Create a new ride request with PENDING status
         Request request = new Request(this, origin, destination, Status.Pending, mapGraph);
+        double estimatedPrice = request.getEstimatedPrice();
+
+        if (!Payment.canAfford(this, estimatedPrice)) {
+            System.out.println("❌ Cannot request ride. Insufficient funds!");
+            System.out.println("Required: " + estimatedPrice + " EGP | Available: " +
+                    (getWalletBalance() + getCreditBalance()) + " EGP");
+            return null;
+        }
 
         System.out.println("\nRide Request Submitted Successfully!");
         System.out.println("Request ID: " + request.getRequestId());
@@ -81,23 +90,23 @@ public class Passenger extends Person {
 
     public void cancelRide(RideManager manager) {
         if (manager == null) {
-            System.out.println("❌ Error: RideManager cannot be null.");
+            System.out.println(" Error: RideManager cannot be null.");
             return;
         }
 
         Request request = manager.getRequest();
         if (request == null || !request.getPassenger().equals(this)) {
-            System.out.println("❌ Error: No ride found for this passenger in the given RideManager.");
+            System.out.println(" Error: No ride found for this passenger in the given RideManager.");
             return;
         }
 
         Status status = request.getStatus();
         if (status == Status.Completed) {
-            System.out.println("⚠ Cannot cancel a completed ride!");
+            System.out.println(" Cannot cancel a completed ride!");
             return;
         }
         if (status == Status.Cancelled) {
-            System.out.println("ℹ Ride is already cancelled.");
+            System.out.println(" Ride is already cancelled.");
             return;
         }
 
@@ -117,17 +126,17 @@ public class Passenger extends Person {
         }
 
         request.updateStatus(Status.Cancelled);
-        System.out.println("✅ Ride cancelled successfully. Request ID: " + request.getRequestId());
-        System.out.println("🚫 Total cancellation penalty deducted from passenger: " + TOTAL_PENALTY + " EGP");
+        System.out.println(" Ride cancelled successfully. Request ID: " + request.getRequestId());
+        System.out.println(" Total cancellation penalty deducted from passenger: " + TOTAL_PENALTY + " EGP");
 
         Driver driver = manager.getCurrentDriver();
         if (driver != null) {
             System.out.println("ℹ Notifying driver " + driver.getName() + " about ride cancellation.");
             manager.getPaymentProcessor().addAmountToDriver(driver, DRIVER_SHARE);
-            System.out.println("💰 " + DRIVER_SHARE + " EGP added to driver's wallet from cancellation fee.");
+            System.out.println( DRIVER_SHARE + " EGP added to driver's wallet from cancellation fee.");
         }
 
-        System.out.println("🏢 " + COMPANY_SHARE + " EGP goes to the company from cancellation fee.");
+        System.out.println( COMPANY_SHARE + " EGP goes to the company from cancellation fee.");
     }
 
     @Override

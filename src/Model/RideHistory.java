@@ -27,17 +27,10 @@ public class RideHistory {
         return driverRating;
     }
 
-    public void setDriverRating(int rating) {
-        this.driverRating = rating;
-    }
-
     public int getPassengerRating() {
         return passengerRating;
     }
 
-    public void setPassengerRating(int rating) {
-        this.passengerRating = rating;
-    }
     public Driver getDriver() {
         return driver;
     }

@@ -5,5 +5,4 @@ public enum Status {
     Accepted,
     Cancelled,
     Completed,
-    PaymentFailed
 }

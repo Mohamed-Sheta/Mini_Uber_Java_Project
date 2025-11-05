@@ -1,6 +1,5 @@
 package services;
 import Model.*;
-
 public class Request {
 
     private static int requestCounter = 1;
@@ -22,7 +21,7 @@ public class Request {
 
         this.distance = mapGraph.shortestDistance(origin, destination);
         if (this.distance == Double.MAX_VALUE) {
-            System.out.println("❌ ERROR: Request " + this.requestId + " failed. No valid path found from " + origin.getName() + " to " + destination.getName());
+            System.out.println(" ERROR: Request " + this.requestId + " failed. No valid path found from " + origin.getName() + " to " + destination.getName());
 
             this.distance = 0.0;
             this.estimatedTime = 0;
@@ -79,11 +78,9 @@ public class Request {
     }
 
     private double calculateEstimatedPrice(double distance) {
-        double baseFare = 10.0;
+        double baseFare = 11.5;
         double ratePerKm = 4.0;
-        double ratePerMinute = 0.5;
-
-        return baseFare + (distance * ratePerKm) + (estimatedTime * ratePerMinute);
+        return baseFare + (distance * ratePerKm);
     }
 
     @Override

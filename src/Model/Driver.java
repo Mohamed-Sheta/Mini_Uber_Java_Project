@@ -40,11 +40,11 @@ public class Driver extends Person {
 
     public void viewRideRequests(Queue<Request> requests) {
         if (requests.isEmpty()) {
-            System.out.println("🚫 No ride requests available.");
+            System.out.println(" No ride requests available.");
             return;
         }
 
-        System.out.println("\n📋 Ride Requests Sorted by Distance then Time:");
+        System.out.println("\n Ride Requests Sorted by Distance then Time:");
 
         List<Request> list = new ArrayList<>(requests);
 
@@ -65,13 +65,13 @@ public class Driver extends Person {
 
     public boolean Accept_Request(Queue<Request> requests) {
         if (requests.isEmpty()) {
-            System.out.println("⚠ No ride requests available to accept.");
+            System.out.println(" No ride requests available to accept.");
             return false;
         }
 
         Request req = requests.peek();
         req.updateStatus(Status.Accepted);
-        System.out.println("✅ Request Accepted by Driver for Passenger: "
+        System.out.println(" Request Accepted by Driver for Passenger: "
                 + req.getPassenger().getName()
                 + " | Distance: " + req.getDistance() + " km"
                 + " | Estimated Time: " + req.getEstimatedTime() + " min");

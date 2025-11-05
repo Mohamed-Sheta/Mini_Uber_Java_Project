@@ -54,6 +54,5 @@ public abstract class Person {
         }
         return count == 0 ? 0 : (double) total / count;
     }
-
     public abstract void showProfile();
 }

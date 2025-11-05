@@ -25,20 +25,20 @@ public class Option {
 
     public void giveDonation(double amount, String organization) {
         if (!isDonationEnabled) {
-            System.out.println("❌ Donations are currently disabled.");
+            System.out.println(" Donations are currently disabled.");
             return;
         }
         
         if (amount < 1) {
-            System.out.println("❌ Invalid donation amount.");
+            System.out.println(" Invalid donation amount.");
             return;
         }
         
         this.donationAmount = amount;
         this.donationOrganization = organization == null ? "" : organization;
         
-        System.out.println("✅ Donation added: " + amount + " to " + this.donationOrganization);
-        System.out.println("ℹ️ Final deduction will happen during payment processing.");
+        System.out.println(" Donation added: " + amount + " to " + this.donationOrganization);
+        System.out.println(" Final deduction will happen during payment processing.");
     }
     
     public void giveTips(double amount) {

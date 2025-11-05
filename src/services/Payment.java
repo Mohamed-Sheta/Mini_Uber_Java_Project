@@ -21,14 +21,14 @@ public class Payment
         this.options = options;
     }
 
-    private boolean canAfford(Passenger passenger, double amount) {
+    public static boolean canAfford(Passenger passenger, double amount) {
         double total = passenger.getWalletBalance() + passenger.getCreditBalance();
         return total >= amount;
     }
 
     private boolean reduceAmount(Passenger passenger, double amount, String source) {
         if (!canAfford(passenger, amount)) {
-            System.out.println("❌ Transaction rejected: Insufficient balance.");
+            System.out.println(" Transaction rejected: Insufficient balance.");
             return false;
         }
 
@@ -38,7 +38,7 @@ public class Payment
                     passenger.updateWalletBalance(passenger.getWalletBalance() - amount);
                     return true;
                 } else {
-                    System.out.println("❌ Wallet balance insufficient.");
+                    System.out.println(" Wallet balance insufficient.");
                     return false;
                 }
 
@@ -47,7 +47,7 @@ public class Payment
                     passenger.updateCreditBalance(passenger.getCreditBalance() - amount);
                     return true;
                 } else {
-                    System.out.println("❌ Credit balance insufficient.");
+                    System.out.println(" Credit balance insufficient.");
                     return false;
                 }
 
@@ -62,7 +62,7 @@ public class Payment
                 return true;
 
             default:
-                System.out.println("⚠️ Invalid payment source.");
+                System.out.println(" Invalid payment source.");
                 return false;
         }
     }
@@ -74,7 +74,7 @@ public class Payment
 
     private void processPayment(Passenger passenger, Driver driver) {
         if (passenger == null || driver == null || amount <= 0) {
-            System.out.println("❌ Payment failed: Invalid passenger/driver or invalid amount.");
+            System.out.println(" Payment failed: Invalid passenger/driver or invalid amount.");
             return;
         }
 
@@ -87,20 +87,20 @@ public class Payment
         System.out.println("--- Processing Payment ID: " + paymentId + " ---");
 
         if (!reduceAmount(passenger, totalChargeToPassenger, paymentMethod.toString())) {
-            System.out.println("❌ Payment Cancelled.");
+            System.out.println(" Payment Cancelled.");
             return;
         }
 
         addAmountToDriver(driver, driverNetAmount);
 
-        System.out.println("✅ Payment successful. Passenger Paid: " + totalChargeToPassenger);
-        System.out.println("💰 Driver received (after 8% cut): " + driverNetAmount);
-        System.out.println("🏢 Company commission: " + commission);
+        System.out.println(" Payment successful. Passenger Paid: " + totalChargeToPassenger);
+        System.out.println(" Driver received (after 8% cut): " + driverNetAmount);
+        System.out.println(" Company commission: " + commission);
     }
     
     public void updateProcessPayment(Passenger passenger, Driver driver) {  // Used when passeneger want to add tips/donation
         if (passenger == null || driver == null) {
-            System.out.println("❌ Invalid Passenger or Driver.");
+            System.out.println(" Invalid Passenger or Driver.");
             return;
         }
 
@@ -113,12 +113,12 @@ public class Payment
         }
 
         double newTotal = amount + tips + donation;
-        System.out.println("🔄 Updating payment... Old Amount: " + amount + 
+        System.out.println(" Updating payment... Old Amount: " + amount +
                            " | Tips: " + tips + " | Donation: " + donation);
 
         this.amount = newTotal;
 
-        System.out.println("✅ New total amount to be paid: " + newTotal);
+        System.out.println(" New total amount to be paid: " + newTotal);
 
         processPayment(passenger, driver);
     }
