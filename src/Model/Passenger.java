@@ -55,7 +55,7 @@ public class Passenger extends Person {
     }
 
     public Request request_ride(Location origin, Location destination, MapGraph mapGraph) {
-        if (origin == null || destination == null) {
+        if (origin == null || destination == null||mapGraph == null) {
             System.out.println("Error: Origin, destination, and map cannot be null.");
             return null;
         }
@@ -65,12 +65,20 @@ public class Passenger extends Person {
             return null;
         }
 
-        // Create a new ride request with PENDING status
         Request request = new Request(this, origin, destination, Status.Pending, mapGraph);
+        if (request == null) {
+            System.out.println(" Ride request could not be created (internal error).");
+            return null;
+        }
+
+        if (Double.isNaN(request.getDistance()) || request.getDistance() <= 0) {
+            System.out.println("No valid path found from " + origin.getName() + " to " + destination.getName());
+            return null;
+        }
         double estimatedPrice = request.getEstimatedPrice();
 
         if (!Payment.canAfford(this, estimatedPrice)) {
-            System.out.println("❌ Cannot request ride. Insufficient funds!");
+            System.out.println(" Cannot request ride. Insufficient funds!");
             System.out.println("Required: " + estimatedPrice + " EGP | Available: " +
                     (getWalletBalance() + getCreditBalance()) + " EGP");
             return null;

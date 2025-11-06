@@ -1,5 +1,8 @@
 package services;
 import Model.*;
+
+import java.time.LocalDateTime;
+
 public class Request {
 
     private static int requestCounter = 1;
@@ -11,7 +14,6 @@ public class Request {
     private double distance;
     private int estimatedTime;
     private double estimatedPrice;
-
     public Request(Passenger passenger, Location origin, Location destination, Status status, MapGraph mapGraph) {
         this.requestId = requestCounter++;
         this.passenger = passenger;

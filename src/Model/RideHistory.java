@@ -12,12 +12,13 @@ public class RideHistory {
     private int passengerRating;
     private int driverRating;
 
-    public RideHistory(Driver driver, Passenger passenger, int passengerRating, int driverRating) {
+    public RideHistory(Driver driver, Passenger passenger, int passengerRating, int driverRating, Request request) {
         this.historyId = idCounter++;
         this.driver = driver;
         this.passenger = passenger;
         this.passengerRating = passengerRating;
         this.driverRating = driverRating;
+        this.request = request;
     }
     public void setHistoryId(int historyId) {
         this.historyId = historyId;

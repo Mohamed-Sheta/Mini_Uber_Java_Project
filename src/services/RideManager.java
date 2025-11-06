@@ -1,6 +1,7 @@
 package services;
 import Model.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Comparator;
 import java.util.stream.Collectors;
@@ -14,12 +15,14 @@ public class RideManager {
 
     private Driver currentDriver;
 
-    private boolean driverArrivedToPassenger = false;
+    public boolean driverArrivedToPassenger = false;
     private boolean passengerArrivedToDestination = false;
+
 
     private boolean passengerWantsToRate = false;
     private boolean driverWantsToRate = false;
 
+    private LocalDateTime acceptanceTime;
     public RideManager(List<Driver> allDrivers, Request request,
                        MapGraph mapGraph, Payment paymentProcessor) {
 
@@ -95,8 +98,9 @@ public class RideManager {
         }
 
         request.updateStatus(Status.Accepted);
-
+        this.acceptanceTime = LocalDateTime.now();
         System.out.println(" Ride Created and Driver Assigned!");
+        System.out.println(" Acceptance Time: " + acceptanceTime);
     }
 
 
@@ -115,44 +119,77 @@ public class RideManager {
 
     // -------------------------------------------------------------------------------------------------------------------
 
-    public void handleDelayPenalty(double ridePrice) {
+    public void handleDelayPenalty(Driver driver, String offender) {
 
         Passenger passenger = request.getPassenger();
 
-        System.out.println(" Delay Penalty Applied on Passenger");
+        System.out.println(" Delay Penalty Applied on: " + offender);
 
+        double fineAmount = 10.0;
+        if (offender.equalsIgnoreCase("driver")) {
 
-        double wallet = passenger.getWalletBalance();
-        double credit = passenger.getCreditBalance();
+            double wallet = driver.getWalletBalance();
+            double credit = driver.getCreditBalance();
 
-        if (wallet >= ridePrice) {
-            passenger.updateWalletBalance(wallet - ridePrice);
-            System.out.println(" Passenger fined from wallet: " + ridePrice + " EGP");
-        } else if (credit >= ridePrice) {
-            passenger.updateCreditBalance(credit - ridePrice);
-            System.out.println(" Passenger fined from credit: " + ridePrice + " EGP");
-        } else {
-            passenger.updateWalletBalance(wallet - ridePrice);
-            System.out.println(" Wallet not enough → forcing negative balance!");
+            if (wallet >= fineAmount) {
+                driver.updateWalletBalance(wallet - fineAmount);
+                System.out.println(" Driver fined from wallet: " + fineAmount + " EGP");
+            } else if (credit >= fineAmount) {
+                driver.updateCreditBalance(credit - fineAmount);
+                System.out.println(" Driver fined from credit: " + fineAmount + " EGP");
+            } else {
+                driver.updateWalletBalance(wallet - fineAmount);
+                System.out.println(" Wallet not enough → forcing negative balance!");
+            }
+
+        } else if (offender.equalsIgnoreCase("passenger")) {
+
+            double wallet = passenger.getWalletBalance();
+            double credit = passenger.getCreditBalance();
+
+            if (wallet >= fineAmount) {
+                passenger.updateWalletBalance(wallet - fineAmount);
+                System.out.println(" Passenger fined from wallet: " + 10 + " EGP");
+            } else if (credit >= fineAmount) {
+                passenger.updateCreditBalance(credit - fineAmount);
+                System.out.println(" Passenger fined from credit: " + fineAmount + " EGP");
+            } else {
+                passenger.updateWalletBalance(wallet - fineAmount);
+                System.out.println(" Wallet not enough → forcing negative balance!");
+            }
         }
+
         request.updateStatus(Status.Cancelled);
         System.out.println(" Ride cancelled due to delay.");
     }
 
     // -------------------------------------------------------------------------------------------------------------------
-    
+
     public void checkForDelay(int actualArrivalTime) {
+        if (request == null) {
+            System.out.println("Cannot check delay — request is null!");
+            return;
+        }
+
+        if (currentDriver == null) {
+            System.out.println("Cannot check delay — no driver assigned yet!");
+            return;
+        }
         int estimated = request.getEstimatedTime();
-        if (actualArrivalTime > estimated + 10) {
-             if (!passengerArrivedToDestination) {
-                System.out.println(" Passenger delayed ride completion!");
-                handleDelayPenalty( 10);
-            }
+        if (!driverArrivedToPassenger && actualArrivalTime > estimated + 10) {
+            System.out.println(" Driver delayed arrival to passenger!");
+            handleDelayPenalty(currentDriver, "driver");
+            return;
+        }
+        if (driverArrivedToPassenger
+                && request.getStatus() == Status.Accepted
+                && actualArrivalTime > 10) {
+
+            System.out.println(" Passenger did not show up after 10 minutes!");
+            handleDelayPenalty(currentDriver, "passenger");
         }
     }
-    
     // -------------------------------------------------------------------------------------------------------------------
-    
     public void completeRide() {
         if (request.getStatus() == Status.Cancelled) {
             System.out.println(" Cannot complete a cancelled ride!");
@@ -201,8 +238,17 @@ public class RideManager {
     // -------------------------------------------------------------------------------------------------------------------
 
     private void saveRideHistory() {
+        if (request == null) {
+            System.out.println("⚠ Cannot save ride history — request is null!");
+            return;
+        }
         Passenger passenger = request.getPassenger();
         Driver driver = currentDriver;
+
+        if (driver == null) {
+            System.out.println("⚠ Cannot save ride history — no driver assigned to this ride!");
+            return;
+        }
 
         if (passengerWantsToRate && passengerRatingValue > 0) {
             passenger.RateDriver(passengerRatingValue);
@@ -229,7 +275,8 @@ public class RideManager {
                 driver,
                 passenger,
                 driverRatingFromPassenger,
-                passengerRatingFromDriver
+                passengerRatingFromDriver,
+                request
         );
 
         passenger.getRideHistory().add(history);
@@ -250,5 +297,8 @@ public class RideManager {
 
     public Payment getPaymentProcessor() {
         return paymentProcessor;
+    }
+    public LocalDateTime getAcceptanceTime() {
+        return acceptanceTime;
     }
 }
