@@ -140,6 +140,7 @@ public class RideManager {
     }
 
     // -------------------------------------------------------------------------------------------------------------------
+    
     public void checkForDelay(int actualArrivalTime) {
         int estimated = request.getEstimatedTime();
         if (actualArrivalTime > estimated + 10) {
@@ -149,7 +150,9 @@ public class RideManager {
             }
         }
     }
+    
     // -------------------------------------------------------------------------------------------------------------------
+    
     public void completeRide() {
         if (request.getStatus() == Status.Cancelled) {
             System.out.println(" Cannot complete a cancelled ride!");
@@ -172,7 +175,9 @@ public class RideManager {
         System.out.println("➡ Please rate each other to store history.");
 
         saveRideHistory();
-    }
+    }    
+    
+    // -------------------------------------------------------------------------------------------------------------------
 
     public void setPassengerWantsToRate(boolean value) {
         this.passengerWantsToRate = value;
@@ -182,6 +187,7 @@ public class RideManager {
         this.driverWantsToRate = value;
     }
 
+    // -------------------------------------------------------------------------------------------------------------------
     private int passengerRatingValue = 0; 
     private int driverRatingValue = 0;
     public void setPassengerRatingValue(int value) {
@@ -191,6 +197,8 @@ public class RideManager {
     public void setDriverRatingValue(int value) {
         this.driverRatingValue = value;
     }
+    
+    // -------------------------------------------------------------------------------------------------------------------
 
     private void saveRideHistory() {
         Passenger passenger = request.getPassenger();
@@ -229,6 +237,8 @@ public class RideManager {
 
         System.out.println(" RideHistory Saved! (ID: " + history.getHistoryId() + ")");
     }
+    
+    // -------------------------------------------------------------------------------------------------------------------
 
     public Request getRequest() {
         return this.request;

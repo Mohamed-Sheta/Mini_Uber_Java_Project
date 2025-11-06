@@ -9,8 +9,9 @@ public class Driver extends Person {
     private String carModel;
     private boolean active;
     private int latestPassengerRating = 0;
-    public Driver(String licensePlate, String carModel, boolean active, String userSSN, String name, String phoneNumber, String email, double walletBalance, double creditBalance, double accountRating, Location currentLocation, List<RideHistory> rideHistory) {
-        super(userSSN, name, phoneNumber, email, walletBalance, creditBalance, accountRating, currentLocation, rideHistory);
+
+    public Driver(String licensePlate, String carModel, boolean active, String userSSN, String name, String phoneNumber, String email, double walletBalance, double creditBalance, Location currentLocation, List<RideHistory> rideHistory) {
+        super(userSSN, name, phoneNumber, email, walletBalance, creditBalance, currentLocation, rideHistory);
         this.licensePlate = licensePlate;
         this.carModel = carModel;
         this.active = active;
