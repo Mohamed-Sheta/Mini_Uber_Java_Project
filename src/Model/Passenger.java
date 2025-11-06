@@ -9,8 +9,8 @@ import java.util.Set;
 public class Passenger extends Person {
     private int latestDriverRating = 0;
 
-    public Passenger(String userSSN, String name, String phoneNumber, String email, double walletBalance, double creditBalance, double accountRating, Location currentLocation, List<RideHistory> rideHistory) {
-        super(userSSN, name, phoneNumber, email, walletBalance, creditBalance, accountRating, currentLocation, rideHistory);
+    public Passenger(String userSSN, String name, String phoneNumber, String email, double walletBalance, double creditBalance, Location currentLocation, List<RideHistory> rideHistory) {
+        super(userSSN, name, phoneNumber, email, walletBalance, creditBalance, currentLocation, rideHistory);
     }
 
     public void setWalletBalance(double walletBalance) {

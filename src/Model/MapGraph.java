@@ -15,13 +15,13 @@ public class MapGraph {
         this.adjacency_list = new HashMap<>();
     }
 
-    public void addLocarion(Location X) {
+    public void addLocation(Location X) {
         adjacency_list.putIfAbsent(X, new ArrayList<>());
     }
 
     public void addEdge(Location from, Location to, double distance) {
-        addLocarion(from);
-        addLocarion(to);
+        addLocation(from);
+        addLocation(to);
         adjacency_list.get(from).add(new Edge(from, to, distance));
     }
 
