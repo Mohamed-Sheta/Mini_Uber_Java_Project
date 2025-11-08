@@ -82,4 +82,21 @@ public class ProblemReportTypeDAO {
         }
         return list;
     }
+
+    public void initializeProblemTypes() throws SQLException {
+        String sql = "INSERT IGNORE INTO problem_types (id, name) VALUES " +
+                "(1,'DRIVER_BEHAVIOR'), " +
+                "(2,'DRIVER_LATE'), " +
+                "(3,'RECKLESS_DRIVING'), " +
+                "(4,'VEHICLE_CLEANLINESS'), " +
+                "(5,'TECHNICAL_ISSUE'), " +
+                "(6,'FARE_DISPUTE'), " +
+                "(7,'ACCOUNT_ISSUE'), " +
+                "(8,'OTHER_ISSUE')";
+
+        try (var con = DBConnection.getConnection();
+             var ps = con.prepareStatement(sql)) {
+            ps.executeUpdate();
+        }
+    }
 }
