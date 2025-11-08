@@ -1,4 +1,7 @@
-package Model;
+package services;
+import Model.Edge;
+import Model.Location;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;

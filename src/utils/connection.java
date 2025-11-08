@@ -5,7 +5,7 @@ import java.sql.*;
 public class connection {
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/uper_db",
+                "jdbc:mysql://localhost:3306/minigo",
                 "root",
                 "1234"
         );

@@ -3,7 +3,7 @@ package Model;
 import java.util.Objects;
 
 public class Location {
-    private static int counter = 1;
+    private  int counter = 1;
     private int id;
     private String name;
 

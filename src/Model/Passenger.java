@@ -1,4 +1,5 @@
 package Model;
+import services.MapGraph;
 import services.Payment;
 import services.Request;
 import services.RideManager;

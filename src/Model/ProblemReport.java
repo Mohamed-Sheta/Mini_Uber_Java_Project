@@ -9,7 +9,7 @@ public class ProblemReport {
 
     private static int reportIdCounter = 1000;
     private int reportId;
-    protected RideManager rideManager;
+    public RideManager rideManager;
     private LocalDateTime timestamp;
     private Set<ProblemType> types;
     private String details;

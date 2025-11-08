@@ -4,7 +4,7 @@ import services.Request;
 import java.util.List;
 
 public class RideHistory {
-     private Request request;
+     public Request request;
     private static int idCounter = 1;
     private int historyId;
     private Driver driver;
@@ -66,4 +66,8 @@ public class RideHistory {
                 ", driverRating=" + driverRating +
                 '}';
     }
+    public Request getRequest() {
+        return request;
+    }
+
 }

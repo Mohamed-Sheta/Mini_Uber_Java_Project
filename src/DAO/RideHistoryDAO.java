@@ -1,122 +1,105 @@
-//package DAO;
-//
-//import Model.Driver;
-//import Model.Passenger;
-//import Model.RideHistory;
-//import utils.connection;
-//
-//import java.sql.*;
-//import java.util.ArrayList;
-//import java.util.List;
-//
-//public class RideHistoryDAO {
-//    private final DriverDAO driverDAO = new DriverDAO();
-//    private final PassengerDAO passengerDAO = new PassengerDAO();
-//
-//    public boolean addRideHistory(RideHistory rideHistory) throws SQLException {
-//        String sql = "INSERT INTO RideHistory (driver_ssn, passenger_ssn, passenger_rating, driver_rating) VALUES (?, ?, ?, ?)";
-//
-//        try (Connection conn = connection.getConnection();
-//             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-//
-//            stmt.setString(1, rideHistory.getDriver().getUserSSN());
-//            stmt.setString(2, rideHistory.getPassenger().getUserSSN());
-//            stmt.setInt(3, rideHistory.getPassengerRating());
-//            stmt.setInt(4, rideHistory.getDriverRating());
-//
-//            boolean success = stmt.executeUpdate() > 0;
-//            if (success) {
-//                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-//                    if (generatedKeys.next()) {
-//                        rideHistory.setHistoryId(generatedKeys.getInt(1));
-//                        System.out.println(" RideHistory saved with ID: " + rideHistory.getHistoryId());
-//                    }
-//                }
-//            }
-//            return success;
-//        }
-//    }
-//
-//    public RideHistory getRideHistoryById(int historyId) throws SQLException {
-//        String sql = "SELECT * FROM RideHistory WHERE history_id = ?";
-//
-//        try (Connection conn = connection.getConnection();
-//             PreparedStatement stmt = conn.prepareStatement(sql)) {
-//
-//            stmt.setInt(1, historyId);
-//            try (ResultSet rs = stmt.executeQuery()) {
-//                if (rs.next()) {
-//                    Driver driver = driverDAO.getDriverBySSN(rs.getString("driver_ssn"));
-//                    Passenger passenger = passengerDAO.getPassengerBySSN(rs.getString("passenger_ssn"));
-//
-//                    if (driver == null || passenger == null) {
-//                        System.err.println(" Driver or Passenger not found for RideHistory ID: " + historyId);
-//                        return null;
-//                    }
-//
-//                    return new RideHistory(
-//                            rs.getInt("history_id"),
-//                            driver,
-//                            passenger,
-//                            rs.getInt("passenger_rating"),
-//                            rs.getInt("driver_rating")
-//                    );
-//                }
-//            }
-//        }
-//        System.out.println(" No RideHistory found with ID: " + historyId);
-//        return null;
-//    }
-//
-//    public boolean updateRatings(int historyId, int passengerRating, int driverRating) throws SQLException {
-//        String sql = "UPDATE RideHistory SET passenger_rating = ?, driver_rating = ? WHERE history_id = ?";
-//
-//        try (Connection conn = connection.getConnection();
-//             PreparedStatement stmt = conn.prepareStatement(sql)) {
-//
-//            stmt.setInt(1, passengerRating);
-//            stmt.setInt(2, driverRating);
-//            stmt.setInt(3, historyId);
-//
-//            boolean success = stmt.executeUpdate() > 0;
-//            if (success) {
-//                System.out.println(" Updated ratings for RideHistory ID: " + historyId);
-//            }
-//            return success;
-//        }
-//    }
-//
-//    public List<RideHistory> getRideHistoriesByUser(String userSSN) throws SQLException {
-//        List<RideHistory> histories = new ArrayList<>();
-//        String sql = "SELECT * FROM RideHistory WHERE driver_ssn = ? OR passenger_ssn = ?";
-//
-//        try (Connection conn = connection.getConnection();
-//             PreparedStatement stmt = conn.prepareStatement(sql)) {
-//
-//            stmt.setString(1, userSSN);
-//            stmt.setString(2, userSSN);
-//            try (ResultSet rs = stmt.executeQuery()) {
-//                while (rs.next()) {
-//                    Driver driver = driverDAO.getDriverBySSN(rs.getString("driver_ssn"));
-//                    Passenger passenger = passengerDAO.getPassengerBySSN(rs.getString("passenger_ssn"));
-//
-//                    if (driver == null || passenger == null) {
-//                        System.err.println(" Skipping RideHistory ID: " + rs.getInt("history_id") + " due to missing Driver or Passenger.");
-//                        continue;
-//                    }
-//
-//                    RideHistory history = new RideHistory(
-//                            rs.getInt("history_id"),
-//                            driver,
-//                            passenger,
-//                            rs.getInt("passenger_rating"),
-//                            rs.getInt("driver_rating")
-//                    );
-//                    histories.add(history);
-//                }
-//            }
-//        }
-//        System.out.println(" Retrieved " + histories.size() + " ride histories for user SSN: " + userSSN);
-//        return histories;
-//    }
-//}
+package DAO;
+
+import Model.Driver;
+import Model.Passenger;
+import Model.RideHistory;
+import utils.connection;
+
+import java.sql.*;
+
+public class RideHistoryDAO {
+
+    private final DriverDAO driverDAO = new DriverDAO();
+    private final PassengerDAO passengerDAO = new PassengerDAO();
+
+    private Long getPassengerIdBySSN(String ssn, Connection conn) throws SQLException {
+        String sql = "SELECT id FROM passengers WHERE user_ssn = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, ssn);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return rs.getLong("id");
+            }
+        }
+        throw new SQLException("Passenger not found with SSN: " + ssn);
+    }
+
+    private Long getDriverIdBySSN(String ssn, Connection conn) throws SQLException {
+        String sql = "SELECT id FROM drivers WHERE user_ssn = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, ssn);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return rs.getLong("id");
+            }
+        }
+        throw new SQLException("Driver not found with SSN: " + ssn);
+    }
+
+    public boolean addRideHistory(RideHistory history, double cost, String paymentMethod,
+                                  double tips, double donationAmount, String donationOrg) throws SQLException {
+
+        String sql = "INSERT INTO ride_history (request_id, driver_id, passenger_id, passenger_rating, driver_rating, " +
+                "ride_cost, payment_method, tips, donation_amount, donation_organization) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = connection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            Long driverId = getDriverIdBySSN(history.getDriver().getUserSSN(), conn);
+            Long passengerId = getPassengerIdBySSN(history.getPassenger().getUserSSN(), conn);
+            Long requestId = (long) history.getRequest().getRequestId();
+
+
+            stmt.setLong(1, requestId);
+            stmt.setLong(2, driverId);
+            stmt.setLong(3, passengerId);
+            stmt.setInt(4, history.getPassengerRating());
+            stmt.setInt(5, history.getDriverRating());
+            stmt.setDouble(6, cost);
+            stmt.setString(7, paymentMethod);
+            stmt.setDouble(8, tips);
+            stmt.setDouble(9, donationAmount);
+            stmt.setString(10, donationOrg);
+
+            boolean success = stmt.executeUpdate() > 0;
+
+            if (success) {
+                try (ResultSet keys = stmt.getGeneratedKeys()) {
+                    if (keys.next()) {
+                        history.setHistoryId(keys.getInt(1));
+                    }
+                }
+            }
+            return success;
+        }
+    }
+
+    public RideHistory getRideHistoryById(long id) throws SQLException {
+
+        String sql = "SELECT * FROM ride_history WHERE id = ?";
+
+        try (Connection conn = connection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, id);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+
+                    long driverId = rs.getLong("driver_id");
+                    long passengerId = rs.getLong("passenger_id");
+
+                    Driver driver = driverDAO.getDriverById(driverId);
+                    Passenger passenger = passengerDAO.getPassengerById(passengerId);
+
+                    return new RideHistory(
+                            driver,
+                            passenger,
+                            rs.getInt("passenger_rating"),
+                            rs.getInt("driver_rating"),
+                            null  // مفيش Request لأننا بنجيب History لوحده
+                    );
+                }
+            }
+        }
+        return null;
+    }
+}

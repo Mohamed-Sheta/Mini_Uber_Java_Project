@@ -47,7 +47,7 @@ public class Option {
             return;
         }
         if (amount < 0) {
-            System.out.println("⚠️ Invalid tips amount.");
+            System.out.println(" Invalid tips amount.");
             return;
         }
         this.tips = amount;
