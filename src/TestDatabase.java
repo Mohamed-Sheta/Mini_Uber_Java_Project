@@ -1,135 +1,132 @@
 import DAO.*;
 import Model.*;
-import services.MapGraph;
-import services.Request;
-import utils.connection;
 
-import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.*;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.List;
 
 public class TestDatabase {
 
     public static void main(String[] args) {
-        try (Connection conn = connection.getConnection()) {
-            System.out.println("✅ Connected to database.");
+        try {
+            System.out.println("=== DATABASE TEST START ===\n");
 
-            clearTables(conn);
-            insertBaseProblemTypes(conn);
-
+            // 1️⃣ LOCATIONS
             LocationDAO locationDAO = new LocationDAO();
-            EdgesDAO edgesDAO = new EdgesDAO();
-            DriverDAO driverDAO = new DriverDAO();
+            Location cairo = new Location("Cairo");
+            Location giza = new Location("Giza");
+            Location alex = new Location("Alexandria");
+            long idCairo = locationDAO.insert(cairo);
+            long idGiza = locationDAO.insert(giza);
+            long idAlex = locationDAO.insert(alex);
+            System.out.println("[INSERT] Locations inserted successfully");
+            locationDAO.showAll().forEach(System.out::println);
+
+            // Update
+            locationDAO.update((int) idAlex, "Alex City");
+            System.out.println("\n[UPDATE] Location updated:");
+            locationDAO.showAll().forEach(System.out::println);
+
+            // 2️⃣ EDGES
+            EdgeDAO edgeDAO = new EdgeDAO();
+            edgeDAO.insert(cairo, giza, 20.5);
+            edgeDAO.insert(giza, alex, 220.0);
+            edgeDAO.insert(cairo, alex, 240.0);
+            System.out.println("\n[INSERT] Edges:");
+            edgeDAO.showAll().forEach(System.out::println);
+
+            // 3️⃣ PASSENGERS
             PassengerDAO passengerDAO = new PassengerDAO();
-            RideRequestDAO rideRequestDAO = new RideRequestDAO();
-            RideHistoryDAO rideHistoryDAO = new RideHistoryDAO();
-            ProblemReportDAO problemReportDAO = new ProblemReportDAO();
+            Passenger p1 = new Passenger("PSSN001", "Mohamed Ali", "01000111222", "mohamed@mail.com", 500, 200, cairo, null);
+            Passenger p2 = new Passenger("PSSN002", "Ahmed Samir", "01055667788", "ahmed@mail.com", 1000, 500, giza, null);
+            long pid1 = passengerDAO.insert(p1, (int) idCairo);
+            long pid2 = passengerDAO.insert(p2, (int) idGiza);
+            System.out.println("\n[INSERT] Passengers:");
+            passengerDAO.showAll().forEach(System.out::println);
 
-            // ------------------------------------------
-            // 1) Insert Locations
-            // ------------------------------------------
-            Location[] locations = {
-                    new Location("Nasr City"),
-                    new Location("Airport"),
-                    new Location("Zamalek"),
-                    new Location("Maadi"),
-                    new Location("Heliopolis")
-            };
+            // Update Passenger
+            p2.setWalletBalance(1200);
+            passengerDAO.update(pid2, p2, (int) idAlex, 5);
+            System.out.println("\n[UPDATE] Passenger Ahmed Samir updated:");
+            passengerDAO.showAll().forEach(System.out::println);
 
-            for (Location loc : locations) locationDAO.save(loc);
-            System.out.println("✅ Inserted Locations.");
+            // 4️⃣ DRIVERS
+            DriverDAO driverDAO = new DriverDAO();
+            Driver d1 = new Driver("CAR111", "Toyota Corolla", true, "DSSN001", "Khaled Hassan", "01111111111", "khaled@mail.com", 800, 300, giza, null);
+            Driver d2 = new Driver("CAR222", "Nissan Sunny", true, "DSSN002", "Omar Youssef", "01122222222", "omar@mail.com", 1000, 400, cairo, null);
+            long did1 = driverDAO.insert(d1, (int) idGiza);
+            long did2 = driverDAO.insert(d2, (int) idCairo);
+            System.out.println("\n[INSERT] Drivers:");
+            driverDAO.showAll().forEach(System.out::println);
 
-            // ------------------------------------------
-            // 2) Insert Edges
-            // ------------------------------------------
-            edgesDAO.insertEdge(new Edge(locations[0], locations[1], 10));
-            edgesDAO.insertEdge(new Edge(locations[1], locations[2], 7));
-            edgesDAO.insertEdge(new Edge(locations[2], locations[3], 5));
-            edgesDAO.insertEdge(new Edge(locations[3], locations[4], 6));
-            edgesDAO.insertEdge(new Edge(locations[4], locations[0], 9));
-            System.out.println("✅ Inserted Edges.");
+            // Update driver
+            d1.updateWalletBalance(1200);
+            driverDAO.update(did1, d1, (int) idAlex, 4);
+            System.out.println("\n[UPDATE] Driver Khaled updated:");
+            driverDAO.showAll().forEach(System.out::println);
 
-            MapGraph mapGraph = new MapGraph();
-            for (Edge e : edgesDAO.getAllEdges()) {
-                mapGraph.addEdge(e.getFrom(), e.getTo(), e.getDistance());
-            }
-            System.out.println("✅ MapGraph Loaded.");
+            // 5️⃣ RIDE REQUESTS
+            RideRequestDAO reqDAO = new RideRequestDAO();
+            long req1 = reqDAO.insert(pid1, (int) did1, (int) idCairo, (int) idAlex,
+                    Status.Accepted, 220.0, 180, 900.0,
+                    Timestamp.valueOf(LocalDateTime.now()), true, false);
+            long req2 = reqDAO.insert(pid2, (int) did2, (int) idGiza, (int) idAlex,
+                    Status.Completed, 240.0, 200, 950.0,
+                    Timestamp.valueOf(LocalDateTime.now()), true, true);
+            System.out.println("\n[INSERT] Ride Requests:");
+            reqDAO.showAll().forEach(System.out::println);
 
-            // ------------------------------------------
-            // 3) Insert Drivers
-            // ------------------------------------------
-            Driver[] drivers = {
-                    new Driver("ABC111", "Kia", true, "1111", "Omar", "010000001", "o@a.com", 100, 25, locations[0], new ArrayList<>()),
-                    new Driver("ABC112", "BMW", true, "1112", "Ahmed", "010000002", "a@a.com", 80, 50, locations[1], new ArrayList<>()),
-                    new Driver("ABC113", "Honda", true, "1113", "Sara", "010000003", "s@a.com", 140, 35, locations[2], new ArrayList<>()),
-                    new Driver("ABC114", "Hyundai", true, "1114", "Khaled", "010000004", "k@a.com", 95, 60, locations[3], new ArrayList<>()),
-                    new Driver("ABC115", "Tesla", true, "1115", "Yasmin", "010000005", "y@a.com", 200, 10, locations[4], new ArrayList<>())
-            };
+            // Update Request
+            reqDAO.update(req1, (long) did2, Status.Completed, 220.0, 190, 880.0,
+                    Timestamp.valueOf(LocalDateTime.now()), true, true);
+            System.out.println("\n[UPDATE] Ride Request updated:");
+            reqDAO.showAll().forEach(System.out::println);
 
-            for (Driver d : drivers) driverDAO.addDriver(d);
-            System.out.println("✅ Inserted Drivers.");
+            // 6️⃣ RIDE HISTORY
+            RideHistoryDAO histDAO = new RideHistoryDAO();
+            histDAO.insert(req1, did1, pid1, 5, 4, 900.0, PaymentType.wallet, 20.0, 5.0, "UNICEF");
+            histDAO.insert(req2, did2, pid2, 4, 5, 950.0, PaymentType.credit, 10.0, 0.0, "");
+            System.out.println("\n[INSERT] Ride History:");
+            histDAO.showAll().forEach(System.out::println);
 
-            // ------------------------------------------
-            // 4) Insert Passengers
-            // ------------------------------------------
-            Passenger[] passengers = {
-                    new Passenger("2221", "Nour", "011100001", "n@a.com", 120, 20, locations[0], new ArrayList<>()),
-                    new Passenger("2222", "Laila", "011100002", "l@a.com", 90, 10, locations[1], new ArrayList<>()),
-                    new Passenger("2223", "Salma", "011100003", "s@a.com", 60, 50, locations[2], new ArrayList<>()),
-                    new Passenger("2224", "Mostafa", "011100004", "m@a.com", 200, 0, locations[3], new ArrayList<>()),
-                    new Passenger("2225", "Karim", "011100005", "k@a.com", 40, 30, locations[4], new ArrayList<>())
-            };
+            // Update RideHistory
+            histDAO.update(1, 5, 5, 1000.0, PaymentType.wallet, 30.0, 10.0, "Red Crescent");
+            System.out.println("\n[UPDATE] Ride History updated:");
+            histDAO.showAll().forEach(System.out::println);
 
-            for (Passenger p : passengers) passengerDAO.addPassenger(p);
-            System.out.println("✅ Inserted Passengers.");
+            // 7️⃣ PROBLEM REPORTS
+            ProblemReportDAO reportDAO = new ProblemReportDAO();
+            long rep1 = reportDAO.insertReport(req1, pid1, did1, "Driver was late and rude.");
+            long rep2 = reportDAO.insertReport(req2, pid2, did2, "Vehicle not clean.");
+            System.out.println("\n[INSERT] Problem Reports:");
+            reportDAO.showAllReports().forEach(System.out::println);
 
-            // ------------------------------------------
-            // 5) Create Ride Requests + Ride History
-            // ------------------------------------------
-            for (int i = 0; i < 5; i++) {
+            // Update Report
+            reportDAO.updateReport(rep1, "Driver was late but apologized.", did1);
+            System.out.println("\n[UPDATE] Problem Report updated:");
+            reportDAO.showAllReports().forEach(System.out::println);
 
-                // ✅ mapGraph is now NOT null
-                Request request = new Request(passengers[i], locations[i], locations[(i + 1) % 5], Status.Pending, mapGraph);
-                long requestDbId = rideRequestDAO.saveRequest(request);
+            // 8️⃣ PROBLEM REPORT TYPES (new DAO)
+            ProblemReportTypeDAO prtDAO = new ProblemReportTypeDAO();
+            prtDAO.insert(rep1, 1); // DRIVER_BEHAVIOR
+            prtDAO.insert(rep1, 2); // DRIVER_LATE
+            prtDAO.insert(rep2, 4); // VEHICLE_CLEANLINESS
+            System.out.println("\n[INSERT] Problem Report Types:");
+            prtDAO.showAll().forEach(System.out::println);
 
-                rideRequestDAO.assignDriver(requestDbId, drivers[i]);
+            // Delete one link
+            prtDAO.delete(rep1, 2);
+            System.out.println("\n[DELETE] One problem type link removed:");
+            prtDAO.showAll().forEach(System.out::println);
 
-                RideHistory history = new RideHistory(drivers[i], passengers[i], 4, 5, request);
+            System.out.println("\n=== ALL TESTS COMPLETED SUCCESSFULLY ===");
 
-                rideHistoryDAO.addRideHistory(history, request.getEstimatedPrice(), "wallet", 5, 2, "Red Crescent");
-            }
-
-            System.out.println("✅ RideRequests + RideHistory inserted.");
-
-            System.out.println("🎉 ALL DONE SUCCESSFULLY 🎉");
-
+        } catch (SQLException e) {
+            System.err.println("❌ SQL Error: " + e.getMessage());
         } catch (Exception e) {
+            System.err.println("❌ General Error: " + e.getMessage());
             e.printStackTrace();
         }
     }
-
-    private static void clearTables(Connection conn) throws SQLException {
-        String[] tables = {
-                "problem_report_types",
-                "problem_reports",
-                "ride_history",
-                "ride_requests",
-                "drivers",
-                "passengers",
-                "edges",
-                "locations",
-                "problem_types"
-        };
-        try (Statement stmt = conn.createStatement()) {
-            stmt.execute("SET FOREIGN_KEY_CHECKS = 0");
-            for (String table : tables) {
-                stmt.executeUpdate("TRUNCATE TABLE " + table);
-            }
-            stmt.execute("SET FOREIGN_KEY_CHECKS = 1");
-            System.out.println("✅ Database cleared.");
-        }
-    }
-
-    private static void insertBaseProblemTypes(Connection conn) { }
 }

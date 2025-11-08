@@ -1,73 +1,62 @@
 package DAO;
-
+import utils.*;
 import Model.Location;
-import utils.connection;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LocationDAO {
 
-    public Location getByName(String name) throws SQLException {
-        String sql = "SELECT name FROM locations WHERE name = ?";
-        try (Connection conn = connection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+    // Row بسيط لعرض كل الصفوف (id + name)
+    public static class LocationRow {
+        public final int id;
+        public final String name;
+        public LocationRow(int id, String name) { this.id = id; this.name = name; }
+        @Override public String toString(){ return "LocationRow{id=" + id + ", name='" + name + "'}"; }
+    }
 
-            stmt.setString(1, name);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return new Location(rs.getString("name"));
-                }
+    public long insert(Location loc) throws SQLException {
+        final String sql = "INSERT INTO locations(name) VALUES (?)";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, loc.getName());
+            ps.executeUpdate();
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                return rs.next() ? rs.getLong(1) : -1L;
             }
         }
-        return null;
     }
 
-    public Location save(Location location) throws SQLException {
-        Location existing = getByName(location.getName());
-        if (existing != null) {
-            return existing;
+    public int update(int id, String newName) throws SQLException {
+        final String sql = "UPDATE locations SET name=? WHERE id=?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, newName);
+            ps.setInt(2, id);
+            return ps.executeUpdate();
         }
-
-        String sql = "INSERT INTO locations (name) VALUES (?)";
-        try (Connection conn = connection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, location.getName());
-            stmt.executeUpdate();
-        }
-        return location;
     }
 
-    public Location getById(int id) throws SQLException {
-        String sql = "SELECT name FROM locations WHERE id = ?";
-        try (Connection conn = connection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+    public int delete(int id) throws SQLException {
+        final String sql = "DELETE FROM locations WHERE id=?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate();
+        }
+    }
 
-            stmt.setInt(1, id);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return new Location(rs.getString("name"));
-                }
+    public List<LocationRow> showAll() throws SQLException {
+        final String sql = "SELECT id, name FROM locations ORDER BY id";
+        List<LocationRow> out = new ArrayList<>();
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                out.add(new LocationRow(rs.getInt("id"), rs.getString("name")));
             }
         }
-        return null;
+        return out;
     }
-
-    public Integer getIdByName(String name) throws SQLException {
-        String sql = "SELECT id FROM locations WHERE name = ?";
-        try (Connection conn = connection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, name);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("id");
-                }
-            }
-        }
-        return null;
-    }
-
 }
