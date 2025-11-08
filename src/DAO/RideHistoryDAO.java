@@ -1,105 +1,115 @@
 package DAO;
-
-import Model.Driver;
-import Model.Passenger;
-import Model.RideHistory;
-import utils.connection;
+import utils.*;
+import Model.PaymentType;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RideHistoryDAO {
 
-    private final DriverDAO driverDAO = new DriverDAO();
-    private final PassengerDAO passengerDAO = new PassengerDAO();
+    public static class RideHistoryRow {
+        public final long id;
+        public final long requestId, driverId, passengerId;
+        public final int passengerRating, driverRating;
+        public final double rideCost, tips, donationAmount;
+        public final String donationOrganization;
+        public final String paymentMethod;
+        public final Timestamp completedAt;
 
-    private Long getPassengerIdBySSN(String ssn, Connection conn) throws SQLException {
-        String sql = "SELECT id FROM passengers WHERE user_ssn = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, ssn);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) return rs.getLong("id");
-            }
+        public RideHistoryRow(long id, long requestId, long driverId, long passengerId,
+                              int passengerRating, int driverRating,
+                              double rideCost, String paymentMethod, double tips,
+                              double donationAmount, String donationOrganization,
+                              Timestamp completedAt) {
+            this.id=id; this.requestId=requestId; this.driverId=driverId; this.passengerId=passengerId;
+            this.passengerRating=passengerRating; this.driverRating=driverRating;
+            this.rideCost=rideCost; this.paymentMethod=paymentMethod; this.tips=tips;
+            this.donationAmount=donationAmount; this.donationOrganization=donationOrganization;
+            this.completedAt=completedAt;
         }
-        throw new SQLException("Passenger not found with SSN: " + ssn);
+        @Override public String toString(){ return "RideHistoryRow{id="+id+", request="+requestId+"}"; }
     }
 
-    private Long getDriverIdBySSN(String ssn, Connection conn) throws SQLException {
-        String sql = "SELECT id FROM drivers WHERE user_ssn = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, ssn);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) return rs.getLong("id");
+    public long insert(long requestId, long driverId, long passengerId,
+                       Integer passengerRating, Integer driverRating,
+                       double rideCost, PaymentType method,
+                       double tips, double donationAmount, String donationOrganization) throws SQLException {
+
+        final String sql = "INSERT INTO ride_history(request_id, driver_id, passenger_id, passenger_rating, driver_rating, ride_cost, payment_method, tips, donation_amount, donation_organization) " +
+                           "VALUES (?,?,?,?,?,?,?,?,?,?)";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setLong(1, requestId);
+            ps.setLong(2, driverId);
+            ps.setLong(3, passengerId);
+            ps.setInt(4, passengerRating == null ? 0 : passengerRating);
+            ps.setInt(5, driverRating == null ? 0 : driverRating);
+            ps.setDouble(6, rideCost);
+            ps.setString(7, method.name());
+            ps.setDouble(8, tips);
+            ps.setDouble(9, donationAmount);
+            ps.setString(10, donationOrganization == null ? "" : donationOrganization);
+
+            ps.executeUpdate();
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                return rs.next() ? rs.getLong(1) : -1L;
             }
-        }
-        throw new SQLException("Driver not found with SSN: " + ssn);
-    }
-
-    public boolean addRideHistory(RideHistory history, double cost, String paymentMethod,
-                                  double tips, double donationAmount, String donationOrg) throws SQLException {
-
-        String sql = "INSERT INTO ride_history (request_id, driver_id, passenger_id, passenger_rating, driver_rating, " +
-                "ride_cost, payment_method, tips, donation_amount, donation_organization) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        try (Connection conn = connection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
-            Long driverId = getDriverIdBySSN(history.getDriver().getUserSSN(), conn);
-            Long passengerId = getPassengerIdBySSN(history.getPassenger().getUserSSN(), conn);
-            Long requestId = (long) history.getRequest().getRequestId();
-
-
-            stmt.setLong(1, requestId);
-            stmt.setLong(2, driverId);
-            stmt.setLong(3, passengerId);
-            stmt.setInt(4, history.getPassengerRating());
-            stmt.setInt(5, history.getDriverRating());
-            stmt.setDouble(6, cost);
-            stmt.setString(7, paymentMethod);
-            stmt.setDouble(8, tips);
-            stmt.setDouble(9, donationAmount);
-            stmt.setString(10, donationOrg);
-
-            boolean success = stmt.executeUpdate() > 0;
-
-            if (success) {
-                try (ResultSet keys = stmt.getGeneratedKeys()) {
-                    if (keys.next()) {
-                        history.setHistoryId(keys.getInt(1));
-                    }
-                }
-            }
-            return success;
         }
     }
 
-    public RideHistory getRideHistoryById(long id) throws SQLException {
+    public int update(long id, Integer passengerRating, Integer driverRating,
+                      Double rideCost, PaymentType method, Double tips,
+                      Double donationAmount, String donationOrganization) throws SQLException {
 
-        String sql = "SELECT * FROM ride_history WHERE id = ?";
+        final String sql = "UPDATE ride_history SET passenger_rating=?, driver_rating=?, ride_cost=?, payment_method=?, tips=?, donation_amount=?, donation_organization=? WHERE id=?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, passengerRating == null ? 0 : passengerRating);
+            ps.setInt(2, driverRating == null ? 0 : driverRating);
+            ps.setDouble(3, rideCost == null ? 0.0 : rideCost);
+            ps.setString(4, method == null ? PaymentType.wallet.name() : method.name());
+            ps.setDouble(5, tips == null ? 0.0 : tips);
+            ps.setDouble(6, donationAmount == null ? 0.0 : donationAmount);
+            ps.setString(7, donationOrganization == null ? "" : donationOrganization);
+            ps.setLong(8, id);
+            return ps.executeUpdate();
+        }
+    }
 
-        try (Connection conn = connection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+    public int delete(long id) throws SQLException {
+        final String sql = "DELETE FROM ride_history WHERE id=?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, id);
+            return ps.executeUpdate();
+        }
+    }
 
-            stmt.setLong(1, id);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-
-                    long driverId = rs.getLong("driver_id");
-                    long passengerId = rs.getLong("passenger_id");
-
-                    Driver driver = driverDAO.getDriverById(driverId);
-                    Passenger passenger = passengerDAO.getPassengerById(passengerId);
-
-                    return new RideHistory(
-                            driver,
-                            passenger,
-                            rs.getInt("passenger_rating"),
-                            rs.getInt("driver_rating"),
-                            null  // مفيش Request لأننا بنجيب History لوحده
-                    );
-                }
+    public List<RideHistoryRow> showAll() throws SQLException {
+        final String sql = "SELECT id, request_id, driver_id, passenger_id, passenger_rating, driver_rating, ride_cost, payment_method, tips, donation_amount, donation_organization, completed_at FROM ride_history ORDER BY id";
+        List<RideHistoryRow> out = new ArrayList<>();
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                out.add(new RideHistoryRow(
+                        rs.getLong("id"),
+                        rs.getLong("request_id"),
+                        rs.getLong("driver_id"),
+                        rs.getLong("passenger_id"),
+                        rs.getInt("passenger_rating"),
+                        rs.getInt("driver_rating"),
+                        rs.getDouble("ride_cost"),
+                        rs.getString("payment_method"),
+                        rs.getDouble("tips"),
+                        rs.getDouble("donation_amount"),
+                        rs.getString("donation_organization"),
+                        rs.getTimestamp("completed_at")
+                ));
             }
         }
-        return null;
+        return out;
     }
 }

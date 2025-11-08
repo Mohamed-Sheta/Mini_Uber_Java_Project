@@ -1,103 +1,122 @@
 package DAO;
-
-import Model.Location;
-import Model.Passenger;
-import Model.Driver;
-import services.Request;
-import utils.connection;
+import utils.*;
+import Model.Status;
 
 import java.sql.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RideRequestDAO {
 
-    private final PassengerDAO passengerDAO = new PassengerDAO();
-    private final DriverDAO driverDAO = new DriverDAO();
-    private final LocationDAO locationDAO = new LocationDAO();
+    public static class RideRequestRow {
+        public final long id;
+        public final long passengerId;
+        public final Long driverId; // may be null
+        public final int originId, destinationId;
+        public final String status;
+        public final double distanceKm;
+        public final int estimatedTime;
+        public final double estimatedPrice;
+        public final Timestamp acceptanceTime;
+        public final boolean driverArrived;
+        public final boolean passengerArrived;
 
-    // ✅ Insert request into DB
-    public long saveRequest(Request request) throws SQLException {
+        public RideRequestRow(long id, long passengerId, Long driverId, int originId, int destinationId, String status,
+                              double distanceKm, int estimatedTime, double estimatedPrice, Timestamp acceptanceTime,
+                              boolean driverArrived, boolean passengerArrived) {
+            this.id=id; this.passengerId=passengerId; this.driverId=driverId; this.originId=originId; this.destinationId=destinationId;
+            this.status=status; this.distanceKm=distanceKm; this.estimatedTime=estimatedTime; this.estimatedPrice=estimatedPrice;
+            this.acceptanceTime=acceptanceTime; this.driverArrived=driverArrived; this.passengerArrived=passengerArrived;
+        }
+        @Override public String toString(){ return "RideRequestRow{id="+id+", status="+status+"}"; }
+    }
 
-        String sql = "INSERT INTO ride_requests (passenger_id, origin_id, destination_id, status, distance_km, estimated_time, estimated_price) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?)";
+    public long insert(long passengerId, Integer driverIdNullable, int originId, int destinationId,
+                       Status status, double distanceKm, int estimatedTime, double estimatedPrice,
+                       Timestamp acceptanceTimeNullable, boolean driverArrived, boolean passengerArrived) throws SQLException {
 
-        try (Connection conn = connection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        final String sql = "INSERT INTO ride_requests(passenger_id, driver_id, origin_id, destination_id, status, distance_km, estimated_time, estimated_price, acceptance_time, driver_arrived, passenger_arrived) " +
+                           "VALUES (?,?,?,?,?,?,?,?,?,?,?)";
 
-            // Get Passenger ID
-            long passengerId = getPassengerId(request.getPassenger(), conn);
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            // Save and resolve locations
-            locationDAO.save(request.getOrigin());
-            locationDAO.save(request.getDestination());
+            ps.setLong(1, passengerId);
+            if (driverIdNullable == null) ps.setNull(2, Types.BIGINT); else ps.setLong(2, driverIdNullable);
+            ps.setInt(3, originId);
+            ps.setInt(4, destinationId);
+            ps.setString(5, status.name());
+            ps.setDouble(6, distanceKm);
+            ps.setInt(7, estimatedTime);
+            ps.setDouble(8, estimatedPrice);
+            if (acceptanceTimeNullable == null) ps.setNull(9, Types.TIMESTAMP); else ps.setTimestamp(9, acceptanceTimeNullable);
+            ps.setBoolean(10, driverArrived);
+            ps.setBoolean(11, passengerArrived);
 
-            long originId = getLocationId(request.getOrigin(), conn);
-            long destinationId = getLocationId(request.getDestination(), conn);
-
-            stmt.setLong(1, passengerId);
-            stmt.setLong(2, originId);
-            stmt.setLong(3, destinationId);
-            stmt.setString(4, request.getStatus().name());
-            stmt.setDouble(5, request.getDistance());
-            stmt.setInt(6, request.getEstimatedTime());
-            stmt.setDouble(7, request.getEstimatedPrice());
-            stmt.executeUpdate();
-
-            try (ResultSet keys = stmt.getGeneratedKeys()) {
-                if (keys.next()) {
-                    return keys.getLong(1); // return DB ID
-                }
+            ps.executeUpdate();
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                return rs.next() ? rs.getLong(1) : -1L;
             }
         }
-        throw new SQLException("Failed to insert Ride Request");
     }
 
-    // ✅ Assign driver to request
-    public boolean assignDriver(long requestDbId, Driver driver) throws SQLException {
+    public int update(long id, Long driverIdNullable, Status status,
+                      Double distanceKm, Integer estimatedTime, Double estimatedPrice,
+                      Timestamp acceptanceTimeNullable, Boolean driverArrived, Boolean passengerArrived) throws SQLException {
 
-        String sql = "UPDATE ride_requests SET driver_id = ?, status = 'Accepted', acceptance_time = NOW() WHERE id = ?";
+        final String sql = "UPDATE ride_requests SET driver_id=?, status=?, distance_km=?, estimated_time=?, estimated_price=?, acceptance_time=?, driver_arrived=?, passenger_arrived=? WHERE id=?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
 
-        try (Connection conn = connection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            if (driverIdNullable == null) ps.setNull(1, Types.BIGINT); else ps.setLong(1, driverIdNullable);
+            ps.setString(2, status.name());
+            ps.setDouble(3, distanceKm);
+            ps.setInt(4, estimatedTime);
+            ps.setDouble(5, estimatedPrice);
+            if (acceptanceTimeNullable == null) ps.setNull(6, Types.TIMESTAMP); else ps.setTimestamp(6, acceptanceTimeNullable);
+            ps.setBoolean(7, driverArrived);
+            ps.setBoolean(8, passengerArrived);
+            ps.setLong(9, id);
 
-            long driverId = getDriverId(driver, conn);
-
-            stmt.setLong(1, driverId);
-            stmt.setLong(2, requestDbId);
-
-            return stmt.executeUpdate() > 0;
+            return ps.executeUpdate();
         }
     }
 
-    // ✅ Update status only
-    public boolean updateStatus(long requestDbId, String status) throws SQLException {
-
-        String sql = "UPDATE ride_requests SET status = ? WHERE id = ?";
-
-        try (Connection conn = connection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, status);
-            stmt.setLong(2, requestDbId);
-
-            return stmt.executeUpdate() > 0;
+    public int delete(long id) throws SQLException {
+        final String sql = "DELETE FROM ride_requests WHERE id=?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, id);
+            return ps.executeUpdate();
         }
     }
 
-    //  -------------------------------------------------
-    //  Helper Methods
-    //  -------------------------------------------------
-
-    private long getPassengerId(Passenger p, Connection conn) throws SQLException {
-        return passengerDAO.getPassengerIdBySSN(p.getUserSSN(), conn);
-    }
-
-    private long getDriverId(Driver d, Connection conn) throws SQLException {
-        return driverDAO.getDriverIdBySSN(d.getUserSSN(), conn);
-    }
-
-    private long getLocationId(Location location, Connection conn) throws SQLException {
-        Integer id = locationDAO.getIdByName(location.getName());
-        if (id == null) throw new SQLException("Location not found: " + location.getName());
-        return id;
+    public List<RideRequestRow> showAll() throws SQLException {
+        final String sql = "SELECT id, passenger_id, driver_id, origin_id, destination_id, status, distance_km, estimated_time, estimated_price, acceptance_time, driver_arrived, passenger_arrived " +
+                           "FROM ride_requests ORDER BY id";
+        List<RideRequestRow> out = new ArrayList<>();
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Long driverId = (Long) rs.getObject("driver_id");
+                out.add(new RideRequestRow(
+                        rs.getLong("id"),
+                        rs.getLong("passenger_id"),
+                        driverId,
+                        rs.getInt("origin_id"),
+                        rs.getInt("destination_id"),
+                        rs.getString("status"),
+                        rs.getDouble("distance_km"),
+                        rs.getInt("estimated_time"),
+                        rs.getDouble("estimated_price"),
+                        rs.getTimestamp("acceptance_time"),
+                        rs.getBoolean("driver_arrived"),
+                        rs.getBoolean("passenger_arrived")
+                ));
+            }
+        }
+        return out;
     }
 }
