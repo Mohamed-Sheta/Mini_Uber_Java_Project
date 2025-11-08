@@ -1,12 +1,9 @@
 package DAO;
 import utils.*;
-import Model.Location;
 import Model.Passenger;
-import Model.RideHistory;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class PassengerDAO {
@@ -15,21 +12,24 @@ public class PassengerDAO {
         public final long id;
         public final String userSSN, name, phone, email;
         public final double wallet, credit;
-        public final Integer currentLocation; // may be null
-        public final int latestDriverRating;
+        public final String currentLocation; // now STRING
+
         public PassengerRow(long id, String userSSN, String name, String phone, String email,
-                            double wallet, double credit, Integer currentLocation, int latestDriverRating) {
+                            double wallet, double credit, String currentLocation) {
             this.id=id; this.userSSN=userSSN; this.name=name; this.phone=phone; this.email=email;
             this.wallet=wallet; this.credit=credit; this.currentLocation=currentLocation;
-            this.latestDriverRating = latestDriverRating;
         }
-        @Override public String toString(){ return "PassengerRow{id="+id+", ssn="+userSSN+", name="+name+"}"; }
+
+        @Override public String toString(){
+            return "PassengerRow{id="+id+", ssn="+userSSN+", name="+name+"}";
+        }
     }
 
-    // insert باستخدام Passenger (Location currentLocation اختيارى)
-    public long insert(Passenger p, Integer currentLocationId) throws SQLException {
-        final String sql = "INSERT INTO passengers(user_ssn,name,phone_number,email,wallet_balance,credit_balance,current_location,latest_driver_rating) " +
-                           "VALUES (?,?,?,?,?,?,?,?)";
+    // INSERT (currentLocation as String)
+    public long insert(Passenger p, String currentLocationName) throws SQLException {
+        final String sql = "INSERT INTO passengers(user_ssn,name,phone_number,email,wallet_balance,credit_balance,current_location) " +
+                "VALUES (?,?,?,?,?,?,?)";
+
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -39,34 +39,47 @@ public class PassengerDAO {
             ps.setString(4, p.getEmail());
             ps.setDouble(5, p.getWalletBalance());
             ps.setDouble(6, p.getCreditBalance());
-            if (currentLocationId == null) ps.setNull(7, Types.INTEGER); else ps.setInt(7, currentLocationId);
-            ps.setInt(8, 0); // latest_driver_rating starts 0, model بيحسب متوسطه من history
+
+            if (currentLocationName == null)
+                ps.setNull(7, Types.VARCHAR);
+            else
+                ps.setString(7, currentLocationName);
 
             ps.executeUpdate();
+
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 return rs.next() ? rs.getLong(1) : -1L;
             }
         }
     }
 
-    public int update(long id, Passenger p, Integer currentLocationId, Integer latestDriverRating) throws SQLException {
+    // UPDATE
+    public int update(long id, Passenger p, String currentLocationName) throws SQLException {
         final String sql = "UPDATE passengers SET user_ssn=?, name=?, phone_number=?, email=?, " +
-                "wallet_balance=?, credit_balance=?, current_location=?, latest_driver_rating=? WHERE id=?";
+                "wallet_balance=?, credit_balance=?, current_location=? WHERE id=?";
+
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
+
             ps.setString(1, p.getUserSSN());
             ps.setString(2, p.getName());
             ps.setString(3, p.getPhoneNumber());
             ps.setString(4, p.getEmail());
             ps.setDouble(5, p.getWalletBalance());
             ps.setDouble(6, p.getCreditBalance());
-            if (currentLocationId == null) ps.setNull(7, Types.INTEGER); else ps.setInt(7, currentLocationId);
-            ps.setInt(8, latestDriverRating == null ? 0 : latestDriverRating);
-            ps.setLong(9, id);
+
+            if (currentLocationName == null)
+                ps.setNull(7, Types.VARCHAR);
+            else
+                ps.setString(7, currentLocationName);
+
+            ps.setLong(8, id);
+
             return ps.executeUpdate();
         }
     }
 
+    // DELETE
     public int delete(long id) throws SQLException {
         final String sql = "DELETE FROM passengers WHERE id=?";
         try (Connection con = DBConnection.getConnection();
@@ -76,15 +89,18 @@ public class PassengerDAO {
         }
     }
 
+    // SELECT ALL
     public List<PassengerRow> showAll() throws SQLException {
-        final String sql = "SELECT id,user_ssn,name,phone_number,email,wallet_balance,credit_balance,current_location,latest_driver_rating " +
+        final String sql = "SELECT id,user_ssn,name,phone_number,email,wallet_balance,credit_balance,current_location " +
                 "FROM passengers ORDER BY id";
+
         List<PassengerRow> out = new ArrayList<>();
+
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
+
             while (rs.next()) {
-                Integer loc = (Integer) rs.getObject("current_location");
                 out.add(new PassengerRow(
                         rs.getLong("id"),
                         rs.getString("user_ssn"),
@@ -93,8 +109,7 @@ public class PassengerDAO {
                         rs.getString("email"),
                         rs.getDouble("wallet_balance"),
                         rs.getDouble("credit_balance"),
-                        loc,
-                        rs.getInt("latest_driver_rating")
+                        rs.getString("current_location") // Now String
                 ));
             }
         }
