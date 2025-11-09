@@ -27,6 +27,14 @@ public class PassengerDAO {
 
     // INSERT (currentLocation as String)
     public long insert(Passenger p, String currentLocationName) throws SQLException {
+        if (p.getName() == null || p.getName().trim().isEmpty() || p.getName().length() > 50)
+            throw new IllegalArgumentException("Passenger name must be between 1 and 50 characters.");
+        if (p.getPhoneNumber() == null || !p.getPhoneNumber().matches("\\d{11}"))
+            throw new IllegalArgumentException("Phone number must be exactly 11 digits.");
+        if (p.getEmail() == null || !p.getEmail().endsWith("@gmail.com"))
+            throw new IllegalArgumentException("Email must end with '@gmail.com'.");
+        if (p.getWalletBalance() < 0 || p.getCreditBalance() < 0)
+            throw new IllegalArgumentException("Balances cannot be negative.");
         final String sql = "INSERT INTO passengers(user_ssn,name,phone_number,email,wallet_balance,credit_balance,current_location) " +
                 "VALUES (?,?,?,?,?,?,?)";
 
@@ -55,6 +63,14 @@ public class PassengerDAO {
 
     // UPDATE
     public int update(long id, Passenger p, String currentLocationName) throws SQLException {
+        if (p.getName() == null || p.getName().trim().isEmpty() || p.getName().length() > 50)
+            throw new IllegalArgumentException("Passenger name must be between 1 and 50 characters.");
+        if (p.getPhoneNumber() == null || !p.getPhoneNumber().matches("\\d{11}"))
+            throw new IllegalArgumentException("Phone number must be exactly 11 digits.");
+        if (p.getEmail() == null || !p.getEmail().endsWith("@gmail.com"))
+            throw new IllegalArgumentException("Email must end with '@gmail.com'.");
+        if (p.getWalletBalance() < 0 || p.getCreditBalance() < 0)
+            throw new IllegalArgumentException("Balances cannot be negative.");
         final String sql = "UPDATE passengers SET user_ssn=?, name=?, phone_number=?, email=?, " +
                 "wallet_balance=?, credit_balance=?, current_location=? WHERE id=?";
 

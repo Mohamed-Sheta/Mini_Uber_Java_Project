@@ -6,31 +6,39 @@ import java.util.List;
 
 public class ProblemReportTypeDAO {
 
-    // كلاس بسيط يمثل صف واحد من الجدول
+    // Row object
     public static class ProblemReportTypeRow {
         public final long reportId;
         public final int typeId;
+        public final String details;
 
-        public ProblemReportTypeRow(long reportId, int typeId) {
+        public ProblemReportTypeRow(long reportId, int typeId, String details) {
             this.reportId = reportId;
             this.typeId = typeId;
+            this.details = details;
         }
 
         @Override
         public String toString() {
-            return "ProblemReportTypeRow{report_id=" + reportId + ", type_id=" + typeId + "}";
+            return "ProblemReportTypeRow{" +
+                    "reportId=" + reportId +
+                    ", typeId=" + typeId +
+                    ", details='" + details + '\'' +
+                    '}';
         }
     }
 
     // --------------------------------------------------------
-    // INSERT
+    // INSERT (With DETAILS)
     // --------------------------------------------------------
-    public int insert(long reportId, int typeId) throws SQLException {
-        final String sql = "INSERT INTO problem_report_types(report_id, type_id) VALUES (?, ?)";
+    public int insert(long reportId, int typeId, String details) throws SQLException {
+        final String sql = "INSERT INTO problem_report_types(report_id, type_id, details) VALUES (?, ?, ?)";
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
+
             ps.setLong(1, reportId);
             ps.setInt(2, typeId);
+            ps.setString(3, details);
             return ps.executeUpdate();
         }
     }
@@ -42,6 +50,7 @@ public class ProblemReportTypeDAO {
         final String sql = "DELETE FROM problem_report_types WHERE report_id = ? AND type_id = ?";
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
+
             ps.setLong(1, reportId);
             ps.setInt(2, typeId);
             return ps.executeUpdate();
@@ -50,16 +59,15 @@ public class ProblemReportTypeDAO {
 
     // --------------------------------------------------------
     // UPDATE
-    // (نادر الاستخدام في جدول ربط، لكن مضاف لو احتجته)
     // --------------------------------------------------------
-    public int update(long oldReportId, int oldTypeId, long newReportId, int newTypeId) throws SQLException {
-        final String sql = "UPDATE problem_report_types SET report_id = ?, type_id = ? WHERE report_id = ? AND type_id = ?";
+    public int update(long reportId, int typeId, String newDetails) throws SQLException {
+        final String sql = "UPDATE problem_report_types SET details = ? WHERE report_id = ? AND type_id = ?";
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setLong(1, newReportId);
-            ps.setInt(2, newTypeId);
-            ps.setLong(3, oldReportId);
-            ps.setInt(4, oldTypeId);
+
+            ps.setString(1, newDetails);
+            ps.setLong(2, reportId);
+            ps.setInt(3, typeId);
             return ps.executeUpdate();
         }
     }
@@ -68,21 +76,28 @@ public class ProblemReportTypeDAO {
     // SHOW ALL
     // --------------------------------------------------------
     public List<ProblemReportTypeRow> showAll() throws SQLException {
-        final String sql = "SELECT report_id, type_id FROM problem_report_types ORDER BY report_id, type_id";
+        final String sql = "SELECT report_id, type_id, details FROM problem_report_types ORDER BY report_id, type_id";
+
         List<ProblemReportTypeRow> list = new ArrayList<>();
+
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
+
             while (rs.next()) {
                 list.add(new ProblemReportTypeRow(
                         rs.getLong("report_id"),
-                        rs.getInt("type_id")
+                        rs.getInt("type_id"),
+                        rs.getString("details")
                 ));
             }
         }
         return list;
     }
 
+    // --------------------------------------------------------
+    // INITIALIZE DEFAULT PROBLEM TYPES
+    // --------------------------------------------------------
     public void initializeProblemTypes() throws SQLException {
         String sql = "INSERT IGNORE INTO problem_types (id, name) VALUES " +
                 "(1,'DRIVER_BEHAVIOR'), " +
@@ -91,11 +106,9 @@ public class ProblemReportTypeDAO {
                 "(4,'VEHICLE_CLEANLINESS'), " +
                 "(5,'TECHNICAL_ISSUE'), " +
                 "(6,'FARE_DISPUTE'), " +
-                "(7,'ACCOUNT_ISSUE'), " +
-                "(8,'OTHER_ISSUE')";
-
-        try (var con = DBConnection.getConnection();
-             var ps = con.prepareStatement(sql)) {
+                "(7,'ACCOUNT_ISSUE')";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
             ps.executeUpdate();
         }
     }

@@ -78,8 +78,8 @@ public class TestDatabase {
 
             // PASSENGERS
             PassengerDAO passengerDAO = new PassengerDAO();
-            Passenger p1 = new Passenger("PSSN001", "ahmed ashraf", "01000111222", "mohamed@mail.com", 500, 200, cairo, null);
-            Passenger p2 = new Passenger("PSSN002", "mostafa hassan", "01055667788", "ahmed@mail.com", 1000, 500, giza, null);
+            Passenger p1 = new Passenger("PSSN001", "ahmed ashraf", "01000111222", "mohamed@gmail.com", 500, 200, cairo, null);
+            Passenger p2 = new Passenger("PSSN002", "mostafa hassan", "01055667788", "ahmed@gmail.com", 1000, 500, giza, null);
 
             long pid1 = passengerDAO.insert(p1, cairo.getName());
             long pid2 = passengerDAO.insert(p2, giza.getName());
@@ -87,13 +87,13 @@ public class TestDatabase {
             p2.setWalletBalance(1200);
             passengerDAO.update(pid2, p2, alex.getName());
 
-            Passenger p3 = new Passenger("PSSN003", "Abdo", "01011111111", "abdo@mail.com", 300, 120, cairo, null);
-            Passenger p4 = new Passenger("PSSN004", "Amin", "01022222222", "amin@mail.com", 700, 300, giza, null);
-            Passenger p5 = new Passenger("PSSN005", "Amr Nabil", "01033333333", "amr@mail.com", 900, 250, alex, null);
-            Passenger p6 = new Passenger("PSSN006", "Azzay", "01044444444", "azzay@mail.com", 600, 200, mansoura, null);
-            Passenger p7 = new Passenger("PSSN007", "Islam Ali", "01055555555", "islam@mail.com", 500, 180, aswan, null);
-            Passenger p8 = new Passenger("PSSN008", "Marwan", "01066666666", "marwan@mail.com", 800, 260, luxor, null);
-            Passenger p9 = new Passenger("PSSN009", "Shatoot", "01077777777", "shatoot@mail.com", 450, 160, tanta, null);
+            Passenger p3 = new Passenger("PSSN003", "Abdo", "01011111111", "abdo@gmail.com", 300, 120, cairo, null);
+            Passenger p4 = new Passenger("PSSN004", "Amin", "01022222222", "amin@gmail.com", 700, 300, giza, null);
+            Passenger p5 = new Passenger("PSSN005", "Amr Nabil", "01033333333", "amr@gmail.com", 900, 250, alex, null);
+            Passenger p6 = new Passenger("PSSN006", "Azzay", "01044444444", "azzay@gmail.com", 600, 200, mansoura, null);
+            Passenger p7 = new Passenger("PSSN007", "Islam Ali", "01055555555", "islam@gmail.com", 500, 180, aswan, null);
+            Passenger p8 = new Passenger("PSSN008", "Marwan", "01066666666", "marwan@gmail.com", 800, 260, luxor, null);
+            Passenger p9 = new Passenger("PSSN009", "Shatoot", "01077777777", "shatoot@gmail.com", 450, 160, tanta, null);
 
             long pid3 = passengerDAO.insert(p3, cairo.getName());
             long pid4 = passengerDAO.insert(p4, giza.getName());
@@ -108,8 +108,8 @@ public class TestDatabase {
 
             // DRIVERS
             DriverDAO driverDAO = new DriverDAO();
-            Driver d1 = new Driver("CAR111", "Toyota Corolla", true, "DSSN001", "Khaled Hassan", "01111111111", "khaled@mail.com", 800, 300, giza, null);
-            Driver d2 = new Driver("CAR222", "Nissan Sunny", true, "DSSN002", "Omar Youssef", "01122222222", "omar@mail.com", 1000, 400, cairo, null);
+            Driver d1 = new Driver("CAR111", "Toyota Corolla", true, "DSSN001", "Khaled Hassan", "01111111111", "khaled@gmail.com", 800, 300, giza, null);
+            Driver d2 = new Driver("CAR222", "Nissan Sunny", true, "DSSN002", "Omar Youssef", "01122222222", "omar@gmail.com", 1000, 400, cairo, null);
 
             long did1 = driverDAO.insert(d1, giza.getName());
             long did2 = driverDAO.insert(d2, cairo.getName());
@@ -117,10 +117,10 @@ public class TestDatabase {
             d1.updateWalletBalance(1200);
             driverDAO.update(did1, d1, alex.getName());
 
-            Driver d3 = new Driver("CAR333", "Hyundai Elantra", true, "DSSN003", "Omar.Elemary_", "01133333333", "elemary@mail.com", 1200, 350, alex, null);
-            Driver d4 = new Driver("CAR444", "Kia Cerato", true, "DSSN004", "AdminAhmed", "01144444444", "admin@mail.com", 900, 260, mansoura, null);
-            Driver d5 = new Driver("CAR555", "Renault Logan", true, "DSSN005", "Mostafa", "01155555555", "mostafa@mail.com", 950, 280, luxor, null);
-            Driver d6 = new Driver("CAR666", "Chevrolet Optra", true, "DSSN006", "Yassin", "01166666666", "yassin@mail.com", 1100, 320, beniSuef, null);
+            Driver d3 = new Driver("CAR333", "Hyundai Elantra", true, "DSSN003", "Omar.Elemary_", "01133333333", "elemary@gmail.com", 1200, 350, alex, null);
+            Driver d4 = new Driver("CAR444", "Kia Cerato", true, "DSSN004", "AdminAhmed", "01144444444", "admin@gmail.com", 900, 260, mansoura, null);
+            Driver d5 = new Driver("CAR555", "Renault Logan", true, "DSSN005", "Mostafa", "01155555555", "mostafa@gmail.com", 950, 280, luxor, null);
+            Driver d6 = new Driver("CAR666", "Chevrolet Optra", true, "DSSN006", "Yassin", "01166666666", "yassin@gmail.com", 1100, 320, beniSuef, null);
 
             long did3 = driverDAO.insert(d3, alex.getName());
             long did4 = driverDAO.insert(d4, mansoura.getName());
@@ -183,22 +183,21 @@ public class TestDatabase {
             histDAO.showAll().forEach(System.out::println);
 
             ProblemReportDAO reportDAO = new ProblemReportDAO();
-            long rep1 = reportDAO.insertReport(req1, pid1, did1, "Driver was late and rude.");
-            long rep2 = reportDAO.insertReport(req2, pid2, did2, "Vehicle not clean.");
-            long rep3 = reportDAO.insertReport(req4, pid4, did1, "Wrong pickup location.");
+            long rep1 = reportDAO.insertReport(req1, pid1, did1);
+            long rep2 = reportDAO.insertReport(req2, pid2, did2);
+            long rep3 = reportDAO.insertReport(req4, pid4, did1);
 
             System.out.println("\n[INSERT] Problem Reports:");
             reportDAO.showAllReports().forEach(System.out::println);
 
-            reportDAO.updateReport(rep1, "Driver was late but apologized.", did1);
+            reportDAO.updateReport(rep1, did1);
 
             System.out.println("\n[UPDATE] Problem Report updated:");
             reportDAO.showAllReports().forEach(System.out::println);
-
-            prtDAO.insert(rep1, 1);
-            prtDAO.insert(rep1, 3);
-            prtDAO.insert(rep2, 2);
-            prtDAO.insert(rep3, 3);
+            prtDAO.insert(rep1, 1, "Driver behavior issue");
+            prtDAO.insert(rep1, 3, "Navigation");
+            prtDAO.insert(rep2, 2, "Vehicle was not clean");
+            prtDAO.insert(rep3, 3, "Pickup location confusion");
             prtDAO.delete(rep1, 3);
 
             System.out.println("\n[INSERT] Problem Report Types:");
@@ -207,7 +206,7 @@ public class TestDatabase {
             System.out.println("\n=== ALL TESTS COMPLETED SUCCESSFULLY ✅ ===");
 
         } catch (SQLException e) {
-            System.err.println("❌ SQL Error: " + e.getMessage());
+            System.err.println(" SQL Error: " + e.getMessage());
         }
     }
 

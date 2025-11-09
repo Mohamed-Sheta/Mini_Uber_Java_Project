@@ -32,6 +32,18 @@ public class DriverDAO {
 
     // INSERT
     public long insert(Driver d, String currentLocationName) throws SQLException {
+        if (d.getName() == null || d.getName().trim().isEmpty() || d.getName().length() > 50)
+            throw new IllegalArgumentException("Driver name must be between 1 and 50 characters.");
+        if (d.getPhoneNumber() == null || !d.getPhoneNumber().matches("\\d{11}"))
+            throw new IllegalArgumentException("Driver phone must be exactly 11 digits.");
+        if (d.getEmail() == null || !d.getEmail().endsWith("@gmail.com"))
+            throw new IllegalArgumentException("Driver email must end with '@gmail.com'.");
+        if (d.getWalletBalance() < 0 || d.getCreditBalance() < 0)
+            throw new IllegalArgumentException("Driver balances cannot be negative.");
+        if (d.getLicensePlate() == null || d.getLicensePlate().trim().isEmpty())
+            throw new IllegalArgumentException("License plate cannot be empty.");
+        if (d.getCarModel() == null || d.getCarModel().trim().isEmpty())
+            throw new IllegalArgumentException("Car model cannot be empty.");
         final String sql = "INSERT INTO drivers(user_ssn,name,phone_number,email,wallet_balance,credit_balance,current_location,license_plate,car_model,active) " +
                 "VALUES (?,?,?,?,?,?,?,?,?,?)";
         try (Connection con = DBConnection.getConnection();
@@ -62,6 +74,14 @@ public class DriverDAO {
 
     // UPDATE
     public int update(long id, Driver d, String currentLocationName) throws SQLException {
+        if (d.getName() == null || d.getName().trim().isEmpty() || d.getName().length() > 50)
+            throw new IllegalArgumentException("Driver name must be between 1 and 50 characters.");
+        if (d.getPhoneNumber() == null || !d.getPhoneNumber().matches("\\d{11}"))
+            throw new IllegalArgumentException("Driver phone must be exactly 11 digits.");
+        if (d.getEmail() == null || !d.getEmail().endsWith("@gmail.com"))
+            throw new IllegalArgumentException("Driver email must end with '@gmail.com'.");
+        if (d.getWalletBalance() < 0 || d.getCreditBalance() < 0)
+            throw new IllegalArgumentException("Driver balances cannot be negative.");
         final String sql = "UPDATE drivers SET user_ssn=?, name=?, phone_number=?, email=?, wallet_balance=?, credit_balance=?, current_location=?, license_plate=?, car_model=?, active=? WHERE id=?";
 
         try (Connection con = DBConnection.getConnection();

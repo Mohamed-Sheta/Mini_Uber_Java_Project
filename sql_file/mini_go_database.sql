@@ -126,8 +126,8 @@ INSERT INTO problem_types VALUES
                               (4,'VEHICLE_CLEANLINESS'),
                               (5,'TECHNICAL_ISSUE'),
                               (6,'FARE_DISPUTE'),
-                              (7,'ACCOUNT_ISSUE'),
-                              (8,'OTHER_ISSUE');
+                              (7,'ACCOUNT_ISSUE');
+
 
 -- ======================================================
 -- TABLE: Problem Reports
@@ -137,7 +137,6 @@ CREATE TABLE problem_reports (
                                  request_id BIGINT NOT NULL,
                                  reporter_passenger_id BIGINT NOT NULL,
                                  driver_id BIGINT NULL,
-                                 details TEXT NOT NULL,
                                  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                                  FOREIGN KEY(request_id) REFERENCES ride_requests(id),
                                  FOREIGN KEY(reporter_passenger_id) REFERENCES passengers(id),
@@ -147,6 +146,7 @@ CREATE TABLE problem_reports (
 CREATE TABLE problem_report_types (
                                       report_id BIGINT NOT NULL,
                                       type_id TINYINT NOT NULL,
+                                      details TEXT NOT NULL,
                                       PRIMARY KEY (report_id, type_id),
                                       FOREIGN KEY(report_id) REFERENCES problem_reports(id) ON DELETE CASCADE,
                                       FOREIGN KEY(type_id) REFERENCES problem_types(id)
