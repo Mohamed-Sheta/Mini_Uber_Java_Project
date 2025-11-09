@@ -1,8 +1,11 @@
 package services;
 import Model.*;
+import DAO.*;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Comparator;
 import java.util.stream.Collectors;
 
@@ -18,11 +21,22 @@ public class RideManager {
     public boolean driverArrivedToPassenger = false;
     private boolean passengerArrivedToDestination = false;
 
-
     private boolean passengerWantsToRate = false;
     private boolean driverWantsToRate = false;
 
     private LocalDateTime acceptanceTime;
+
+    // Database handling
+    private RideRequestDAO rideRequestDAO;
+    private RideHistoryDAO rideHistoryDAO;
+    private long rideRequestId = -1;
+    private Map<Passenger, Long> passengerIdMap;
+    private Map<Driver, Long> driverIdMap;
+
+    // Ratings
+    private int passengerRatingValue = 0;
+    private int driverRatingValue = 0;
+
     public RideManager(List<Driver> allDrivers, Request request,
                        MapGraph mapGraph, Payment paymentProcessor) {
 
@@ -34,8 +48,16 @@ public class RideManager {
         this.request = request;
         this.mapGraph = mapGraph;
         this.paymentProcessor = paymentProcessor;
+
+        // Initialize DAOs
+        this.rideRequestDAO = new RideRequestDAO();
+        this.rideHistoryDAO = new RideHistoryDAO();
     }
 
+    public void setDatabaseMaps(Map<Passenger, Long> passengerIdMap, Map<Driver, Long> driverIdMap) {
+        this.passengerIdMap = passengerIdMap;
+        this.driverIdMap = driverIdMap;
+    }
 
     // -------------------------------------------------------------------------------------------------------------------
 
@@ -87,6 +109,11 @@ public class RideManager {
             return;
         }
 
+        // Insert ride request into database if maps are set
+        if (passengerIdMap != null && driverIdMap != null) {
+            insertRideRequestToDB();
+        }
+
         System.out.println("\n---  Attempting to Find and Assign Driver ---");
 
         Driver nearestDriver = assignNearestDriver();
@@ -94,6 +121,10 @@ public class RideManager {
         if (nearestDriver == null) {
             System.out.println(" Failed to create ride: No suitable active drivers found.");
             request.updateStatus(Status.Cancelled);
+            // Update DB to Cancelled
+            if (rideRequestId != -1) {
+                updateRideRequestInDB(Status.Cancelled, null, false, false);
+            }
             return;
         }
 
@@ -101,6 +132,43 @@ public class RideManager {
         this.acceptanceTime = LocalDateTime.now();
         System.out.println(" Ride Created and Driver Assigned!");
         System.out.println(" Acceptance Time: " + acceptanceTime);
+
+        // Update DB to Accepted
+        if (rideRequestId != -1) {
+            updateRideRequestInDB(Status.Accepted, acceptanceTime, false, false);
+        }
+    }
+
+    private void insertRideRequestToDB() {
+        try {
+            rideRequestId = rideRequestDAO.insert(
+                passengerIdMap.get(request.getPassenger()), null,
+                request.getOrigin().getId(), request.getDestination().getId(),
+                Status.Pending,
+                request.getDistance(), request.getEstimatedTime(), request.getEstimatedPrice(),
+                null, false, false
+            );
+            System.out.println("[DB] ride_requests inserted (Pending) id=" + rideRequestId);
+        } catch (Exception e) {
+            System.out.println("[DB] Insert ride_request error: " + e.getMessage());
+        }
+    }
+
+    private void updateRideRequestInDB(Status status, LocalDateTime acceptTime,
+                                       boolean driverArrived, boolean passengerArrived) {
+        try {
+            Long driverId = currentDriver != null ? driverIdMap.get(currentDriver) : null;
+            Timestamp timestamp = acceptTime != null ? Timestamp.valueOf(acceptTime) : null;
+
+            rideRequestDAO.update(
+                rideRequestId, driverId, status,
+                request.getDistance(), request.getEstimatedTime(), request.getEstimatedPrice(),
+                timestamp, driverArrived, passengerArrived
+            );
+            System.out.println("[DB] ride_request " + rideRequestId + " -> " + status);
+        } catch (Exception e) {
+            System.out.println("[DB] Update ride_request error: " + e.getMessage());
+        }
     }
 
 
@@ -109,11 +177,21 @@ public class RideManager {
     public void markDriverArrived() {
         this.driverArrivedToPassenger = true;
         System.out.println(" Driver arrived to passenger location.");
+
+        // Update DB
+        if (rideRequestId != -1 && acceptanceTime != null) {
+            updateRideRequestInDB(Status.Accepted, acceptanceTime, true, false);
+        }
     }
 
     public void markPassengerArrived() {
         this.passengerArrivedToDestination = true;
         System.out.println(" Passenger arrived to destination.");
+
+        // Update DB
+        if (rideRequestId != -1 && acceptanceTime != null) {
+            updateRideRequestInDB(Status.Accepted, acceptanceTime, true, true);
+        }
     }
 
 
@@ -212,7 +290,37 @@ public class RideManager {
         System.out.println("➡ Please rate each other to store history.");
 
         saveRideHistory();
-    }    
+
+        // Update DB to Completed
+        if (rideRequestId != -1 && acceptanceTime != null) {
+            updateRideRequestInDB(Status.Completed, acceptanceTime, true, true);
+        }
+
+        // Insert ride history to DB
+        if (rideRequestId != -1 && passengerIdMap != null && driverIdMap != null) {
+            insertRideHistoryToDB();
+        }
+    }
+
+    private void insertRideHistoryToDB() {
+        try {
+            Passenger passenger = request.getPassenger();
+            Driver driver = currentDriver;
+            Option options = paymentProcessor.getOptions();
+
+            long rhId = rideHistoryDAO.insert(
+                rideRequestId, driverIdMap.get(driver), passengerIdMap.get(passenger),
+                passenger.getLatestDriverRating(), driver.getLatestPassengerRating(),
+                paymentProcessor.getAmount(), paymentProcessor.getPaymentMethod(),
+                options != null ? options.getTips() : 0.0,
+                options != null ? options.getDonationAmount() : 0.0,
+                options != null ? options.getDonationOrganization() : ""
+            );
+            System.out.println("[DB] ride_history inserted id=" + rhId);
+        } catch (Exception e) {
+            System.out.println("[DB] Insert ride_history error: " + e.getMessage());
+        }
+    }
     
     // -------------------------------------------------------------------------------------------------------------------
 
@@ -225,8 +333,7 @@ public class RideManager {
     }
 
     // -------------------------------------------------------------------------------------------------------------------
-    private int passengerRatingValue = 0; 
-    private int driverRatingValue = 0;
+
     public void setPassengerRatingValue(int value) {
         this.passengerRatingValue = value;
     }
@@ -298,7 +405,13 @@ public class RideManager {
     public Payment getPaymentProcessor() {
         return paymentProcessor;
     }
+
     public LocalDateTime getAcceptanceTime() {
         return acceptanceTime;
     }
+
+    public long getRideRequestId() {
+        return rideRequestId;
+    }
 }
+

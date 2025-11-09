@@ -1,5 +1,10 @@
 package services;
 import Model.*;
+import DAO.ProblemReportTypeDAO;
+
+import java.sql.Connection;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Request {
 
@@ -14,6 +19,90 @@ public class Request {
     private double estimatedPrice;
 
     private long dbId;
+
+    /**
+     * Static helper to initialize database (reset and seed problem types)
+     */
+    public static class DatabaseInitializer {
+        private ProblemReportTypeDAO problemReportTypeDAO;
+
+        public DatabaseInitializer() {
+            this.problemReportTypeDAO = new ProblemReportTypeDAO();
+        }
+
+        /**
+         * Reset all database tables
+         */
+        public void resetDatabase() {
+            try {
+                Connection con = utils.DBConnection.getConnection();
+
+                try (var ps = con.prepareStatement("SET FOREIGN_KEY_CHECKS=0")) {
+                    ps.execute();
+                }
+
+                String[] tables = {
+                    "problem_report_types", "problem_reports",
+                    "ride_history", "ride_requests",
+                    "edges", "locations",
+                    "drivers", "passengers",
+                    "problem_types"
+                };
+
+                for (String table : tables) {
+                    try (var ps = con.prepareStatement("TRUNCATE TABLE " + table)) {
+                        ps.execute();
+                    }
+                }
+
+                try (var ps = con.prepareStatement("SET FOREIGN_KEY_CHECKS=1")) {
+                    ps.execute();
+                }
+
+                System.out.println("[DB] All tables truncated.\n");
+            } catch (Exception e) {
+                System.out.println("[DB] Reset error: " + e.getMessage());
+            }
+        }
+
+        /**
+         * Seed problem types
+         */
+        public void seedProblemTypes() {
+            try {
+                problemReportTypeDAO.initializeProblemTypes();
+                System.out.println("[DB] problem_types seeded.\n");
+            } catch (Exception e) {
+                System.out.println("[DB] Seed problem_types error: " + e.getMessage());
+            }
+        }
+
+        /**
+         * Get problem type ID mapping
+         */
+        public Map<ProblemType, Integer> getProblemTypeMapping() {
+            Map<ProblemType, Integer> mapping = new HashMap<>();
+            mapping.put(ProblemType.DRIVER_BEHAVIOR, 1);
+            mapping.put(ProblemType.DRIVER_LATE, 2);
+            mapping.put(ProblemType.RECKLESS_DRIVING, 3);
+            mapping.put(ProblemType.VEHICLE_CLEANLINESS, 4);
+            mapping.put(ProblemType.TECHNICAL_ISSUE, 5);
+            mapping.put(ProblemType.FARE_DISPUTE, 6);
+            mapping.put(ProblemType.ACCOUNT_ISSUE, 7);
+            return mapping;
+        }
+
+        /**
+         * Complete initialization
+         */
+        public Map<ProblemType, Integer> initialize(boolean resetDB) {
+            if (resetDB) {
+                resetDatabase();
+            }
+            seedProblemTypes();
+            return getProblemTypeMapping();
+        }
+    }
     public Request(Passenger passenger, Location origin, Location destination, Status status, MapGraph mapGraph) {
         this.requestId = requestCounter++;
         this.passenger = passenger;
@@ -100,5 +189,30 @@ public class Request {
                 ", estimatedTime=" + estimatedTime +
                 ", estimatedPrice=" + estimatedPrice +
                 '}';
+    }
+
+    /**
+     * Static helper to submit problem reports
+     */
+    public static void submitProblemReport(long rideRequestId, long passengerId, long driverId,
+                                          ProblemType problemType, String description,
+                                          Map<ProblemType, Integer> problemTypeMapping) {
+        try {
+            DAO.ProblemReportDAO problemReportDAO = new DAO.ProblemReportDAO();
+            DAO.ProblemReportTypeDAO problemReportTypeDAO = new DAO.ProblemReportTypeDAO();
+
+            long reportId = problemReportDAO.insertReport(rideRequestId, passengerId, driverId);
+
+            Integer typeId = problemTypeMapping.get(problemType);
+            if (typeId != null) {
+                problemReportTypeDAO.insert(reportId, typeId, description);
+                System.out.println("[DB] problem_reports inserted id=" + reportId +
+                                 " (Type: " + problemType + ")");
+            } else {
+                System.out.println("[DB] Invalid problem type: " + problemType);
+            }
+        } catch (Exception e) {
+            System.out.println("[DB] Insert problem_report error: " + e.getMessage());
+        }
     }
 }
