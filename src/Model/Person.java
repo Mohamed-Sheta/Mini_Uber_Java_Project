@@ -28,7 +28,6 @@ public abstract class Person {
         this.accountRating = getAccountRating();
     }
 
-
     public String getUserSSN() { return userSSN; }
     public String getName() { return name; }
     public String getPhoneNumber() { return phoneNumber; }

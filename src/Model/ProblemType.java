@@ -14,7 +14,4 @@ public enum ProblemType {
     // -----Financial and Administrative Issues-----
     FARE_DISPUTE,       // Disagreement over the fare amount or incorrect charges
     ACCOUNT_ISSUE,      // Problems with account balance or payment method
-
-    // -----Other types-----
-    OTHER_ISSUE     // Any other issue not covered by the above categories
 }

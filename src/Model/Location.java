@@ -7,6 +7,10 @@ public class Location {
     private int id;
     private String name;
 
+    public Location(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
     public Location(String name) {
         this.id = counter++;
         this.name = name;
@@ -16,6 +20,7 @@ public class Location {
         return id;
     }
 
+    public void setId(int id) { this.id = id; }
     public String getName() {
         return name;
     }

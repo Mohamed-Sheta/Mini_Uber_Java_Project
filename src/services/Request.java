@@ -12,6 +12,8 @@ public class Request {
     private double distance;
     private int estimatedTime;
     private double estimatedPrice;
+
+    private long dbId;
     public Request(Passenger passenger, Location origin, Location destination, Status status, MapGraph mapGraph) {
         this.requestId = requestCounter++;
         this.passenger = passenger;
@@ -34,6 +36,9 @@ public class Request {
         this.estimatedTime = calculateEstimatedTime(distance);
         this.estimatedPrice = calculateEstimatedPrice(distance);
     }
+    public void setDbId(long id) { this.dbId = id; }
+
+    public long getDatabaseId() { return this.dbId; }
 
     public int getRequestId() {
         return requestId;

@@ -1,5 +1,6 @@
 package Model;
 
+import DAO.DriverDAO;
 import services.Request;
 
 import java.util.*;
@@ -99,4 +100,6 @@ public class Driver extends Person {
         System.out.println("Active: " + active);
         System.out.println("Current Location: " + (getCurrentLocation() != null ? getCurrentLocation().getName() : "Not set"));
     }
+
+
 }
