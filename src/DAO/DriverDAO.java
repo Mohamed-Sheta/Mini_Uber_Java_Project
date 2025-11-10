@@ -134,7 +134,7 @@ public class DriverDAO {
                         rs.getString("email"),
                         rs.getDouble("wallet_balance"),
                         rs.getDouble("credit_balance"),
-                        rs.getString("current_location"), // <-- String not int
+                        rs.getString("current_location"),
                         rs.getString("license_plate"),
                         rs.getString("car_model"),
                         rs.getBoolean("active")

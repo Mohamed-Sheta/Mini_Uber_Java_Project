@@ -33,7 +33,6 @@ public class RideManager {
     private Map<Passenger, Long> passengerIdMap;
     private Map<Driver, Long> driverIdMap;
 
-    // Ratings
     private int passengerRatingValue = 0;
     private int driverRatingValue = 0;
 
@@ -49,7 +48,6 @@ public class RideManager {
         this.mapGraph = mapGraph;
         this.paymentProcessor = paymentProcessor;
 
-        // Initialize DAOs
         this.rideRequestDAO = new RideRequestDAO();
         this.rideHistoryDAO = new RideHistoryDAO();
     }
@@ -109,7 +107,6 @@ public class RideManager {
             return;
         }
 
-        // Insert ride request into database if maps are set
         if (passengerIdMap != null && driverIdMap != null) {
             insertRideRequestToDB();
         }
@@ -121,7 +118,6 @@ public class RideManager {
         if (nearestDriver == null) {
             System.out.println(" Failed to create ride: No suitable active drivers found.");
             request.updateStatus(Status.Cancelled);
-            // Update DB to Cancelled
             if (rideRequestId != -1) {
                 updateRideRequestInDB(Status.Cancelled, null, false, false);
             }
@@ -133,7 +129,6 @@ public class RideManager {
         System.out.println(" Ride Created and Driver Assigned!");
         System.out.println(" Acceptance Time: " + acceptanceTime);
 
-        // Update DB to Accepted
         if (rideRequestId != -1) {
             updateRideRequestInDB(Status.Accepted, acceptanceTime, false, false);
         }
@@ -178,7 +173,6 @@ public class RideManager {
         this.driverArrivedToPassenger = true;
         System.out.println(" Driver arrived to passenger location.");
 
-        // Update DB
         if (rideRequestId != -1 && acceptanceTime != null) {
             updateRideRequestInDB(Status.Accepted, acceptanceTime, true, false);
         }
@@ -188,7 +182,6 @@ public class RideManager {
         this.passengerArrivedToDestination = true;
         System.out.println(" Passenger arrived to destination.");
 
-        // Update DB
         if (rideRequestId != -1 && acceptanceTime != null) {
             updateRideRequestInDB(Status.Accepted, acceptanceTime, true, true);
         }
@@ -287,16 +280,14 @@ public class RideManager {
         request.updateStatus(Status.Completed);
 
         System.out.println("\n Ride Completed Successfully!");
-        System.out.println("➡ Please rate each other to store history.");
+        System.out.println("Please rate each other to store history.");
 
         saveRideHistory();
 
-        // Update DB to Completed
         if (rideRequestId != -1 && acceptanceTime != null) {
             updateRideRequestInDB(Status.Completed, acceptanceTime, true, true);
         }
 
-        // Insert ride history to DB
         if (rideRequestId != -1 && passengerIdMap != null && driverIdMap != null) {
             insertRideHistoryToDB();
         }
@@ -346,14 +337,14 @@ public class RideManager {
 
     private void saveRideHistory() {
         if (request == null) {
-            System.out.println("⚠ Cannot save ride history — request is null!");
+            System.out.println("Cannot save ride history — request is null!");
             return;
         }
         Passenger passenger = request.getPassenger();
         Driver driver = currentDriver;
 
         if (driver == null) {
-            System.out.println("⚠ Cannot save ride history — no driver assigned to this ride!");
+            System.out.println("Cannot save ride history — no driver assigned to this ride!");
             return;
         }
 

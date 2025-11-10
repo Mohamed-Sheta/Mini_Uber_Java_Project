@@ -6,15 +6,12 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("=== Mini Uber System Egypt (Refactored Version) ===\n");
 
-        // ===================== STEP 1: Initialize Database =====================
         Request.DatabaseInitializer dbInit = new Request.DatabaseInitializer();
         Map<ProblemType, Integer> problemTypeMap = dbInit.initialize(true); // true = reset DB
 
-        // ===================== STEP 2: Setup City Map and Data =====================
         MapGraph.CityMapSetup citySetup = new MapGraph.CityMapSetup();
         citySetup.initializeAll();
 
-        // Extract initialized data
         MapGraph cityMap = citySetup.cityMap;
         List<Location> places = citySetup.locations;
         List<Driver> allDrivers = citySetup.drivers;
@@ -22,7 +19,6 @@ public class Main {
         Map<Driver, Long> driverId = citySetup.driverIdMap;
         Map<Passenger, Long> passengerId = citySetup.passengerIdMap;
 
-        // Quick references
         Location downtown = places.get(0);
         Location nasrCity = places.get(1);
         Location maadi = places.get(2);
@@ -36,7 +32,6 @@ public class Main {
 
         Driver d4 = allDrivers.get(3);
 
-        // ===================== STEP 3: Payment Options =====================
         Option optTipsDonate = new Option();
         optTipsDonate.enableTips(true);
         optTipsDonate.giveTips(10.0);
@@ -50,9 +45,6 @@ public class Main {
         System.out.println("Payment options ready.\n");
         Runnable sep = () -> System.out.println("\n----------------------------------------\n");
 
-        // =======================================================
-        // ********************** TEST 1 *************************
-        // =======================================================
         System.out.println("Test 1: Normal ride (Ahmed from Maadi -> Giza)");
         Request r1 = p1.request_ride(maadi, giza, cityMap);
         if (r1 != null) {
@@ -70,7 +62,6 @@ public class Main {
                 rm1.setDriverRatingValue(5);
                 rm1.completeRide();
 
-                // Submit problem report
                 Request.submitProblemReport(rm1.getRideRequestId(), passengerId.get(p1),
                         driverId.get(rm1.getCurrentDriver()),
                         ProblemType.DRIVER_BEHAVIOR, "Driver was late 5 minutes.",
@@ -79,9 +70,6 @@ public class Main {
         }
         sep.run();
 
-        // =======================================================
-        // ********************** TEST 2 *************************
-        // =======================================================
         System.out.println("Test 2: Low balance (Sara from Downtown -> Nasr City)");
         Request r2 = p2.request_ride(downtown, nasrCity, cityMap);
         if (r2 != null) {
@@ -107,7 +95,6 @@ public class Main {
         }
         sep.run();
 
-        // ********************** TEST 3 *************************
         System.out.println("Test 3: No path (Mona from New Cairo -> Maadi)");
         Request r3 = p4.request_ride(newCairo, maadi, cityMap);
         if (r3 == null) {
@@ -115,18 +102,16 @@ public class Main {
         }
         sep.run();
 
-        // ********************** TEST 4 *************************
         System.out.println("Test 4: No drivers available (simulate)");
         Request r4 = p3.request_ride(nasrCity, downtown, cityMap);
         if (r4 != null) {
             Payment pay4 = new Payment(r4.getEstimatedPrice(), PaymentType.wallet, optBasic);
             RideManager rm4 = new RideManager(new ArrayList<>(), r4, cityMap, pay4);
             rm4.setDatabaseMaps(passengerId, driverId);
-            rm4.createRide(); // Will automatically cancel if no drivers
+            rm4.createRide();
         }
         sep.run();
 
-        // ********************** TEST 5 *************************
         System.out.println("Test 5: Driver views and accepts pending ride requests");
         Queue<Request> rideQueue = new LinkedList<>();
         Request rq1 = p1.request_ride(maadi, downtown, cityMap);
@@ -143,7 +128,6 @@ public class Main {
         d4.viewRideRequests(rideQueue);
         sep.run();
 
-        // ********************** TEST 6 *************************
         System.out.println("Test 6: Small stress test (10 random rides)");
         Random rand = new Random();
 
@@ -178,7 +162,6 @@ public class Main {
         }
         sep.run();
 
-        // ********************** TEST 7 *************************
         System.out.println("Test 7: Passenger cancels a ride");
         Request cancelReq = p1.request_ride(maadi, giza, cityMap);
         if (cancelReq != null) {
@@ -198,7 +181,6 @@ public class Main {
         }
         sep.run();
 
-        // ********************** TEST 8 *************************
         System.out.println("Test 8: Count Completed Rides");
         List<RideHistory> allHistories = new ArrayList<>();
         allHistories.addAll(p1.getRideHistory());
