@@ -20,9 +20,6 @@ public class Request {
 
     private long dbId;
 
-    /**
-     * Static helper to initialize database (reset and seed problem types)
-     */
     public static class DatabaseInitializer {
         private ProblemReportTypeDAO problemReportTypeDAO;
 
@@ -30,9 +27,6 @@ public class Request {
             this.problemReportTypeDAO = new ProblemReportTypeDAO();
         }
 
-        /**
-         * Reset all database tables
-         */
         public void resetDatabase() {
             try {
                 Connection con = utils.DBConnection.getConnection();
@@ -65,9 +59,6 @@ public class Request {
             }
         }
 
-        /**
-         * Seed problem types
-         */
         public void seedProblemTypes() {
             try {
                 problemReportTypeDAO.initializeProblemTypes();
@@ -77,9 +68,6 @@ public class Request {
             }
         }
 
-        /**
-         * Get problem type ID mapping
-         */
         public Map<ProblemType, Integer> getProblemTypeMapping() {
             Map<ProblemType, Integer> mapping = new HashMap<>();
             mapping.put(ProblemType.DRIVER_BEHAVIOR, 1);
@@ -92,9 +80,6 @@ public class Request {
             return mapping;
         }
 
-        /**
-         * Complete initialization
-         */
         public Map<ProblemType, Integer> initialize(boolean resetDB) {
             if (resetDB) {
                 resetDatabase();
@@ -191,9 +176,6 @@ public class Request {
                 '}';
     }
 
-    /**
-     * Static helper to submit problem reports
-     */
     public static void submitProblemReport(long rideRequestId, long passengerId, long driverId,
                                           ProblemType problemType, String description,
                                           Map<ProblemType, Integer> problemTypeMapping) {

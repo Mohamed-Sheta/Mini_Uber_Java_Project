@@ -38,10 +38,7 @@ public class MapGraph {
             driverIdMap = new HashMap<>();
             passengerIdMap = new HashMap<>();
         }
-
-        /**
-         * Initialize everything: locations, edges, drivers, and passengers
-         */
+        
         public void initializeAll() {
             initializeLocations();
             initializeEdges();

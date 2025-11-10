@@ -31,7 +31,7 @@ public class TestDatabase {
             long idAlex = locationDAO.insert(alex);
 
             locationDAO.update((int) idAlex, "Alex City");
-            alex.setName("Alex City"); // update object name
+            alex.setName("Alex City");
 
             Location mansoura = new Location("Mansoura");
             Location tanta = new Location("Tanta");
@@ -106,7 +106,6 @@ public class TestDatabase {
             System.out.println("\n[INSERT] Passengers:");
             passengerDAO.showAll().forEach(System.out::println);
 
-            // DRIVERS
             DriverDAO driverDAO = new DriverDAO();
             Driver d1 = new Driver("CAR111", "Toyota Corolla", true, "DSSN001", "Khaled Hassan", "01111111111", "khaled@gmail.com", 800, 300, giza, null);
             Driver d2 = new Driver("CAR222", "Nissan Sunny", true, "DSSN002", "Omar Youssef", "01122222222", "omar@gmail.com", 1000, 400, cairo, null);
@@ -130,7 +129,6 @@ public class TestDatabase {
             System.out.println("\n[INSERT] Drivers:");
             driverDAO.showAll().forEach(System.out::println);
 
-            // RIDE REQUESTS (unchanged, IDs stay INT which is correct)
             RideRequestDAO reqDAO = new RideRequestDAO();
 
             long req1 = reqDAO.insert(pid1, (int) did1, (int) idCairo, (int) idAlex,

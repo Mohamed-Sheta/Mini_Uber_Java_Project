@@ -27,7 +27,6 @@ public class ProblemReportDAO {
         }
     }
 
-    // Insert Report (بدون details)
     public long insertReport(long requestId, long reporterPassengerId, Long driverIdNullable) throws SQLException {
         final String sql = "INSERT INTO problem_reports(request_id, reporter_passenger_id, driver_id) VALUES (?,?,?)";
         try (Connection con = DBConnection.getConnection();

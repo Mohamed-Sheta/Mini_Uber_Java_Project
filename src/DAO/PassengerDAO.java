@@ -12,7 +12,7 @@ public class PassengerDAO {
         public final long id;
         public final String userSSN, name, phone, email;
         public final double wallet, credit;
-        public final String currentLocation; // now STRING
+        public final String currentLocation;
 
         public PassengerRow(long id, String userSSN, String name, String phone, String email,
                             double wallet, double credit, String currentLocation) {
@@ -25,7 +25,6 @@ public class PassengerDAO {
         }
     }
 
-    // INSERT (currentLocation as String)
     public long insert(Passenger p, String currentLocationName) throws SQLException {
         if (p.getName() == null || p.getName().trim().isEmpty() || p.getName().length() > 50)
             throw new IllegalArgumentException("Passenger name must be between 1 and 50 characters.");
@@ -61,7 +60,6 @@ public class PassengerDAO {
         }
     }
 
-    // UPDATE
     public int update(long id, Passenger p, String currentLocationName) throws SQLException {
         if (p.getName() == null || p.getName().trim().isEmpty() || p.getName().length() > 50)
             throw new IllegalArgumentException("Passenger name must be between 1 and 50 characters.");
@@ -95,7 +93,6 @@ public class PassengerDAO {
         }
     }
 
-    // DELETE
     public int delete(long id) throws SQLException {
         final String sql = "DELETE FROM passengers WHERE id=?";
         try (Connection con = DBConnection.getConnection();
@@ -105,7 +102,6 @@ public class PassengerDAO {
         }
     }
 
-    // SELECT ALL
     public List<PassengerRow> showAll() throws SQLException {
         final String sql = "SELECT id,user_ssn,name,phone_number,email,wallet_balance,credit_balance,current_location " +
                 "FROM passengers ORDER BY id";

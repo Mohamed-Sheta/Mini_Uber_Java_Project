@@ -6,7 +6,6 @@ import java.util.List;
 
 public class ProblemReportTypeDAO {
 
-    // Row object
     public static class ProblemReportTypeRow {
         public final long reportId;
         public final int typeId;
@@ -28,9 +27,6 @@ public class ProblemReportTypeDAO {
         }
     }
 
-    // --------------------------------------------------------
-    // INSERT (With DETAILS)
-    // --------------------------------------------------------
     public int insert(long reportId, int typeId, String details) throws SQLException {
         final String sql = "INSERT INTO problem_report_types(report_id, type_id, details) VALUES (?, ?, ?)";
         try (Connection con = DBConnection.getConnection();
@@ -43,9 +39,6 @@ public class ProblemReportTypeDAO {
         }
     }
 
-    // --------------------------------------------------------
-    // DELETE
-    // --------------------------------------------------------
     public int delete(long reportId, int typeId) throws SQLException {
         final String sql = "DELETE FROM problem_report_types WHERE report_id = ? AND type_id = ?";
         try (Connection con = DBConnection.getConnection();
@@ -57,9 +50,6 @@ public class ProblemReportTypeDAO {
         }
     }
 
-    // --------------------------------------------------------
-    // UPDATE
-    // --------------------------------------------------------
     public int update(long reportId, int typeId, String newDetails) throws SQLException {
         final String sql = "UPDATE problem_report_types SET details = ? WHERE report_id = ? AND type_id = ?";
         try (Connection con = DBConnection.getConnection();
@@ -72,9 +62,6 @@ public class ProblemReportTypeDAO {
         }
     }
 
-    // --------------------------------------------------------
-    // SHOW ALL
-    // --------------------------------------------------------
     public List<ProblemReportTypeRow> showAll() throws SQLException {
         final String sql = "SELECT report_id, type_id, details FROM problem_report_types ORDER BY report_id, type_id";
 
@@ -95,9 +82,6 @@ public class ProblemReportTypeDAO {
         return list;
     }
 
-    // --------------------------------------------------------
-    // INITIALIZE DEFAULT PROBLEM TYPES
-    // --------------------------------------------------------
     public void initializeProblemTypes() throws SQLException {
         String sql = "INSERT IGNORE INTO problem_types (id, name) VALUES " +
                 "(1,'DRIVER_BEHAVIOR'), " +

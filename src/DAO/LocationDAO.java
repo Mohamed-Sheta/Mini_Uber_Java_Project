@@ -8,7 +8,6 @@ import java.util.List;
 
 public class LocationDAO {
 
-    // Row بسيط لعرض كل الصفوف (id + name)
     public static class LocationRow {
         public final int id;
         public final String name;
