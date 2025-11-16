@@ -1,4 +1,4 @@
-package Controller;
+package controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -167,7 +167,7 @@ public class MapController {
 
 
         Platform.runLater(() ->
-            engine.executeScript("window.dispatchEvent(new Event('resize'))")
+                engine.executeScript("window.dispatchEvent(new Event('resize'))")
         );
     }
 
@@ -195,17 +195,17 @@ public class MapController {
         // Create error toast
         errorToast = new Label(message);
         errorToast.setStyle(
-            "-fx-background-color: #E74C3C; " +
-            "-fx-text-fill: white; " +
-            "-fx-font-size: 14px; " +
-            "-fx-font-weight: bold; " +
-            "-fx-padding: 14 22; " +
-            "-fx-background-radius: 12; " +
-            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 12, 0, 0, 4); " +
-            "-fx-cursor: hand; " +
-            "-fx-border-color: rgba(255,255,255,0.3); " +
-            "-fx-border-width: 1; " +
-            "-fx-border-radius: 12;"
+                "-fx-background-color: #E74C3C; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-size: 14px; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-padding: 14 22; " +
+                        "-fx-background-radius: 12; " +
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 12, 0, 0, 4); " +
+                        "-fx-cursor: hand; " +
+                        "-fx-border-color: rgba(255,255,255,0.3); " +
+                        "-fx-border-width: 1; " +
+                        "-fx-border-radius: 12;"
         );
         errorToast.setMaxWidth(360);
         errorToast.setWrapText(true);
@@ -251,33 +251,33 @@ public class MapController {
             // Hover effect for better interactivity
             errorToast.setOnMouseEntered(e -> {
                 errorToast.setStyle(
-                    "-fx-background-color: #C0392B; " +
-                    "-fx-text-fill: white; " +
-                    "-fx-font-size: 14px; " +
-                    "-fx-font-weight: bold; " +
-                    "-fx-padding: 14 22; " +
-                    "-fx-background-radius: 12; " +
-                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 15, 0, 0, 5); " +
-                    "-fx-cursor: hand; " +
-                    "-fx-border-color: rgba(255,255,255,0.5); " +
-                    "-fx-border-width: 1; " +
-                    "-fx-border-radius: 12;"
+                        "-fx-background-color: #C0392B; " +
+                                "-fx-text-fill: white; " +
+                                "-fx-font-size: 14px; " +
+                                "-fx-font-weight: bold; " +
+                                "-fx-padding: 14 22; " +
+                                "-fx-background-radius: 12; " +
+                                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 15, 0, 0, 5); " +
+                                "-fx-cursor: hand; " +
+                                "-fx-border-color: rgba(255,255,255,0.5); " +
+                                "-fx-border-width: 1; " +
+                                "-fx-border-radius: 12;"
                 );
             });
 
             errorToast.setOnMouseExited(e -> {
                 errorToast.setStyle(
-                    "-fx-background-color: #E74C3C; " +
-                    "-fx-text-fill: white; " +
-                    "-fx-font-size: 14px; " +
-                    "-fx-font-weight: bold; " +
-                    "-fx-padding: 14 22; " +
-                    "-fx-background-radius: 12; " +
-                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 12, 0, 0, 4); " +
-                    "-fx-cursor: hand; " +
-                    "-fx-border-color: rgba(255,255,255,0.3); " +
-                    "-fx-border-width: 1; " +
-                    "-fx-border-radius: 12;"
+                        "-fx-background-color: #E74C3C; " +
+                                "-fx-text-fill: white; " +
+                                "-fx-font-size: 14px; " +
+                                "-fx-font-weight: bold; " +
+                                "-fx-padding: 14 22; " +
+                                "-fx-background-radius: 12; " +
+                                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 12, 0, 0, 4); " +
+                                "-fx-cursor: hand; " +
+                                "-fx-border-color: rgba(255,255,255,0.3); " +
+                                "-fx-border-width: 1; " +
+                                "-fx-border-radius: 12;"
                 );
             });
         }
@@ -296,17 +296,17 @@ public class MapController {
         // Create success toast
         errorToast = new Label(message);
         errorToast.setStyle(
-            "-fx-background-color: #27AE60; " +
-            "-fx-text-fill: white; " +
-            "-fx-font-size: 14px; " +
-            "-fx-font-weight: bold; " +
-            "-fx-padding: 14 22; " +
-            "-fx-background-radius: 12; " +
-            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 12, 0, 0, 4); " +
-            "-fx-cursor: hand; " +
-            "-fx-border-color: rgba(255,255,255,0.3); " +
-            "-fx-border-width: 1; " +
-            "-fx-border-radius: 12;"
+                "-fx-background-color: #27AE60; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-size: 14px; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-padding: 14 22; " +
+                        "-fx-background-radius: 12; " +
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 12, 0, 0, 4); " +
+                        "-fx-cursor: hand; " +
+                        "-fx-border-color: rgba(255,255,255,0.3); " +
+                        "-fx-border-width: 1; " +
+                        "-fx-border-radius: 12;"
         );
         errorToast.setMaxWidth(360);
         errorToast.setWrapText(true);
@@ -352,33 +352,33 @@ public class MapController {
             // Hover effect for better interactivity
             errorToast.setOnMouseEntered(e -> {
                 errorToast.setStyle(
-                    "-fx-background-color: #229954; " +
-                    "-fx-text-fill: white; " +
-                    "-fx-font-size: 14px; " +
-                    "-fx-font-weight: bold; " +
-                    "-fx-padding: 14 22; " +
-                    "-fx-background-radius: 12; " +
-                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 15, 0, 0, 5); " +
-                    "-fx-cursor: hand; " +
-                    "-fx-border-color: rgba(255,255,255,0.5); " +
-                    "-fx-border-width: 1; " +
-                    "-fx-border-radius: 12;"
+                        "-fx-background-color: #229954; " +
+                                "-fx-text-fill: white; " +
+                                "-fx-font-size: 14px; " +
+                                "-fx-font-weight: bold; " +
+                                "-fx-padding: 14 22; " +
+                                "-fx-background-radius: 12; " +
+                                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 15, 0, 0, 5); " +
+                                "-fx-cursor: hand; " +
+                                "-fx-border-color: rgba(255,255,255,0.5); " +
+                                "-fx-border-width: 1; " +
+                                "-fx-border-radius: 12;"
                 );
             });
 
             errorToast.setOnMouseExited(e -> {
                 errorToast.setStyle(
-                    "-fx-background-color: #27AE60; " +
-                    "-fx-text-fill: white; " +
-                    "-fx-font-size: 14px; " +
-                    "-fx-font-weight: bold; " +
-                    "-fx-padding: 14 22; " +
-                    "-fx-background-radius: 12; " +
-                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 12, 0, 0, 4); " +
-                    "-fx-cursor: hand; " +
-                    "-fx-border-color: rgba(255,255,255,0.3); " +
-                    "-fx-border-width: 1; " +
-                    "-fx-border-radius: 12;"
+                        "-fx-background-color: #27AE60; " +
+                                "-fx-text-fill: white; " +
+                                "-fx-font-size: 14px; " +
+                                "-fx-font-weight: bold; " +
+                                "-fx-padding: 14 22; " +
+                                "-fx-background-radius: 12; " +
+                                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 12, 0, 0, 4); " +
+                                "-fx-cursor: hand; " +
+                                "-fx-border-color: rgba(255,255,255,0.3); " +
+                                "-fx-border-width: 1; " +
+                                "-fx-border-radius: 12;"
                 );
             });
         }

@@ -11,14 +11,18 @@ public class MapView extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("/MapView.fxml"));
+        // Load FXML from resources directory
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getClassLoader().getResource("MapView.fxml"));
+        Parent root = loader.load();
+
         Scene scene = new Scene(root, 390, 750);
 
-        scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
+        scene.getStylesheets().add(getClass().getClassLoader().getResource("style.css").toExternalForm());
 
-        Image icon = new Image(getClass().getResource("/Logo.jpg").toExternalForm());
+        Image icon = new Image(getClass().getClassLoader().getResource("Logo.jpg").toExternalForm());
         stage.getIcons().add(icon);
-        
+
         stage.setTitle("MiniGo");
         stage.setScene(scene);
         stage.setMinWidth(320);

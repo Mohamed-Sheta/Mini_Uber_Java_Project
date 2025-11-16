@@ -1,8 +1,131 @@
 import Model.*;
 import services.*;
 import java.util.*;
-
+import java.io.*;
+import java.time.*;
+import java.time.format.*;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Image;
+import com.itextpdf.text.Chunk;
+import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.Phrase;
+import com.itextpdf.text.pdf.draw.LineSeparator;
 public class Main {
+
+    public static void generateInvoicePdf(String id, String name, double amount) {
+        try {
+            File dir = new File("resources/invoices");
+            if (!dir.exists()) dir.mkdirs();
+
+            String filename = "resources/invoices/invoice_" + id + ".pdf";
+            Document document = new Document();
+            PdfWriter.getInstance(document, new FileOutputStream(filename));
+            document.open();
+
+            Font regularFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, BaseColor.DARK_GRAY);
+            Font titleFont = new Font(Font.FontFamily.HELVETICA, 28, Font.BOLD, BaseColor.BLACK);
+            Font subtitleFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL, BaseColor.GRAY);
+            Font labelFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL, BaseColor.DARK_GRAY);
+            Font amountFont = new Font(Font.FontFamily.HELVETICA, 32, Font.BOLD, BaseColor.BLACK);
+            Font sectionFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, BaseColor.DARK_GRAY);
+
+            File logoFile = new File("resources/Logo.jpg");
+            if (logoFile.exists()) {
+                Image logo = Image.getInstance(logoFile.getAbsolutePath());
+                logo.scaleToFit(120, 120);
+                logo.setAlignment(Element.ALIGN_CENTER);
+                document.add(logo);
+                document.add(new Paragraph(" "));
+            }
+
+            String dateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm"));
+            Paragraph datePara = new Paragraph(dateTime, regularFont);
+            datePara.setAlignment(Element.ALIGN_RIGHT);
+            datePara.setSpacingAfter(20);
+            document.add(datePara);
+
+            Paragraph title = new Paragraph("Your Trip Receipt", titleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            title.setSpacingAfter(10);
+            document.add(title);
+
+            Paragraph subtitle = new Paragraph("Thanks for riding with us, " + name, subtitleFont);
+            subtitle.setAlignment(Element.ALIGN_CENTER);
+            subtitle.setSpacingAfter(20);
+            document.add(subtitle);
+
+            LineSeparator line = new LineSeparator();
+            line.setLineColor(BaseColor.LIGHT_GRAY);
+            document.add(new Chunk(line));
+            document.add(new Paragraph(" "));
+            document.add(new Paragraph(" "));
+
+            PdfPTable totalTable = new PdfPTable(2);
+            totalTable.setWidthPercentage(100);
+            totalTable.setWidths(new float[]{1, 1});
+            totalTable.setSpacingBefore(10);
+            totalTable.setSpacingAfter(30);
+
+            PdfPCell labelCell = new PdfPCell(new Phrase("Total", labelFont));
+            labelCell.setBorder(PdfPCell.NO_BORDER);
+            labelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+            labelCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            totalTable.addCell(labelCell);
+
+            PdfPCell amountCell = new PdfPCell(new Phrase(String.format("%.2f EGP", amount), amountFont));
+            amountCell.setBorder(PdfPCell.NO_BORDER);
+            amountCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            amountCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            totalTable.addCell(amountCell);
+
+            document.add(totalTable);
+
+            document.add(new Chunk(line));
+            document.add(new Paragraph(" "));
+
+            PdfPTable summaryTable = new PdfPTable(2);
+            summaryTable.setWidthPercentage(100);
+            summaryTable.setWidths(new float[]{2, 1});
+            summaryTable.setSpacingBefore(10);
+
+            PdfPCell baseFareLabel = new PdfPCell(new Phrase("Base Fare", sectionFont));
+            baseFareLabel.setBorder(PdfPCell.NO_BORDER);
+            baseFareLabel.setHorizontalAlignment(Element.ALIGN_LEFT);
+            baseFareLabel.setPaddingBottom(8);
+            summaryTable.addCell(baseFareLabel);
+
+            PdfPCell baseFareAmount = new PdfPCell(new Phrase(String.format("%.2f EGP", amount), sectionFont));
+            baseFareAmount.setBorder(PdfPCell.NO_BORDER);
+            baseFareAmount.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            baseFareAmount.setPaddingBottom(8);
+            summaryTable.addCell(baseFareAmount);
+
+            PdfPCell totalLabel = new PdfPCell(new Phrase("Total Amount", sectionFont));
+            totalLabel.setBorder(PdfPCell.NO_BORDER);
+            totalLabel.setHorizontalAlignment(Element.ALIGN_LEFT);
+            totalLabel.setPaddingTop(8);
+            summaryTable.addCell(totalLabel);
+
+            PdfPCell totalAmountCell = new PdfPCell(new Phrase(String.format("%.2f EGP", amount), sectionFont));
+            totalAmountCell.setBorder(PdfPCell.NO_BORDER);
+            totalAmountCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            totalAmountCell.setPaddingTop(8);
+            summaryTable.addCell(totalAmountCell);
+
+            document.add(summaryTable);
+
+            document.close();
+            System.out.println("Invoice PDF saved: " + filename);
+        } catch (Exception e) {
+            System.err.println("PDF generation failed: " + e.getMessage());
+        }
+    }
     public static void main(String[] args) {
         System.out.println("=== Mini Uber System Egypt (Refactored Version) ===\n");
 
@@ -189,6 +312,10 @@ public class Main {
         allHistories.addAll(p4.getRideHistory());
         int completedCount = RideHistory.getRideCounts(allHistories);
         System.out.println(" Total completed rides in the system: " + completedCount);
+        sep.run();
+
+        System.out.println("Test 9: Generate PDF Invoice");
+        generateInvoicePdf("INV001", "Ahmed Ali", 150.50);
 
         System.out.println("\n=== ALL DONE ===");
     }
