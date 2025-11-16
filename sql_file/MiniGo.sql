@@ -8,8 +8,10 @@ USE minigo;
 -- TABLE: Locations
 -- ======================================================
 CREATE TABLE locations (
-                           id INT AUTO_INCREMENT PRIMARY KEY,
-                           name VARCHAR(100) NOT NULL UNIQUE
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    latitude DOUBLE NOT NULL,
+    longitude DOUBLE NOT NULL
 );
 
 -- ======================================================

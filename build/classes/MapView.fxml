@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.web.WebView?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.geometry.Insets?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml"
+           fx:id="rootContainer"
+           fx:controller="Controller.MapController"
+           prefWidth="420" prefHeight="800">
+
+<AnchorPane prefWidth="420" prefHeight="800">
+
+    <!-- MAP FULLSCREEN -->
+    <WebView fx:id="webView"
+             AnchorPane.topAnchor="0"
+             AnchorPane.bottomAnchor="0"
+             AnchorPane.leftAnchor="0"
+             AnchorPane.rightAnchor="0"/>
+
+    <!-- TOP BAR -->
+    <HBox spacing="10"
+          alignment="CENTER"
+          AnchorPane.topAnchor="12"
+          AnchorPane.leftAnchor="12"
+          AnchorPane.rightAnchor="12"
+          style="-fx-background-color:#574964; -fx-background-radius:12; -fx-padding:8 12; -fx-opacity:0.98;">
+
+        <ImageView fx:id="settingsBtn"
+                   fitWidth="28" fitHeight="28" pickOnBounds="true" preserveRatio="true">
+            <image>
+                <Image url="@settings_12280787.png"/>
+            </image>
+        </ImageView>
+
+        <Pane HBox.hgrow="ALWAYS"/>
+
+        <ImageView fx:id="profileBtn"
+                   fitWidth="34" fitHeight="34" pickOnBounds="true" preserveRatio="true">
+            <image>
+                <Image url="@user_17436294.png"/>
+            </image>
+        </ImageView>
+
+    </HBox>
+
+    <!-- BOTTOM PANEL -->
+    <VBox fx:id="bottomPanel"
+          spacing="12"
+          prefHeight="260"
+          style="-fx-background-color:#574964; -fx-background-radius:20 20 0 0; -fx-padding:16;"
+          AnchorPane.leftAnchor="0"
+          AnchorPane.rightAnchor="0"
+          AnchorPane.bottomAnchor="0">
+
+        <HBox alignment="CENTER_RIGHT">
+            <Button fx:id="toggleBtn"
+                    text="Hide"
+                    style="-fx-background-color:#9F8383; -fx-text-fill:white; -fx-background-radius:8;"/>
+        </HBox>
+
+        <Label text="MiniGo Route Finder"
+               style="-fx-font-size:20; -fx-text-fill:#FFDAB3; -fx-font-weight:bold;"/>
+
+        <Label text="Start:" style="-fx-text-fill:#C8AAAA;"/>
+        <ComboBox fx:id="startCombo" prefWidth="230"/>
+
+        <Label text="Destination:" style="-fx-text-fill:#C8AAAA;"/>
+        <ComboBox fx:id="endCombo" prefWidth="230"/>
+
+        <HBox spacing="10">
+            <Button fx:id="findBtn"
+                    text="Request"
+                    style="-fx-background-color:#C8AAAA; -fx-text-fill:#18122B; -fx-background-radius:8;"/>
+
+            <Button fx:id="clearBtn"
+                    text="Clear"
+                    style="-fx-background-color:#9F8383; -fx-text-fill:white; -fx-background-radius:8;"/>
+        </HBox>
+
+    </VBox>
+
+</AnchorPane>
+
+</StackPane>
+
+
