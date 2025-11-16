@@ -3,49 +3,46 @@ package Model;
 import java.util.Objects;
 
 public class Location {
-    private  int counter = 1;
+    private static int counter = 1;
     private int id;
     private String name;
+    private double latitude;
+    private double longitude;
 
-    public Location(int id, String name) {
-        this.id = id;
-        this.name = name;
-    }
-    public Location(String name) {
+    public Location(String name, double latitude, double longitude) {
         this.id = counter++;
         this.name = name;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
-    public int getId() {
-        return id;
-    }
+    // getters
+    public int getId() { return id; }
+    public String getName() { return name; }
+    public double getLatitude() { return latitude; }
+    public double getLongitude() { return longitude; }
 
+    // setters if needed
     public void setId(int id) { this.id = id; }
-    public String getName() {
+    public void setName(String name) { this.name = name; }
+    public void setLatitude(double latitude) { this.latitude = latitude; }
+    public void setLongitude(double longitude) { this.longitude = longitude; }
+
+    @Override
+    public String toString() {
         return name;
     }
 
     @Override
-    public String toString() {
-        return "Location{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                '}';
-    }
-
-    @Override
-    public final boolean equals(Object o) {
+    public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Location location)) return false;
-        return id == location.id;
+        if (!(o instanceof Location)) return false;
+        Location that = (Location) o;
+        return id == that.id;
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id);
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 }

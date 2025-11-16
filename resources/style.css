@@ -1,0 +1,51 @@
+/* ===== Global Root Fix ===== */
+.root {
+    -fx-background-color: transparent;
+}
+
+/* ===== Colors (write directly, no variables) ===== */
+/* accent1 = #FFDAB3 */
+/* accent2 = #C8AAAA */
+/* accent3 = #9F8383 */
+/* panel   = #574964 */
+
+/* Bottom panel */
+.bottom-panel {
+    -fx-background-color: #574964;
+    -fx-background-radius: 20 20 0 0;
+}
+
+/* Labels */
+.label {
+    -fx-font-size: 13px;
+    -fx-text-fill: white;
+}
+
+/* ComboBoxes */
+.combo-box {
+    -fx-background-radius: 6;
+    -fx-padding: 6 8;
+}
+
+/* Buttons */
+.button {
+    -fx-cursor: hand;
+}
+
+.request-btn {
+    -fx-background-color: #C8AAAA;
+    -fx-text-fill: #18122B;
+    -fx-background-radius: 8;
+}
+
+.clear-btn {
+    -fx-background-color: #9F8383;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+}
+
+.hide-btn {
+    -fx-background-color: #9F8383;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+}

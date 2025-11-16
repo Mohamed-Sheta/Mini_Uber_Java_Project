@@ -1,4 +1,5 @@
 package services;
+
 import Model.Edge;
 import Model.Location;
 import Model.Driver;
@@ -6,23 +7,18 @@ import Model.Passenger;
 import Model.RideHistory;
 import DAO.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Comparator;
-import java.util.Collections;
-import java.util.Arrays;
+import java.util.*;
 
 public class MapGraph {
-    private Map<Location, List<Edge>> adjacency_list;
+
+    public Map<Location, List<Edge>> adjacency_list;
 
     public MapGraph() {
         this.adjacency_list = new HashMap<>();
     }
 
     public static class CityMapSetup {
+
         public MapGraph cityMap;
         public List<Location> locations;
         public List<Driver> drivers;
@@ -38,7 +34,7 @@ public class MapGraph {
             driverIdMap = new HashMap<>();
             passengerIdMap = new HashMap<>();
         }
-        
+
         public void initializeAll() {
             initializeLocations();
             initializeEdges();
@@ -48,13 +44,14 @@ public class MapGraph {
         }
 
         private void initializeLocations() {
+
             LocationDAO locationDAO = new LocationDAO();
 
-            Location downtown = new Location("Downtown Cairo");
-            Location nasrCity = new Location("Nasr City");
-            Location maadi = new Location("Maadi");
-            Location giza = new Location("Giza");
-            Location newCairo = new Location("New Cairo");
+            Location downtown = new Location("Downtown Cairo", 30.0444, 31.2357);
+            Location nasrCity = new Location("Nasr City", 30.0561, 31.3300);
+            Location maadi = new Location("Maadi", 29.9603, 31.2596);
+            Location giza = new Location("Giza", 30.0131, 31.2089);
+            Location newCairo = new Location("New Cairo", 30.0305, 31.4913);
 
             locations.addAll(Arrays.asList(downtown, nasrCity, maadi, giza, newCairo));
 
@@ -65,7 +62,6 @@ public class MapGraph {
             try {
                 for (Location loc : locations) {
                     long id = locationDAO.insert(loc);
-                    loc.setId((int) id);
                     System.out.println("[DB] Insert Location: " + loc.getName() + " -> id=" + id);
                 }
             } catch (Exception e) {
@@ -73,10 +69,12 @@ public class MapGraph {
             }
         }
 
+
         private void initializeEdges() {
             if (locations.size() < 5) return;
 
             EdgeDAO edgeDAO = new EdgeDAO();
+
             Location downtown = locations.get(0);
             Location nasrCity = locations.get(1);
             Location maadi = locations.get(2);
@@ -101,7 +99,6 @@ public class MapGraph {
                 edgeDAO.insert(giza, maadi, 5.0);
                 edgeDAO.insert(nasrCity, newCairo, 10.0);
                 edgeDAO.insert(newCairo, nasrCity, 10.0);
-                System.out.println("[DB] Edges inserted.\n");
             } catch (Exception e) {
                 System.out.println("[DB] Insert edges error: " + e.getMessage());
             }
@@ -111,33 +108,37 @@ public class MapGraph {
             if (locations.isEmpty()) return;
 
             DriverDAO driverDAO = new DriverDAO();
+
             Location downtown = locations.get(0);
             Location nasrCity = locations.get(1);
             Location maadi = locations.get(2);
             Location giza = locations.get(3);
 
-            List<RideHistory> emptyHistory = new ArrayList<>();
+            List<RideHistory> empty = new ArrayList<>();
 
-            Driver d1 = new Driver("CAR001", "Toyota Corolla", true, "SSN100", "marwan wael",
-                                  "01010001000", "marwan@gmail.com", 100.0, 50.0, downtown, emptyHistory);
-            Driver d2 = new Driver("CAR002", "Hyundai Verna", true, "SSN101", "c ali",
-                                  "01010001001", "islam@gmail.com", 120.0, 60.0, nasrCity, emptyHistory);
-            Driver d3 = new Driver("CAR003", "Kia Cerato", false, "SSN102", "amin ahmed",
-                                  "01010001002", "amin@gmail.com", 90.0, 45.0, giza, emptyHistory);
-            Driver d4 = new Driver("CAR004", "Nissan Sunny", true, "SSN103", "Youssef Ibrahim",
-                                  "01010001003", "youssef@gmail.com", 150.0, 75.0, maadi, emptyHistory);
+            Driver d1 = new Driver("CAR001", "Toyota Corolla", true, "SSN100",
+                    "marwan wael", "01010001000", "marwan@gmail.com",
+                    100.0, 50.0, downtown, empty);
+
+            Driver d2 = new Driver("CAR002", "Hyundai Verna", true, "SSN101",
+                    "c ali", "01010001001", "islam@gmail.com",
+                    120.0, 60.0, nasrCity, empty);
+
+            Driver d3 = new Driver("CAR003", "Kia Cerato", false, "SSN102",
+                    "amin ahmed", "01010001002", "amin@gmail.com",
+                    90.0, 45.0, giza, empty);
+
+            Driver d4 = new Driver("CAR004", "Nissan Sunny", true, "SSN103",
+                    "Youssef Ibrahim", "01010001003", "youssef@gmail.com",
+                    150.0, 75.0, maadi, empty);
 
             drivers.addAll(Arrays.asList(d1, d2, d3, d4));
 
             try {
-                for (Driver driver : drivers) {
-                    String locName = driver.getCurrentLocation() != null ?
-                                    driver.getCurrentLocation().getName() : null;
-                    long id = driverDAO.insert(driver, locName);
-                    driverIdMap.put(driver, id);
-                    System.out.println("[DB] Insert Driver: " + driver.getName() + " -> id=" + id);
+                for (Driver d : drivers) {
+                    long id = driverDAO.insert(d, d.getCurrentLocation().getName());
+                    driverIdMap.put(d, id);
                 }
-                System.out.println();
             } catch (Exception e) {
                 System.out.println("[DB] Insert drivers error: " + e.getMessage());
             }
@@ -147,31 +148,35 @@ public class MapGraph {
             if (locations.isEmpty()) return;
 
             PassengerDAO passengerDAO = new PassengerDAO();
+
             Location downtown = locations.get(0);
             Location nasrCity = locations.get(1);
             Location maadi = locations.get(2);
             Location newCairo = locations.get(4);
 
-            Passenger p1 = new Passenger("PSSN01", "ahmed ashraf", "01110001001", "ahmed@gmail.com",
-                                         200.0, 100.0, maadi, new ArrayList<>());
-            Passenger p2 = new Passenger("PSSN02", "mohamed sheta", "01110001002", "sheta@gmail.com",
-                                         40.0, 10.0, downtown, new ArrayList<>());
-            Passenger p3 = new Passenger("PSSN03", "mostafa hassan", "01110001003", "mostafa@gmail.com",
-                                         500.0, 250.0, nasrCity, new ArrayList<>());
-            Passenger p4 = new Passenger("PSSN04", "amr nabli", "01110001004", "amr@gmail.com",
-                                         15.0, 0.0, newCairo, new ArrayList<>());
+            Passenger p1 = new Passenger("PSSN01", "ahmed ashraf",
+                    "01110001001", "ahmed@gmail.com",
+                    200.0, 100.0, maadi, new ArrayList<>());
+
+            Passenger p2 = new Passenger("PSSN02", "mohamed sheta",
+                    "01110001002", "sheta@gmail.com",
+                    40.0, 10.0, downtown, new ArrayList<>());
+
+            Passenger p3 = new Passenger("PSSN03", "mostafa hassan",
+                    "01110001003", "mostafa@gmail.com",
+                    500.0, 250.0, nasrCity, new ArrayList<>());
+
+            Passenger p4 = new Passenger("PSSN04", "amr nabli",
+                    "01110001004", "amr@gmail.com",
+                    15.0, 0.0, newCairo, new ArrayList<>());
 
             passengers.addAll(Arrays.asList(p1, p2, p3, p4));
 
             try {
-                for (Passenger passenger : passengers) {
-                    String locName = passenger.getCurrentLocation() != null ?
-                                    passenger.getCurrentLocation().getName() : null;
-                    long id = passengerDAO.insert(passenger, locName);
-                    passengerIdMap.put(passenger, id);
-                    System.out.println("[DB] Insert Passenger: " + passenger.getName() + " -> id=" + id);
+                for (Passenger p : passengers) {
+                    long id = passengerDAO.insert(p, p.getCurrentLocation().getName());
+                    passengerIdMap.put(p, id);
                 }
-                System.out.println();
             } catch (Exception e) {
                 System.out.println("[DB] Insert passengers error: " + e.getMessage());
             }
@@ -202,13 +207,14 @@ public class MapGraph {
 
         while (!pq.isEmpty()) {
             Location current = pq.poll();
+
             if (current.equals(target)) break;
 
             for (Edge edge : adjacency_list.getOrDefault(current, Collections.emptyList())) {
                 Location neighbor = edge.getTo();
                 double newDist = distance.get(current) + edge.getDistance();
 
-                if (newDist < distance.getOrDefault(neighbor, Double.MAX_VALUE)) {
+                if (newDist < distance.get(neighbor)) {
                     distance.put(neighbor, newDist);
                     previous.put(neighbor, current);
                     pq.add(neighbor);
@@ -221,13 +227,10 @@ public class MapGraph {
 
     private List<Location> reconstructPath(Location start, Location target, Map<Location, Location> previous, Double finalDistance) {
         List<Location> path = new ArrayList<>();
+
+        if (finalDistance.equals(Double.MAX_VALUE)) return Collections.emptyList();
+
         Location step = target;
-
-        if (finalDistance == null || finalDistance.equals(Double.MAX_VALUE)) {
-            System.out.println("No path found from " + start.getName() + " to " + target.getName());
-            return Collections.emptyList();
-        }
-
         while (step != null) {
             path.add(0, step);
             step = previous.get(step);
@@ -249,24 +252,20 @@ public class MapGraph {
 
         while (!pq.isEmpty()) {
             Location current = pq.poll();
+
             if (current.equals(target)) break;
 
             for (Edge edge : adjacency_list.getOrDefault(current, Collections.emptyList())) {
                 Location neighbor = edge.getTo();
                 double newDist = distance.get(current) + edge.getDistance();
 
-                if (newDist < distance.getOrDefault(neighbor, Double.MAX_VALUE)) {
+                if (newDist < distance.get(neighbor)) {
                     distance.put(neighbor, newDist);
                     pq.add(neighbor);
                 }
             }
         }
 
-        double finalDist = distance.getOrDefault(target, Double.MAX_VALUE);
-        if (finalDist == Double.MAX_VALUE) {
-            System.out.println("No path found from " + start.getName() + " to " + target.getName());
-        }
-        return finalDist;
+        return distance.get(target);
     }
-
 }
