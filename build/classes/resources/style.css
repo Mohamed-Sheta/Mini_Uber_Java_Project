@@ -1,51 +1,195 @@
-/* ===== Global Root Fix ===== */
+/* ========================================
+   MiniGO - Dark Theme
+   Background: #0D0D0D
+   Clean, Modern, Uber-style
+   ======================================== */
+
+/* Root Styling */
 .root {
-    -fx-background-color: transparent;
+    -fx-font-family: 'Segoe UI', 'Arial', sans-serif;
+    -fx-background-color: #0D0D0D;
 }
 
-/* ===== Colors (write directly, no variables) ===== */
-/* accent1 = #FFDAB3 */
-/* accent2 = #C8AAAA */
-/* accent3 = #9F8383 */
-/* panel   = #574964 */
+/* ========================================
+   SPLASH SCREEN
+   ======================================== */
 
-/* Bottom panel */
-.bottom-panel {
-    -fx-background-color: #574964;
-    -fx-background-radius: 20 20 0 0;
+.splash-background {
+    -fx-background-color: #0D0D0D;
 }
 
-/* Labels */
-.label {
-    -fx-font-size: 13px;
-    -fx-text-fill: white;
+/* ========================================
+   MAIN SCREENS
+   ======================================== */
+
+.gradient-background {
+    -fx-background-color: #0D0D0D;
 }
 
-/* ComboBoxes */
-.combo-box {
-    -fx-background-radius: 6;
-    -fx-padding: 6 8;
+/* Headline Text */
+.headline-text {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-weight: bold;
 }
 
-/* Buttons */
-.button {
+/* Feature Text */
+.feature-text {
+    -fx-text-fill: #E5E5E5;
+    -fx-font-weight: 500;
+}
+
+/* Main Card Container */
+.main-card {
+    -fx-background-color: #111111;
+    -fx-background-radius: 16;
+    -fx-border-color: #2A2A2A;
+    -fx-border-radius: 16;
+    -fx-border-width: 1;
+}
+
+/* Card Title */
+.card-title {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-weight: bold;
+}
+
+/* Passenger Button */
+.passenger-button {
+    -fx-background-color: #1A1A1A;
+    -fx-text-fill: #FFFFFF;
+    -fx-background-radius: 14;
     -fx-cursor: hand;
+    -fx-border-color: #2A2A2A;
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+    -fx-font-weight: bold;
 }
 
-.request-btn {
-    -fx-background-color: #C8AAAA;
-    -fx-text-fill: #18122B;
+.passenger-button:hover {
+    -fx-background-color: #222222;
+}
+
+.passenger-button:pressed {
+    -fx-background-color: #0D0D0D;
+}
+
+/* Driver Button */
+.driver-button {
+    -fx-background-color: #1A1A1A;
+    -fx-text-fill: #FFFFFF;
+    -fx-background-radius: 14;
+    -fx-cursor: hand;
+    -fx-border-color: #2A2A2A;
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+    -fx-font-weight: bold;
+}
+
+.driver-button:hover {
+    -fx-background-color: #222222;
+}
+
+.driver-button:pressed {
+    -fx-background-color: #0D0D0D;
+}
+
+/* ========================================
+   GENERAL UI ELEMENTS
+   ======================================== */
+
+.scroll-pane {
+    -fx-background-color: #0D0D0D;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: #0D0D0D;
+}
+
+/* TextField */
+.text-field {
+    -fx-background-color: #1A1A1A;
+    -fx-text-fill: #FFFFFF;
+    -fx-prompt-text-fill: #666666;
+    -fx-border-color: #2A2A2A;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 12;
+}
+
+.text-field:focused {
+    -fx-border-color: #3A3A3A;
+    -fx-border-width: 1.5;
+}
+
+/* PasswordField */
+.password-field {
+    -fx-background-color: #1A1A1A;
+    -fx-text-fill: #FFFFFF;
+    -fx-prompt-text-fill: #666666;
+    -fx-border-color: #2A2A2A;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 12;
+}
+
+.password-field:focused {
+    -fx-border-color: #3A3A3A;
+    -fx-border-width: 1.5;
+}
+
+/* Label */
+.label {
+    -fx-text-fill: #E5E5E5;
+}
+
+/* Standard Button */
+.button {
+    -fx-background-color: #1A1A1A;
+    -fx-text-fill: #FFFFFF;
+    -fx-background-radius: 14;
+    -fx-cursor: hand;
+    -fx-padding: 12 24 12 24;
+    -fx-border-color: #2A2A2A;
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+}
+
+.button:hover {
+    -fx-background-color: #222222;
+}
+
+.button:pressed {
+    -fx-background-color: #0D0D0D;
+}
+
+/* Containers */
+.anchor-pane, .vbox, .hbox, .stack-pane {
+    -fx-background-color: #0D0D0D;
+}
+
+/* ComboBox */
+.combo-box {
+    -fx-background-color: #1A1A1A;
+    -fx-border-color: #2A2A2A;
+    -fx-border-radius: 8;
     -fx-background-radius: 8;
 }
 
-.clear-btn {
-    -fx-background-color: #9F8383;
-    -fx-text-fill: white;
-    -fx-background-radius: 8;
+.combo-box .list-cell {
+    -fx-background-color: #1A1A1A;
+    -fx-text-fill: #E5E5E5;
 }
 
-.hide-btn {
-    -fx-background-color: #9F8383;
-    -fx-text-fill: white;
-    -fx-background-radius: 8;
+.combo-box-popup .list-view {
+    -fx-background-color: #1A1A1A;
+    -fx-border-color: #2A2A2A;
+}
+
+.combo-box-popup .list-view .list-cell {
+    -fx-background-color: #1A1A1A;
+    -fx-text-fill: #E5E5E5;
+}
+
+.combo-box-popup .list-view .list-cell:hover {
+    -fx-background-color: #222222;
 }

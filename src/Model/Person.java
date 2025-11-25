@@ -1,4 +1,7 @@
 package Model;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,12 +13,13 @@ public abstract class Person {
     private double walletBalance;
     private double creditBalance;
     private double accountRating;
-    private Location currentLocation; 
+    private String password;
+    private Location currentLocation;
     private List<RideHistory> rideHistory;
 
     public Person(String userSSN, String name, String phoneNumber, String email,
                   double walletBalance, double creditBalance,
-                  Location currentLocation, List<RideHistory> rideHistory) {
+                  Location currentLocation, List<RideHistory> rideHistory, String password) {
 
         this.userSSN = userSSN;
         this.name = name;
@@ -26,6 +30,12 @@ public abstract class Person {
         this.currentLocation = currentLocation;
         this.rideHistory = rideHistory != null ? rideHistory : new ArrayList<>();
         this.accountRating = getAccountRating();
+        // Hash password only if not null or empty
+        if (password != null && !password.isEmpty()) {
+            setPassword(hashPassword(password));
+        } else {
+            setPassword(null);
+        }
     }
 
     public String getUserSSN() { return userSSN; }
@@ -45,6 +55,9 @@ public abstract class Person {
     public void updateWalletBalance(double walletBalance) {this.walletBalance = walletBalance;}
     public void updateCreditBalance(double creditBalance) {this.creditBalance = creditBalance;}
 
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+
     private double getAverageRating() {
         System.out.println("rideHistory is null: " + (rideHistory == null));
         int total = 0;
@@ -60,5 +73,23 @@ public abstract class Person {
         }
         return count == 0 ? 0 : (double) total / count;
     }
+
+    public static String hashPassword(String password) {
+        if (password == null || password.isEmpty()) {
+            return ""; // Return empty string for null/empty passwords
+        }
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] hash = md.digest(password.getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hash) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 algorithm not found", e);
+        }
+    }
+
     public abstract void showProfile();
 }

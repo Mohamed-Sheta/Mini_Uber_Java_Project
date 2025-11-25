@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="controller.SplashController"
+           alignment="CENTER"
+           styleClass="splash-background"
+           stylesheets="@/style.css">
+
+    <!-- Logo centered exactly in middle, no text -->
+    <ImageView fx:id="logoImage"
+               fitWidth="160"
+               preserveRatio="true"
+               smooth="true"
+               opacity="0"
+               cache="true">
+        <image>
+            <Image url="@/Logo-removebg-preview.png"
+                   backgroundLoading="false"
+                   preserveRatio="true"
+                   smooth="true"/>
+        </image>
+    </ImageView>
+
+</StackPane>
+

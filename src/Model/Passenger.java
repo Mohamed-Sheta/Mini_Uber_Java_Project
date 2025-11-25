@@ -10,8 +10,14 @@ import java.util.Set;
 public class Passenger extends Person {
     private int latestDriverRating = 0;
 
-    public Passenger(String userSSN, String name, String phoneNumber, String email, double walletBalance, double creditBalance, Location currentLocation, List<RideHistory> rideHistory) {
-        super(userSSN, name, phoneNumber, email, walletBalance, creditBalance, currentLocation, rideHistory);
+    // Full constructor
+    public Passenger(String userSSN, String name, String phoneNumber, String email, double walletBalance, double creditBalance, Location currentLocation, List<RideHistory> rideHistory, String password) {
+        super(userSSN, name, phoneNumber, email, walletBalance, creditBalance, currentLocation, rideHistory, password);
+    }
+
+    // Simplified constructor for registration
+    public Passenger(String userSSN, String name, String phoneNumber, String email, String password) {
+        super(userSSN, name, phoneNumber, email, 0.0, 0.0, null, new java.util.ArrayList<>(), password);
     }
 
     public void setWalletBalance(double walletBalance) {

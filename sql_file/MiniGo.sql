@@ -35,6 +35,7 @@ CREATE TABLE passengers (
                             name VARCHAR(120) NOT NULL,
                             phone_number VARCHAR(32) NOT NULL,
                             email VARCHAR(160) NOT NULL,
+                            password VARCHAR(255) NOT NULL,
                             wallet_balance DECIMAL(12,2) NOT NULL DEFAULT 0,
                             credit_balance DECIMAL(12,2) NOT NULL DEFAULT 0,
 
@@ -55,6 +56,7 @@ CREATE TABLE drivers (
                          name VARCHAR(120) NOT NULL,
                          phone_number VARCHAR(32) NOT NULL,
                          email VARCHAR(160) NOT NULL,
+                         password VARCHAR(255) NOT NULL,
                          wallet_balance DECIMAL(12,2) NOT NULL DEFAULT 0,
                          credit_balance DECIMAL(12,2) NOT NULL DEFAULT 0,
 
