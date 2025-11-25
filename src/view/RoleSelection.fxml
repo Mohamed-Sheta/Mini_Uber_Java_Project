@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox alignment="TOP_CENTER" prefHeight="700" prefWidth="400" styleClass="role-selection-background" stylesheets="@/style.css" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/17.0.12" fx:controller="controller.RoleSelectionController">
+
+    <!-- Top Spacing -->
+    <Region prefHeight="60" />
+
+    <!-- Logo Image -->
+    <ImageView fitWidth="120" preserveRatio="true">
+        <Image url="@/Logo-removebg-preview.png" />
+    </ImageView>
+
+    <!-- Spacing after logo -->
+    <Region prefHeight="40" />
+
+    <!-- Title: "Your journey, simplified" -->
+    <Label styleClass="role-selection-title" text="Your journey, simplified">
+        <VBox.margin>
+            <Insets left="40" right="40" />
+        </VBox.margin>
+    </Label>
+
+    <!-- Spacing after title -->
+    <Region prefHeight="35" />
+
+    <!-- Icon Row: Fast Pickup • Safe Rides -->
+    <HBox alignment="CENTER" spacing="24" styleClass="features-row">
+        <VBox.margin>
+            <Insets left="40" right="40" />
+        </VBox.margin>
+
+        <!-- Fast Pickup -->
+        <VBox alignment="CENTER" prefHeight="86.0" prefWidth="86.0" spacing="10" styleClass="icon-container">
+            <StackPane prefHeight="54.0" prefWidth="54.0" styleClass="icon-background">
+                <ImageView fitHeight="53.0" fitWidth="138.0" pickOnBounds="true" preserveRatio="true">
+                    <Image smooth="true" url="@/fast.png" />
+                </ImageView>
+            </StackPane>
+            <Label prefHeight="18.0" prefWidth="88.0" styleClass="feature-label" text="Fast Pickup" />
+        </VBox>
+
+        <!-- Bullet Separator -->
+        <Label styleClass="bullet-separator" text="•" />
+
+        <!-- Safe Rides -->
+        <VBox alignment="CENTER" spacing="10" styleClass="icon-container">
+            <StackPane prefHeight="0.0" prefWidth="0.0" styleClass="icon-background">
+                <ImageView fitHeight="57.0" fitWidth="33.0" pickOnBounds="true" preserveRatio="true">
+                    <Image smooth="true" url="@/safe.png" />
+                </ImageView>
+            </StackPane>
+            <Label styleClass="feature-label" text="Safe Rides" />
+        </VBox>
+    </HBox>
+
+    <!-- Spacing before card -->
+    <Region prefHeight="45" />
+
+    <!-- Get Started Card Container -->
+    <VBox alignment="TOP_CENTER" spacing="20" styleClass="get-started-card">
+        <VBox.margin>
+            <Insets left="30" right="30" />
+        </VBox.margin>
+        <padding>
+            <Insets bottom="35" left="25" right="25" top="30" />
+        </padding>
+
+        <!-- Card Title -->
+        <Label styleClass="card-title" text="Get Started" />
+
+        <!-- Spacing after title -->
+        <Region prefHeight="5" />
+
+        <!-- Continue as Passenger Button -->
+        <Button fx:id="passengerButton" maxWidth="Infinity" minHeight="50" onAction="#handlePassengerSelection" prefHeight="50" styleClass="btn-passenger" text="Continue as Passenger">
+        </Button>
+
+        <!-- Continue as Driver Button -->
+        <Button fx:id="driverButton" maxWidth="Infinity" minHeight="50" onAction="#handleDriverSelection" prefHeight="50" styleClass="btn-driver" text="Continue as Driver">
+        </Button>
+    </VBox>
+
+    <!-- Bottom Spacing -->
+    <Region VBox.vgrow="ALWAYS" />
+
+</VBox>

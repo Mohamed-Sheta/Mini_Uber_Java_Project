@@ -13,11 +13,13 @@ public class PassengerDAO {
         public final String userSSN, name, phone, email;
         public final double wallet, credit;
         public final String currentLocation;
+        public final String password;
 
         public PassengerRow(long id, String userSSN, String name, String phone, String email,
-                            double wallet, double credit, String currentLocation) {
+                            double wallet, double credit, String currentLocation, String password) {
             this.id=id; this.userSSN=userSSN; this.name=name; this.phone=phone; this.email=email;
             this.wallet=wallet; this.credit=credit; this.currentLocation=currentLocation;
+            this.password=password;
         }
 
         @Override public String toString(){
@@ -34,8 +36,8 @@ public class PassengerDAO {
             throw new IllegalArgumentException("Email must end with '@gmail.com'.");
         if (p.getWalletBalance() < 0 || p.getCreditBalance() < 0)
             throw new IllegalArgumentException("Balances cannot be negative.");
-        final String sql = "INSERT INTO passengers(user_ssn,name,phone_number,email,wallet_balance,credit_balance,current_location) " +
-                "VALUES (?,?,?,?,?,?,?)";
+        final String sql = "INSERT INTO passengers(user_ssn,name,phone_number,email,wallet_balance,credit_balance,current_location,password) " +
+                "VALUES (?,?,?,?,?,?,?,?)";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -51,6 +53,13 @@ public class PassengerDAO {
                 ps.setNull(7, Types.VARCHAR);
             else
                 ps.setString(7, currentLocationName);
+
+            // Password should already be hashed by the controller or model
+            if (p.getPassword() != null && !p.getPassword().isEmpty()) {
+                ps.setString(8, p.getPassword());
+            } else {
+                ps.setNull(8, Types.VARCHAR);
+            }
 
             ps.executeUpdate();
 
@@ -70,7 +79,7 @@ public class PassengerDAO {
         if (p.getWalletBalance() < 0 || p.getCreditBalance() < 0)
             throw new IllegalArgumentException("Balances cannot be negative.");
         final String sql = "UPDATE passengers SET user_ssn=?, name=?, phone_number=?, email=?, " +
-                "wallet_balance=?, credit_balance=?, current_location=? WHERE id=?";
+                "wallet_balance=?, credit_balance=?, current_location=?, password=? WHERE id=?";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -87,7 +96,14 @@ public class PassengerDAO {
             else
                 ps.setString(7, currentLocationName);
 
-            ps.setLong(8, id);
+            // Password should already be hashed by the controller or model
+            if (p.getPassword() != null && !p.getPassword().isEmpty()) {
+                ps.setString(8, p.getPassword());
+            } else {
+                ps.setNull(8, Types.VARCHAR);
+            }
+
+            ps.setLong(9, id);
 
             return ps.executeUpdate();
         }
@@ -103,7 +119,7 @@ public class PassengerDAO {
     }
 
     public List<PassengerRow> showAll() throws SQLException {
-        final String sql = "SELECT id,user_ssn,name,phone_number,email,wallet_balance,credit_balance,current_location " +
+        final String sql = "SELECT id,user_ssn,name,phone_number,email,wallet_balance,credit_balance,current_location,password " +
                 "FROM passengers ORDER BY id";
 
         List<PassengerRow> out = new ArrayList<>();
@@ -121,10 +137,62 @@ public class PassengerDAO {
                         rs.getString("email"),
                         rs.getDouble("wallet_balance"),
                         rs.getDouble("credit_balance"),
-                        rs.getString("current_location") // Now String
+                        rs.getString("current_location"),
+                        rs.getString("password")
                 ));
             }
         }
         return out;
+    }
+
+    // Save method for easy registration
+    public boolean save(Passenger p) {
+        try {
+            long id = insert(p, null); // null location for new registrations
+            return id > 0;
+        } catch (SQLException e) {
+            System.err.println("Error saving passenger: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Get passenger by email for login
+    public Passenger getByEmail(String email) {
+        final String sql = "SELECT id,user_ssn,name,phone_number,email,wallet_balance,credit_balance,current_location,password " +
+                "FROM passengers WHERE email=?";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, email);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // Create Passenger object - we'll set password separately to avoid double hashing
+                    // Using empty string for password temporarily
+                    String userSSN = rs.getString("user_ssn");
+                    String name = rs.getString("name");
+                    String phoneNumber = rs.getString("phone_number");
+                    String emailAddr = rs.getString("email");
+                    String hashedPassword = rs.getString("password"); // Already hashed in DB
+
+                    // Create with dummy password first
+                    Passenger passenger = new Passenger(userSSN, name, phoneNumber, emailAddr, "");
+
+                    // Set the already-hashed password directly (bypassing the hash in constructor)
+                    passenger.setPassword(hashedPassword);
+
+                    // Set wallet and credit balance
+                    passenger.updateWalletBalance(rs.getDouble("wallet_balance"));
+                    passenger.updateCreditBalance(rs.getDouble("credit_balance"));
+                    return passenger;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting passenger by email: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
     }
 }

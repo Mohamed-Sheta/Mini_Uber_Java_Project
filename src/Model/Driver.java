@@ -11,11 +11,20 @@ public class Driver extends Person {
     private boolean active;
     private int latestPassengerRating = 0;
 
-    public Driver(String licensePlate, String carModel, boolean active, String userSSN, String name, String phoneNumber, String email, double walletBalance, double creditBalance, Location currentLocation, List<RideHistory> rideHistory) {
-        super(userSSN, name, phoneNumber, email, walletBalance, creditBalance, currentLocation, rideHistory);
+    // Full constructor
+    public Driver(String licensePlate, String carModel, boolean active, String userSSN, String name, String phoneNumber, String email, double walletBalance, double creditBalance, Location currentLocation, List<RideHistory> rideHistory, String password) {
+        super(userSSN, name, phoneNumber, email, walletBalance, creditBalance, currentLocation, rideHistory, password);
         this.licensePlate = licensePlate;
         this.carModel = carModel;
         this.active = active;
+    }
+
+    // Simplified constructor for registration
+    public Driver(String userSSN, String name, String phoneNumber, String email, String password, String licensePlate, String carModel) {
+        super(userSSN, name, phoneNumber, email, 0.0, 0.0, null, new java.util.ArrayList<>(), password);
+        this.licensePlate = licensePlate;
+        this.carModel = carModel;
+        this.active = true; // New drivers are active by default
     }
 
     public boolean isActive() {

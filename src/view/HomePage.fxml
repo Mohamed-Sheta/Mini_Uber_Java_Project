@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.shape.Rectangle?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="controller.HomePageController"
+      prefHeight="600.0" prefWidth="320.0"
+      alignment="TOP_CENTER"
+      styleClass="root"
+      stylesheets="@/style.css">
+
+    <!-- Top Bar with Profile Button -->
+    <HBox alignment="CENTER_RIGHT" prefWidth="320.0">
+        <VBox.margin>
+            <Insets top="15.0" right="20.0"/>
+        </VBox.margin>
+        <Button text="👤 Profile" styleClass="home-profile-button" onAction="#navigateToProfile"/>
+    </HBox>
+
+    <!-- Logo Section -->
+    <ImageView fitWidth="180.0" preserveRatio="true" smooth="true">
+        <image>
+            <Image url="@/Logo-removebg-preview.png"/>
+        </image>
+        <VBox.margin>
+            <Insets top="20.0" bottom="25.0"/>
+        </VBox.margin>
+    </ImageView>
+
+    <!-- Icons Section with proper spacing -->
+    <HBox alignment="CENTER" spacing="50.0">
+        <VBox.margin>
+            <Insets top="25.0" bottom="20.0"/>
+        </VBox.margin>
+
+        <!-- Fast Pickup Icon Card -->
+        <VBox alignment="CENTER" spacing="12.0">
+            <StackPane>
+                <!-- Background rounded rectangle -->
+                <Rectangle width="75.0" height="75.0" arcWidth="20.0" arcHeight="20.0"
+                          styleClass="icon-card"/>
+
+                <!-- Icon ImageView -->
+                <ImageView fitWidth="55.0" preserveRatio="true" smooth="true">
+                    <image>
+                        <Image url="@/fast.png"/>
+                    </image>
+                </ImageView>
+            </StackPane>
+
+            <!-- Label -->
+            <Label text="Fast Pickup" styleClass="icon-label"/>
+        </VBox>
+
+        <!-- Safe Rides Icon Card -->
+        <VBox alignment="CENTER" spacing="12.0">
+            <StackPane>
+                <!-- Background rounded rectangle -->
+                <Rectangle width="75.0" height="75.0" arcWidth="20.0" arcHeight="20.0"
+                          styleClass="icon-card"/>
+
+                <!-- Icon ImageView -->
+                <ImageView fitWidth="55.0" preserveRatio="true" smooth="true">
+                    <image>
+                        <Image url="@/safe.png"/>
+                    </image>
+                </ImageView>
+            </StackPane>
+
+            <!-- Label -->
+            <Label text="Safe Rides" styleClass="icon-label"/>
+        </VBox>
+    </HBox>
+
+</VBox>
+

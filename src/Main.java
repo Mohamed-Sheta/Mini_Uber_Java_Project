@@ -185,10 +185,16 @@ public class Main {
                 rm1.setDriverRatingValue(5);
                 rm1.completeRide();
 
-                Request.submitProblemReport(rm1.getRideRequestId(), passengerId.get(p1),
-                        driverId.get(rm1.getCurrentDriver()),
-                        ProblemType.DRIVER_BEHAVIOR, "Driver was late 5 minutes.",
-                        problemTypeMap);
+                Long pId = passengerId.get(p1);
+                Long dId = driverId.get(rm1.getCurrentDriver());
+                if (pId != null && dId != null) {
+                    Request.submitProblemReport(rm1.getRideRequestId(), pId,
+                            dId,
+                            ProblemType.DRIVER_BEHAVIOR, "Driver was late 5 minutes.",
+                            problemTypeMap);
+                } else {
+                    System.out.println("ERROR: Cannot submit problem report - passenger or driver ID not found in database.");
+                }
             }
         }
         sep.run();
@@ -210,10 +216,16 @@ public class Main {
                 rm2.setDriverRatingValue(5);
                 rm2.completeRide();
 
-                Request.submitProblemReport(rm2.getRideRequestId(), passengerId.get(p2),
-                        driverId.get(rm2.getCurrentDriver()),
-                        ProblemType.FARE_DISPUTE, "Fare seems higher than expected.",
-                        problemTypeMap);
+                Long pId2 = passengerId.get(p2);
+                Long dId2 = driverId.get(rm2.getCurrentDriver());
+                if (pId2 != null && dId2 != null) {
+                    Request.submitProblemReport(rm2.getRideRequestId(), pId2,
+                            dId2,
+                            ProblemType.FARE_DISPUTE, "Fare seems higher than expected.",
+                            problemTypeMap);
+                } else {
+                    System.out.println("ERROR: Cannot submit problem report - passenger or driver ID not found in database.");
+                }
             }
         }
         sep.run();

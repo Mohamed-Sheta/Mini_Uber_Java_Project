@@ -79,8 +79,8 @@ public class TestDatabase {
 
             // PASSENGERS
             PassengerDAO passengerDAO = new PassengerDAO();
-            Passenger p1 = new Passenger("PSSN001", "ahmed ashraf", "01000111222", "mohamed@gmail.com", 500, 200, cairo, null);
-            Passenger p2 = new Passenger("PSSN002", "mostafa hassan", "01055667788", "ahmed@gmail.com", 1000, 500, giza, null);
+            Passenger p1 = new Passenger("PSSN001", "ahmed ashraf", "01000111222", "mohamed@gmail.com", 500, 200, cairo, null, "password123");
+            Passenger p2 = new Passenger("PSSN002", "mostafa hassan", "01055667788", "ahmed@gmail.com", 1000, 500, giza, null, "password123");
 
             long pid1 = passengerDAO.insert(p1, cairo.getName());
             long pid2 = passengerDAO.insert(p2, giza.getName());
@@ -88,13 +88,13 @@ public class TestDatabase {
             p2.setWalletBalance(1200);
             passengerDAO.update(pid2, p2, alex.getName());
 
-            Passenger p3 = new Passenger("PSSN003", "Abdo", "01011111111", "abdo@gmail.com", 300, 120, cairo, null);
-            Passenger p4 = new Passenger("PSSN004", "Amin", "01022222222", "amin@gmail.com", 700, 300, giza, null);
-            Passenger p5 = new Passenger("PSSN005", "Amr Nabil", "01033333333", "amr@gmail.com", 900, 250, alex, null);
-            Passenger p6 = new Passenger("PSSN006", "Azzay", "01044444444", "azzay@gmail.com", 600, 200, mansoura, null);
-            Passenger p7 = new Passenger("PSSN007", "Islam Ali", "01055555555", "islam@gmail.com", 500, 180, aswan, null);
-            Passenger p8 = new Passenger("PSSN008", "Marwan", "01066666666", "marwan@gmail.com", 800, 260, luxor, null);
-            Passenger p9 = new Passenger("PSSN009", "Shatoot", "01077777777", "shatoot@gmail.com", 450, 160, tanta, null);
+            Passenger p3 = new Passenger("PSSN003", "Abdo", "01011111111", "abdo@gmail.com", 300, 120, cairo, null, "password123");
+            Passenger p4 = new Passenger("PSSN004", "Amin", "01022222222", "amin@gmail.com", 700, 300, giza, null, "password123");
+            Passenger p5 = new Passenger("PSSN005", "Amr Nabil", "01033333333", "amr@gmail.com", 900, 250, alex, null, "password123");
+            Passenger p6 = new Passenger("PSSN006", "Azzay", "01044444444", "azzay@gmail.com", 600, 200, mansoura, null, "password123");
+            Passenger p7 = new Passenger("PSSN007", "Islam Ali", "01055555555", "islam@gmail.com", 500, 180, aswan, null, "password123");
+            Passenger p8 = new Passenger("PSSN008", "Marwan", "01066666666", "marwan@gmail.com", 800, 260, luxor, null, "password123");
+            Passenger p9 = new Passenger("PSSN009", "Shatoot", "01077777777", "shatoot@gmail.com", 450, 160, tanta, null, "password123");
 
             long pid3 = passengerDAO.insert(p3, cairo.getName());
             long pid4 = passengerDAO.insert(p4, giza.getName());
@@ -108,8 +108,8 @@ public class TestDatabase {
             passengerDAO.showAll().forEach(System.out::println);
 
             DriverDAO driverDAO = new DriverDAO();
-            Driver d1 = new Driver("CAR111", "Toyota Corolla", true, "DSSN001", "Khaled Hassan", "01111111111", "khaled@gmail.com", 800, 300, giza, null);
-            Driver d2 = new Driver("CAR222", "Nissan Sunny", true, "DSSN002", "Omar Youssef", "01122222222", "omar@gmail.com", 1000, 400, cairo, null);
+            Driver d1 = new Driver("CAR111", "Toyota Corolla", true, "DSSN001", "Khaled Hassan", "01111111111", "khaled@gmail.com", 800, 300, giza, null, "password123");
+            Driver d2 = new Driver("CAR222", "Nissan Sunny", true, "DSSN002", "Omar Youssef", "01122222222", "omar@gmail.com", 1000, 400, cairo, null, "password123");
 
             long did1 = driverDAO.insert(d1, giza.getName());
             long did2 = driverDAO.insert(d2, cairo.getName());
@@ -117,10 +117,10 @@ public class TestDatabase {
             d1.updateWalletBalance(1200);
             driverDAO.update(did1, d1, alex.getName());
 
-            Driver d3 = new Driver("CAR333", "Hyundai Elantra", true, "DSSN003", "Omar.Elemary_", "01133333333", "elemary@gmail.com", 1200, 350, alex, null);
-            Driver d4 = new Driver("CAR444", "Kia Cerato", true, "DSSN004", "AdminAhmed", "01144444444", "admin@gmail.com", 900, 260, mansoura, null);
-            Driver d5 = new Driver("CAR555", "Renault Logan", true, "DSSN005", "Mostafa", "01155555555", "mostafa@gmail.com", 950, 280, luxor, null);
-            Driver d6 = new Driver("CAR666", "Chevrolet Optra", true, "DSSN006", "Yassin", "01166666666", "yassin@gmail.com", 1100, 320, beniSuef, null);
+            Driver d3 = new Driver("CAR333", "Hyundai Elantra", true, "DSSN003", "Omar.Elemary_", "01133333333", "elemary@gmail.com", 1200, 350, alex, null, "password123");
+            Driver d4 = new Driver("CAR444", "Kia Cerato", true, "DSSN004", "AdminAhmed", "01144444444", "admin@gmail.com", 900, 260, mansoura, null, "password123");
+            Driver d5 = new Driver("CAR555", "Renault Logan", true, "DSSN005", "Mostafa", "01155555555", "mostafa@gmail.com", 950, 280, luxor, null, "password123");
+            Driver d6 = new Driver("CAR666", "Chevrolet Optra", true, "DSSN006", "Yassin", "01166666666", "yassin@gmail.com", 1100, 320, beniSuef, null, "password123");
 
             long did3 = driverDAO.insert(d3, alex.getName());
             long did4 = driverDAO.insert(d4, mansoura.getName());
