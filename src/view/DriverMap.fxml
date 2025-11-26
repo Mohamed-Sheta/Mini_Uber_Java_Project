@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.web.WebView?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="controller.DriverMapController"
+      prefWidth="390" prefHeight="750"
+      styleClass="content-container"
+      stylesheets="@/style.css">
+
+    <!-- Header Section -->
+    <HBox alignment="CENTER_LEFT" spacing="10" styleClass="card-container">
+        <padding>
+            <Insets top="15" bottom="15" left="15" right="15"/>
+        </padding>
+        <Button text="← Dashboard" styleClass="button-secondary" onAction="#onBackToDashboard">
+            <padding>
+                <Insets top="8" right="12" bottom="8" left="12"/>
+            </padding>
+        </Button>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label text="Active Ride" styleClass="title-medium"/>
+    </HBox>
+
+    <!-- Map View -->
+    <WebView fx:id="mapWebView" prefWidth="390" prefHeight="400" VBox.vgrow="ALWAYS"/>
+
+    <!-- Ride Details Card -->
+    <VBox styleClass="card-container" spacing="12">
+        <padding>
+            <Insets top="20" bottom="20" left="20" right="20"/>
+        </padding>
+
+        <Label text="Ride Details" styleClass="title-medium"/>
+
+        <VBox spacing="8">
+            <HBox spacing="10">
+                <Label text="Pickup:" styleClass="title-small" prefWidth="80"/>
+                <Label fx:id="pickupLabel" text="Loading..." styleClass="body-text"/>
+            </HBox>
+            <HBox spacing="10">
+                <Label text="Drop-off:" styleClass="title-small" prefWidth="80"/>
+                <Label fx:id="destinationLabel" text="Loading..." styleClass="body-text"/>
+            </HBox>
+            <HBox spacing="10">
+                <Label text="Distance:" styleClass="title-small" prefWidth="80"/>
+                <Label fx:id="distanceLabel" text="0 km" styleClass="body-text"/>
+            </HBox>
+            <HBox spacing="10">
+                <Label text="Fare:" styleClass="title-small" prefWidth="80"/>
+                <Label fx:id="fareLabel" text="0.00" styleClass="title-medium"/>
+            </HBox>
+        </VBox>
+
+        <!-- Action Buttons -->
+        <HBox spacing="10" alignment="CENTER">
+            <VBox.margin>
+                <Insets top="10"/>
+            </VBox.margin>
+            <Button fx:id="startTripButton" text="Start Trip" styleClass="button" prefWidth="150" prefHeight="40">
+                <padding>
+                    <Insets top="12" right="24" bottom="12" left="24"/>
+                </padding>
+            </Button>
+            <Button fx:id="completeTripButton" text="Complete Trip" styleClass="button" prefWidth="150" prefHeight="40" visible="false" managed="false">
+                <padding>
+                    <Insets top="12" right="24" bottom="12" left="24"/>
+                </padding>
+            </Button>
+        </HBox>
+    </VBox>
+
+</VBox>
+

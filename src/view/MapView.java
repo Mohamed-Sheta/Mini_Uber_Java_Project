@@ -20,8 +20,18 @@ public class MapView extends Application {
 
         scene.getStylesheets().add(getClass().getClassLoader().getResource("style.css").toExternalForm());
 
-        Image icon = new Image(getClass().getClassLoader().getResource("Logo.jpg").toExternalForm());
-        stage.getIcons().add(icon);
+        // Set application icon
+        try {
+            java.io.InputStream iconStream = getClass().getClassLoader().getResourceAsStream("Logo.jpg");
+            if (iconStream != null) {
+                javafx.scene.image.Image icon = new javafx.scene.image.Image(iconStream);
+                if (!icon.isError()) {
+                    stage.getIcons().setAll(icon);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Could not load MapView icon: " + e.getMessage());
+        }
 
         stage.setTitle("MiniGo");
         stage.setScene(scene);

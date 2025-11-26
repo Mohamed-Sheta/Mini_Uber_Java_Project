@@ -155,3 +155,4 @@ CREATE TABLE problem_report_types (
                                       FOREIGN KEY(report_id) REFERENCES problem_reports(id) ON DELETE CASCADE,
                                       FOREIGN KEY(type_id) REFERENCES problem_types(id)
 );
+

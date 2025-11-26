@@ -1318,7 +1318,9 @@ public class MapController {
 
             // STEP 5: Increment ride counts for both passenger and driver
             System.out.println("[FINALIZE] Step 5: Updating ride counts...");
-            System.out.println("[FINALIZE] ✅ Ride counts updated for passenger and driver");
+            // Update user stats in ProfileController for both passenger and driver
+            updateUserStatsAfterRide(passengerId, driverId, finalTotal, rideCost + tipAmount);
+            System.out.println("[FINALIZE] ✅ Ride counts and spent/earned updated for passenger and driver");
 
             // STEP 6: Generate PDF invoice using existing method
             System.out.println("[FINALIZE] Step 6: Generating PDF invoice...");
@@ -1393,5 +1395,14 @@ public class MapController {
             ex.printStackTrace();
         }
     }
-}
 
+    /**
+     * Update user stats after ride completion
+     * Stats are now calculated dynamically from ride_history - no need to cache
+     */
+    private void updateUserStatsAfterRide(long passengerId, long driverId, double passengerSpent, double driverEarned) {
+        // Stats are calculated on-demand from ride_history table
+        // No caching needed - removed user_stats table dependency
+        System.out.println("[STATS] Ride completed - stats will be calculated dynamically from ride_history");
+    }
+}

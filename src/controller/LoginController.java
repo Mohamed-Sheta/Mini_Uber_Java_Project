@@ -189,27 +189,65 @@ public class LoginController {
 
     private void navigateToHome(ActionEvent event, Object user) {
         try {
-            // Navigate to MapView instead of HomePage
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/MapView.fxml"));
-            Scene scene = new Scene(loader.load(), 390, 750);
-
-            // Pass user data to MapController if needed
-            MapController controller = loader.getController();
-            if (selectedRole.equals("passenger")) {
-                controller.setPassenger((Passenger) user);
+            if (selectedRole.equals("driver")) {
+                // Redirect drivers to Driver Dashboard
+                openDriverDashboard((Driver) user);
             } else {
-                controller.setDriver((Driver) user);
-            }
+                // Navigate passengers to MapView
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/MapView.fxml"));
+                Scene scene = new Scene(loader.load(), 390, 750);
 
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(scene);
-            stage.show();
-        } catch (IOException e) {
-            System.err.println("Failed to load Map screen: " + e.getMessage());
+                // Pass user data to MapController
+                MapController controller = loader.getController();
+                controller.setPassenger((Passenger) user);
+
+                Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                stage.setScene(scene);
+                stage.show();
+            }
+        } catch (Exception e) {
+            System.err.println("Navigation error: " + e.getMessage());
             e.printStackTrace();
-            showError("Failed to navigate to map screen.");
+            showError("Failed to load home screen.");
         }
     }
+
+    private void openDriverDashboard(Driver driver) {
+        try {
+            System.out.println("Loading Driver Dashboard for: " + driver.getName());
+            java.net.URL fxmlUrl = getClass().getResource("/view/DriverDashboard.fxml");
+
+            if (fxmlUrl == null) {
+                System.err.println("ERROR: Could not find /view/DriverDashboard.fxml");
+                showError("Failed to load driver dashboard. FXML file not found.");
+                return;
+            }
+
+            System.out.println("FXML URL found: " + fxmlUrl);
+            FXMLLoader loader = new FXMLLoader(fxmlUrl);
+            Scene scene = new Scene(loader.load(), 390, 750);
+
+            DriverDashboardController controller = loader.getController();
+            if (controller == null) {
+                System.err.println("ERROR: Controller is null");
+                showError("Failed to load driver dashboard. Controller not found.");
+                return;
+            }
+
+            controller.setDriver(driver);
+
+            Stage stage = (Stage) loginButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+            System.out.println("Driver Dashboard loaded successfully");
+        } catch (Exception e) {
+            System.err.println("Failed to load Driver Dashboard: " + e.getMessage());
+            System.err.println("Exception type: " + e.getClass().getName());
+            e.printStackTrace();
+            showError("Failed to load driver dashboard.");
+        }
+    }
+
 
     private void showError(String message) {
         if (errorLabel != null) {

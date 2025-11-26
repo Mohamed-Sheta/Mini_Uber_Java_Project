@@ -213,4 +213,22 @@ public class DriverDAO {
         }
         return null;
     }
+
+    // Get driver ID by email
+    public Long getDriverIdByEmail(String email) {
+        final String sql = "SELECT id FROM drivers WHERE email=?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getLong("id");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting driver ID by email: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

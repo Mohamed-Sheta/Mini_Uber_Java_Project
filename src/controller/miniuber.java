@@ -4,7 +4,6 @@ import Model.ProblemType;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import services.MapGraph;
 import services.Request;
@@ -25,7 +24,18 @@ public class miniuber extends Application { // Fixed naming convention
             stage.setMinHeight(750);
             stage.setResizable(false);
 
-            stage.getIcons().add(new Image(getClass().getResourceAsStream("/Logo-removebg-preview.png")));
+            // Set application icon
+            try {
+                java.io.InputStream iconStream = getClass().getResourceAsStream("/Logo-removebg-preview.png");
+                if (iconStream != null) {
+                    javafx.scene.image.Image icon = new javafx.scene.image.Image(iconStream);
+                    if (!icon.isError()) {
+                        stage.getIcons().setAll(icon);
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Could not load application icon: " + e.getMessage());
+            }
 
             FXMLLoader fxmlLoader = new FXMLLoader(miniuber.class.getResource("/view/Splash.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 390, 750);

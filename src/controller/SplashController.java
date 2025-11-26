@@ -56,8 +56,18 @@ public class SplashController implements Initializable {
             Stage stage = (Stage) logoImage.getScene().getWindow();
 
             // Set application icon
-            stage.getIcons().clear();
-            stage.getIcons().add(new Image(getClass().getResourceAsStream("/Logo-removebg-preview.png")));
+            try {
+                java.io.InputStream iconStream = getClass().getResourceAsStream("/Logo-removebg-preview.png");
+                if (iconStream != null) {
+                    javafx.scene.image.Image icon = new javafx.scene.image.Image(iconStream);
+                    if (!icon.isError()) {
+                        stage.getIcons().clear();
+                        stage.getIcons().add(icon);
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Could not load application icon: " + e.getMessage());
+            }
 
             stage.setScene(scene);
             stage.show();

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="controller.DriverDashboardController"
+      prefWidth="390" prefHeight="750"
+      styleClass="content-container"
+      alignment="TOP_CENTER"
+      spacing="20"
+      stylesheets="@/style.css">
+
+    <padding>
+        <Insets top="20" bottom="20" left="20" right="20"/>
+    </padding>
+
+    <!-- Header Section -->
+    <HBox alignment="CENTER" spacing="10">
+        <VBox.margin>
+            <Insets bottom="10"/>
+        </VBox.margin>
+        <Label fx:id="welcomeLabel" text="Welcome Back, Driver" styleClass="title-large"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="Logout" styleClass="button-secondary" onAction="#onLogout">
+            <padding>
+                <Insets top="8" right="12" bottom="8" left="12"/>
+            </padding>
+        </Button>
+    </HBox>
+
+    <!-- Driver Mode Toggle -->
+    <VBox styleClass="card-container" spacing="10" alignment="CENTER">
+        <padding>
+            <Insets top="15" bottom="15" left="15" right="15"/>
+        </padding>
+        <Label text="Driver Status" styleClass="title-small"/>
+        <ToggleButton fx:id="driverModeToggle" text="Offline" prefWidth="150">
+            <padding>
+                <Insets top="10" right="20" bottom="10" left="20"/>
+            </padding>
+        </ToggleButton>
+    </VBox>
+
+    <!-- Statistics Cards -->
+    <HBox spacing="15" alignment="CENTER">
+        <VBox.margin>
+            <Insets top="10" bottom="10"/>
+        </VBox.margin>
+
+        <!-- Today's Earnings -->
+        <VBox styleClass="card-container" spacing="8" alignment="CENTER" HBox.hgrow="ALWAYS">
+            <padding>
+                <Insets top="15" bottom="15" left="15" right="15"/>
+            </padding>
+            <Label text="Today's Earnings" styleClass="subtitle"/>
+            <Label fx:id="todayEarningsLabel" text="0.00" styleClass="title-medium"/>
+        </VBox>
+
+        <!-- Rides Today -->
+        <VBox styleClass="card-container" spacing="8" alignment="CENTER" HBox.hgrow="ALWAYS">
+            <padding>
+                <Insets top="15" bottom="15" left="15" right="15"/>
+            </padding>
+            <Label text="Rides Today" styleClass="subtitle"/>
+            <Label fx:id="ridesTodayLabel" text="0" styleClass="title-medium"/>
+        </VBox>
+    </HBox>
+
+    <!-- Ride Request Widget (Hidden by default) -->
+    <VBox fx:id="rideRequestWidget" styleClass="card-container" spacing="12" visible="false" managed="false">
+        <padding>
+            <Insets top="20" bottom="20" left="20" right="20"/>
+        </padding>
+
+        <Label text="New Ride Request!" styleClass="title-medium"/>
+
+        <VBox spacing="8">
+            <HBox spacing="10">
+                <Label text="Pickup:" styleClass="title-small" prefWidth="80"/>
+                <Label fx:id="pickupLabel" text="Loading..." styleClass="body-text"/>
+            </HBox>
+            <HBox spacing="10">
+                <Label text="Drop-off:" styleClass="title-small" prefWidth="80"/>
+                <Label fx:id="destinationLabel" text="Loading..." styleClass="body-text"/>
+            </HBox>
+            <HBox spacing="10">
+                <Label text="Distance:" styleClass="title-small" prefWidth="80"/>
+                <Label fx:id="distanceLabel" text="0 km" styleClass="body-text"/>
+            </HBox>
+            <HBox spacing="10">
+                <Label text="Fare:" styleClass="title-small" prefWidth="80"/>
+                <Label fx:id="fareLabel" text="0.00" styleClass="title-medium"/>
+            </HBox>
+        </VBox>
+
+        <Button fx:id="acceptRideButton" text="Accept Ride" styleClass="button" prefWidth="200" prefHeight="40">
+            <padding>
+                <Insets top="12" right="24" bottom="12" left="24"/>
+            </padding>
+        </Button>
+    </VBox>
+
+    <!-- No Rides Container (Shown by default) -->
+    <VBox fx:id="noRidesContainer" styleClass="card-container" spacing="15" alignment="CENTER" VBox.vgrow="ALWAYS">
+        <padding>
+            <Insets top="40" bottom="40" left="20" right="20"/>
+        </padding>
+        <Label text="🚗" style="-fx-font-size: 48px;"/>
+        <Label text="Waiting for Rides..." styleClass="title-medium"/>
+        <Label text="Turn on your status to start receiving ride requests" styleClass="subtitle" wrapText="true" textAlignment="CENTER"/>
+    </VBox>
+
+</VBox>
+
