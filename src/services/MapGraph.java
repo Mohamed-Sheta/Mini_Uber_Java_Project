@@ -160,7 +160,7 @@ public class MapGraph {
 
             Passenger p2 = new Passenger("PSSN02", "mohamed sheta",
                     "01110001002", "sheta@gmail.com",
-                    40.0, 10.0, downtown, new ArrayList<>(), "password123");
+                    200.0, 10.0, downtown, new ArrayList<>(), "password123");
 
             Passenger p3 = new Passenger("PSSN03", "mostafa hassan",
                     "01110001003", "mostafa@gmail.com",

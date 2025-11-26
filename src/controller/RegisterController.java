@@ -144,12 +144,12 @@ public class RegisterController {
             isValid = false;
         }
 
-        // Validate password with strong password requirements
+        // Validate password with reasonable requirements
         if (password.isEmpty()) {
             showFieldError(passwordErrorLabel, "Password is required");
             isValid = false;
-        } else if (!password.matches("^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{6,}$")) {
-            showFieldError(passwordErrorLabel, "Password must contain upper, lower, digit, special char, and be 6+ chars");
+        } else if (password.length() < 6) {
+            showFieldError(passwordErrorLabel, "Password must be at least 6 characters");
             isValid = false;
         }
 
@@ -245,7 +245,7 @@ public class RegisterController {
     private void navigateToLogin(Object event, String successMessage) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/Login.fxml"));
-            Scene scene = new Scene(loader.load(), 320, 600);
+            Scene scene = new Scene(loader.load(), 390, 750);
 
             // Pass the selected role back to Login controller
             LoginController controller = loader.getController();

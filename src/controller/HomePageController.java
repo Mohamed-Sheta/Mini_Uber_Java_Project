@@ -41,7 +41,7 @@ public class HomePageController {
 
         Parent root = FXMLLoader.load(getClass().getResource("/view/Login.fxml"));
         stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
-        scene = new Scene(root, 741, 602);
+        scene = new Scene(root, 400, 750);
         stage.setScene(scene);
         stage.show();
     }
@@ -51,7 +51,7 @@ public class HomePageController {
 
         Parent root = FXMLLoader.load(getClass().getResource("/view/Register.fxml"));
         stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
-        scene = new Scene(root, 741, 602);
+        scene = new Scene(root, 400, 750);
         stage.setScene(scene);
         stage.show();
     }
@@ -83,7 +83,7 @@ public class HomePageController {
             }
 
             stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
-            scene = new Scene(root, 320, 600);
+            scene = new Scene(root, 390, 750);
             stage.setScene(scene);
             stage.show();
         } catch (IOException ex) {

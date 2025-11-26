@@ -158,7 +158,7 @@ public class LoginController {
     public void onBackToRoleSelection(ActionEvent event) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/RoleSelection.fxml"));
-            Scene scene = new Scene(loader.load(), 320, 600);
+            Scene scene = new Scene(loader.load(), 390, 750);
 
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(scene);
@@ -172,7 +172,7 @@ public class LoginController {
     private void loadRegisterScreen(MouseEvent event) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/Register.fxml"));
-            Scene scene = new Scene(loader.load(), 320, 600);
+            Scene scene = new Scene(loader.load(), 390, 750);
 
             // Pass the selected role to Register controller
             RegisterController controller = loader.getController();
@@ -189,11 +189,12 @@ public class LoginController {
 
     private void navigateToHome(ActionEvent event, Object user) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/HomePage.fxml"));
-            Scene scene = new Scene(loader.load(), 320, 600);
+            // Navigate to MapView instead of HomePage
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/MapView.fxml"));
+            Scene scene = new Scene(loader.load(), 390, 750);
 
-            // Pass user data to HomePage controller if needed
-            HomePageController controller = loader.getController();
+            // Pass user data to MapController if needed
+            MapController controller = loader.getController();
             if (selectedRole.equals("passenger")) {
                 controller.setPassenger((Passenger) user);
             } else {
@@ -204,9 +205,9 @@ public class LoginController {
             stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
-            System.err.println("Failed to load Home screen: " + e.getMessage());
+            System.err.println("Failed to load Map screen: " + e.getMessage());
             e.printStackTrace();
-            showError("Failed to navigate to home screen.");
+            showError("Failed to navigate to map screen.");
         }
     }
 

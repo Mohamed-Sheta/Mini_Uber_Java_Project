@@ -47,7 +47,7 @@ public class RoleSelectionController {
 
             // Get current stage and switch scene
             Stage stage = (Stage) passengerButton.getScene().getWindow();
-            Scene scene = new Scene(root, 320, 600);
+            Scene scene = new Scene(root, 390, 750);
             stage.setScene(scene);
             stage.show();
 

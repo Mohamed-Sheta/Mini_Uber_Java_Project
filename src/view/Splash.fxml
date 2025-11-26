@@ -5,13 +5,15 @@
 
 <StackPane xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="controller.SplashController"
+           prefWidth="390" prefHeight="750"
            alignment="CENTER"
            styleClass="splash-background"
-           stylesheets="@/style.css">
+           stylesheets="@/style.css"
+           style="-fx-background-color: #000000;">
 
-    <!-- Logo centered exactly in middle, no text -->
+    <!-- Logo centered exactly in middle -->
     <ImageView fx:id="logoImage"
-               fitWidth="160"
+               fitWidth="170"
                preserveRatio="true"
                smooth="true"
                opacity="0"

@@ -1,215 +1,159 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
+<?import javafx.geometry.Insets?>
 
-<ScrollPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="controller.ProfileController"
-            fitToWidth="true"
-            styleClass="profile-scroll-pane"
-            stylesheets="@/style.css">
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="controller.ProfileController"
+      prefWidth="400" prefHeight="750"
+      styleClass="content-container"
+      alignment="TOP_CENTER"
+      spacing="0"
+      stylesheets="@/style.css">
 
-    <VBox styleClass="profile-background" prefWidth="320.0" alignment="TOP_CENTER" spacing="0">
+    <padding>
+        <Insets top="15" bottom="20" left="20" right="20"/>
+    </padding>
+
+    <!-- Header with Back Button -->
+    <HBox alignment="CENTER_LEFT" spacing="10">
+        <VBox.margin>
+            <Insets bottom="12"/>
+        </VBox.margin>
+        <Button fx:id="backButton" text="←" styleClass="back-button" onAction="#onBackToMap"/>
+        <Label text="Profile" styleClass="title-large"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="settingsButton" text="⚙" styleClass="back-button" onAction="#onSettingsClick"/>
+    </HBox>
+
+    <!-- Main Profile Card -->
+    <VBox styleClass="card-container" spacing="0" alignment="TOP_CENTER">
         <padding>
-            <Insets top="20" bottom="25" left="20" right="20"/>
+            <Insets top="18" bottom="20" left="18" right="18"/>
         </padding>
 
-        <!-- Page Title -->
-        <HBox alignment="CENTER_LEFT">
+        <!-- Top Stats Cards Row -->
+        <HBox spacing="8" alignment="CENTER">
             <VBox.margin>
-                <Insets bottom="20"/>
+                <Insets bottom="16"/>
             </VBox.margin>
-            <Label text="Profile" styleClass="profile-page-title"/>
+
+            <!-- Rating Card -->
+            <VBox styleClass="elevated-card" spacing="6" alignment="CENTER">
+                <HBox alignment="CENTER" spacing="3">
+                    <Text text="⭐" styleClass="stat-icon"/>
+                    <Label fx:id="ratingLabel" text="0.0" styleClass="stat-value"/>
+                </HBox>
+                <Label text="Rating" styleClass="stat-label"/>
+            </VBox>
+
+            <!-- Total Rides Card -->
+            <VBox styleClass="elevated-card" spacing="6" alignment="CENTER">
+                <HBox alignment="CENTER" spacing="3">
+                    <Text text="🚗" styleClass="stat-icon"/>
+                    <Label fx:id="totalRidesLabel" text="0" styleClass="stat-value"/>
+                </HBox>
+                <Label text="Rides" styleClass="stat-label"/>
+            </VBox>
+
+            <!-- Total Spent/Earned Card -->
+            <VBox styleClass="elevated-card" spacing="6" alignment="CENTER">
+                <HBox alignment="CENTER" spacing="3">
+                    <Text text="💰" styleClass="stat-icon"/>
+                    <Label fx:id="totalSpentLabel" text="0" styleClass="stat-value"/>
+                </HBox>
+                <Label fx:id="spentLabelText" text="Spent" styleClass="stat-label"/>
+            </VBox>
         </HBox>
 
-        <!-- Main Profile Card -->
-        <VBox styleClass="profile-main-card" spacing="0" alignment="TOP_CENTER">
-            <padding>
-                <Insets top="25" bottom="30" left="20" right="20"/>
-            </padding>
+        <!-- Avatar Section -->
+        <VBox alignment="CENTER" spacing="10">
+            <VBox.margin>
+                <Insets bottom="16"/>
+            </VBox.margin>
 
-            <!-- Top Stats Cards Row -->
-            <HBox spacing="10" alignment="CENTER">
-                <VBox.margin>
-                    <Insets bottom="30"/>
-                </VBox.margin>
+            <!-- Avatar -->
+            <StackPane styleClass="profile-avatar-container">
+                <ImageView fx:id="avatarImageView" fitWidth="90" fitHeight="90" preserveRatio="true">
+                    <image>
+                        <Image url="@/avatar.png"/>
+                    </image>
+                    <clip>
+                        <Circle radius="45" centerX="45" centerY="45"/>
+                    </clip>
+                </ImageView>
+            </StackPane>
 
-                <!-- Rating Card -->
-                <VBox styleClass="profile-stat-card" spacing="8" alignment="CENTER">
-                    <padding>
-                        <Insets top="15" bottom="15" left="10" right="10"/>
-                    </padding>
-                    <HBox alignment="CENTER" spacing="5">
-                        <Text text="⭐" styleClass="profile-stat-icon"/>
-                        <Label fx:id="ratingLabel" text="0.0" styleClass="profile-stat-value"/>
-                    </HBox>
-                    <Label text="Rating" styleClass="profile-stat-label"/>
-                </VBox>
+            <!-- User Name and Role -->
+            <VBox alignment="CENTER" spacing="4">
+                <Label fx:id="userNameLabel" text="User Name" styleClass="profile-name"/>
+                <Label fx:id="userRoleLabel" text="Passenger" styleClass="profile-role"/>
+            </VBox>
+        </VBox>
 
-                <!-- Total Rides Card -->
-                <VBox styleClass="profile-stat-card" spacing="8" alignment="CENTER">
-                    <padding>
-                        <Insets top="15" bottom="15" left="10" right="10"/>
-                    </padding>
-                    <HBox alignment="CENTER" spacing="5">
-                        <Text text="🚗" styleClass="profile-stat-icon"/>
-                        <Label fx:id="totalRidesLabel" text="0" styleClass="profile-stat-value"/>
-                    </HBox>
-                    <Label text="Rides" styleClass="profile-stat-label"/>
-                </VBox>
+        <!-- Form Fields -->
+        <VBox spacing="8" alignment="CENTER">
 
-                <!-- Total Spent/Earned Card -->
-                <VBox styleClass="profile-stat-card" spacing="8" alignment="CENTER">
-                    <padding>
-                        <Insets top="15" bottom="15" left="10" right="10"/>
-                    </padding>
-                    <HBox alignment="CENTER" spacing="5">
-                        <Text text="💰" styleClass="profile-stat-icon"/>
-                        <Label fx:id="totalSpentLabel" text="0" styleClass="profile-stat-value"/>
-                    </HBox>
-                    <Label fx:id="spentLabelText" text="Spent" styleClass="profile-stat-label"/>
-                </VBox>
-            </HBox>
-
-            <!-- Avatar Section -->
-            <VBox alignment="CENTER" spacing="12">
-                <VBox.margin>
-                    <Insets bottom="25"/>
-                </VBox.margin>
-
-                <!-- Avatar with Camera Icon -->
-                <StackPane>
-                    <!-- Main Avatar Circle with ImageView -->
-                    <StackPane styleClass="profile-avatar-container">
-                        <ImageView fx:id="avatarImageView" fitWidth="120" fitHeight="120" preserveRatio="true">
-                            <image>
-                                <Image url="@/avatar.png"/>
-                            </image>
-                            <clip>
-                                <Circle radius="60" centerX="60" centerY="60"/>
-                            </clip>
-                        </ImageView>
-                    </StackPane>
-
-                    <!-- Camera Icon (bottom-right) -->
-                    <StackPane styleClass="profile-camera-icon" StackPane.alignment="BOTTOM_RIGHT">
-                        <Circle radius="16" styleClass="profile-camera-circle"/>
-                        <Text text="📷" styleClass="profile-camera-emoji"/>
-                    </StackPane>
-                </StackPane>
-
-                <!-- User Name and Role -->
-                <VBox alignment="CENTER" spacing="5">
-                    <Label fx:id="userNameLabel" text="User Name" styleClass="profile-user-name"/>
-                    <Label fx:id="userRoleLabel" text="Passenger" styleClass="profile-user-role"/>
-                </VBox>
+            <!-- Full Name Field -->
+            <VBox spacing="4" alignment="CENTER_LEFT">
+                <Label text="Full Name" styleClass="field-label"/>
+                <TextField fx:id="nameField" promptText="Enter your full name" styleClass="text-field" prefWidth="280" prefHeight="36"/>
             </VBox>
 
-            <!-- Form Fields -->
-            <VBox spacing="18">
+            <!-- Email Field -->
+            <VBox spacing="4" alignment="CENTER_LEFT">
+                <Label text="Email" styleClass="field-label"/>
+                <TextField fx:id="emailField" promptText="Enter your email" styleClass="text-field" editable="false" prefWidth="280" prefHeight="36"/>
+            </VBox>
 
-                <!-- Full Name Field -->
-                <VBox spacing="8">
-                    <Label text="Full Name" styleClass="profile-field-label"/>
-                    <HBox styleClass="profile-input-container" alignment="CENTER_LEFT" spacing="10">
-                        <padding>
-                            <Insets left="15" right="15"/>
-                        </padding>
-                        <Text text="👤" styleClass="profile-input-icon"/>
-                        <TextField fx:id="nameField" promptText="Enter your full name" styleClass="profile-text-field"/>
-                    </HBox>
+            <!-- Phone Number Field -->
+            <VBox spacing="4" alignment="CENTER_LEFT">
+                <Label text="Phone Number" styleClass="field-label"/>
+                <TextField fx:id="phoneField" promptText="Enter your phone number" styleClass="text-field" prefWidth="280" prefHeight="36"/>
+            </VBox>
+
+            <!-- Home Address Field -->
+            <VBox spacing="4" alignment="CENTER_LEFT">
+                <Label text="Home Address" styleClass="field-label"/>
+                <TextField fx:id="addressField" promptText="Enter your home address" styleClass="text-field" prefWidth="280" prefHeight="36"/>
+            </VBox>
+
+            <!-- Driver-specific fields -->
+            <VBox fx:id="driverFieldsContainer" spacing="8" visible="false" managed="false" alignment="CENTER">
+
+                <!-- Car Model Field -->
+                <VBox spacing="4" alignment="CENTER_LEFT">
+                    <Label text="Car Model" styleClass="field-label"/>
+                    <TextField fx:id="carModelField" promptText="Enter your car model" styleClass="text-field" prefWidth="280" prefHeight="36"/>
                 </VBox>
 
-                <!-- Email Field -->
-                <VBox spacing="8">
-                    <Label text="Email" styleClass="profile-field-label"/>
-                    <HBox styleClass="profile-input-container" alignment="CENTER_LEFT" spacing="10">
-                        <padding>
-                            <Insets left="15" right="15"/>
-                        </padding>
-                        <Text text="📧" styleClass="profile-input-icon"/>
-                        <TextField fx:id="emailField" promptText="Enter your email" styleClass="profile-text-field" editable="false"/>
-                    </HBox>
+                <!-- License Plate Field -->
+                <VBox spacing="4" alignment="CENTER_LEFT">
+                    <Label text="License Plate" styleClass="field-label"/>
+                    <TextField fx:id="licensePlateField" promptText="Enter your license plate" styleClass="text-field" prefWidth="280" prefHeight="36"/>
                 </VBox>
-
-                <!-- Phone Number Field -->
-                <VBox spacing="8">
-                    <Label text="Phone Number" styleClass="profile-field-label"/>
-                    <HBox styleClass="profile-input-container" alignment="CENTER_LEFT" spacing="10">
-                        <padding>
-                            <Insets left="15" right="15"/>
-                        </padding>
-                        <Text text="📱" styleClass="profile-input-icon"/>
-                        <TextField fx:id="phoneField" promptText="Enter your phone number" styleClass="profile-text-field"/>
-                    </HBox>
-                </VBox>
-
-                <!-- Home Address Field (SSN stored as home address) -->
-                <VBox spacing="8">
-                    <Label text="Home Address" styleClass="profile-field-label"/>
-                    <HBox styleClass="profile-input-container" alignment="CENTER_LEFT" spacing="10">
-                        <padding>
-                            <Insets left="15" right="15"/>
-                        </padding>
-                        <Text text="🏠" styleClass="profile-input-icon"/>
-                        <TextField fx:id="addressField" promptText="Enter your home address" styleClass="profile-text-field"/>
-                    </HBox>
-                </VBox>
-
-                <!-- Driver-specific fields (hidden by default) -->
-                <VBox fx:id="driverFieldsContainer" spacing="18" visible="false" managed="false">
-
-                    <!-- Car Model Field -->
-                    <VBox spacing="8">
-                        <Label text="Car Model" styleClass="profile-field-label"/>
-                        <HBox styleClass="profile-input-container" alignment="CENTER_LEFT" spacing="10">
-                            <padding>
-                                <Insets left="15" right="15"/>
-                            </padding>
-                            <Text text="🚙" styleClass="profile-input-icon"/>
-                            <TextField fx:id="carModelField" promptText="Enter your car model" styleClass="profile-text-field"/>
-                        </HBox>
-                    </VBox>
-
-                    <!-- License Plate Field -->
-                    <VBox spacing="8">
-                        <Label text="License Plate" styleClass="profile-field-label"/>
-                        <HBox styleClass="profile-input-container" alignment="CENTER_LEFT" spacing="10">
-                            <padding>
-                                <Insets left="15" right="15"/>
-                            </padding>
-                            <Text text="🔖" styleClass="profile-input-icon"/>
-                            <TextField fx:id="licensePlateField" promptText="Enter your license plate" styleClass="profile-text-field"/>
-                        </HBox>
-                    </VBox>
-
-                </VBox>
-
-                <!-- Save Changes Button -->
-                <Button fx:id="saveButton" text="Save Changes" styleClass="profile-save-button" onAction="#onSaveChanges">
-                    <VBox.margin>
-                        <Insets top="12"/>
-                    </VBox.margin>
-                </Button>
-
-                <!-- Error/Success Message -->
-                <Label fx:id="messageLabel" text="" styleClass="profile-message-label" visible="false" managed="false">
-                    <VBox.margin>
-                        <Insets top="5"/>
-                    </VBox.margin>
-                </Label>
 
             </VBox>
+
+            <!-- Save Changes Button -->
+            <Button fx:id="saveButton" text="Save Changes" styleClass="profile-save-button" onAction="#onSaveChanges" prefWidth="280" prefHeight="38">
+                <VBox.margin>
+                    <Insets top="6"/>
+                </VBox.margin>
+            </Button>
+
+            <!-- Error/Success Message -->
+            <Label fx:id="messageLabel" text="" styleClass="label-success" visible="false" managed="false" textAlignment="CENTER" wrapText="true" maxWidth="280"/>
 
         </VBox>
 
     </VBox>
 
-</ScrollPane>
+</VBox>
 

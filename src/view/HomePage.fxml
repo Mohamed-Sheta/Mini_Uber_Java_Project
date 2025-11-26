@@ -1,56 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.shape.Rectangle?>
 
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="controller.HomePageController"
-      prefHeight="600.0" prefWidth="320.0"
+      prefHeight="750" prefWidth="400"
       alignment="TOP_CENTER"
-      styleClass="root"
+      styleClass="content-container"
       stylesheets="@/style.css">
 
     <!-- Top Bar with Profile Button -->
-    <HBox alignment="CENTER_RIGHT" prefWidth="320.0">
+    <HBox alignment="CENTER_RIGHT" prefWidth="400">
         <VBox.margin>
-            <Insets top="15.0" right="20.0"/>
+            <Insets top="18" right="25"/>
         </VBox.margin>
-        <Button text="👤 Profile" styleClass="home-profile-button" onAction="#navigateToProfile"/>
+        <Button text="👤 Profile" styleClass="icon-button" onAction="#navigateToProfile" styleClass="button-secondary">
+            <padding>
+                <Insets top="9" right="16" bottom="9" left="16"/>
+            </padding>
+        </Button>
     </HBox>
 
     <!-- Logo Section -->
-    <ImageView fitWidth="180.0" preserveRatio="true" smooth="true">
+    <ImageView fitWidth="200" preserveRatio="true" smooth="true">
         <image>
             <Image url="@/Logo-removebg-preview.png"/>
         </image>
         <VBox.margin>
-            <Insets top="20.0" bottom="25.0"/>
+            <Insets top="28" bottom="32"/>
         </VBox.margin>
     </ImageView>
 
-    <!-- Icons Section with proper spacing -->
-    <HBox alignment="CENTER" spacing="50.0">
+    <!-- Welcome Text -->
+    <Label text="Welcome to MiniGo" styleClass="title-large" textAlignment="CENTER">
         <VBox.margin>
-            <Insets top="25.0" bottom="20.0"/>
+            <Insets bottom="45"/>
+        </VBox.margin>
+    </Label>
+
+    <!-- Icons Section with proper spacing -->
+    <HBox alignment="CENTER" spacing="55">
+        <VBox.margin>
+            <Insets top="28" bottom="28"/>
         </VBox.margin>
 
         <!-- Fast Pickup Icon Card -->
-        <VBox alignment="CENTER" spacing="12.0">
-            <StackPane>
-                <!-- Background rounded rectangle -->
-                <Rectangle width="75.0" height="75.0" arcWidth="20.0" arcHeight="20.0"
-                          styleClass="icon-card"/>
-
+        <VBox alignment="CENTER" spacing="15">
+            <StackPane prefHeight="90" prefWidth="90" styleClass="elevated-card">
                 <!-- Icon ImageView -->
-                <ImageView fitWidth="55.0" preserveRatio="true" smooth="true">
+                <ImageView fitWidth="65" preserveRatio="true" smooth="true">
                     <image>
                         <Image url="@/fast.png"/>
                     </image>
@@ -58,18 +61,14 @@
             </StackPane>
 
             <!-- Label -->
-            <Label text="Fast Pickup" styleClass="icon-label"/>
+            <Label text="Fast Pickup" styleClass="subtitle"/>
         </VBox>
 
         <!-- Safe Rides Icon Card -->
-        <VBox alignment="CENTER" spacing="12.0">
-            <StackPane>
-                <!-- Background rounded rectangle -->
-                <Rectangle width="75.0" height="75.0" arcWidth="20.0" arcHeight="20.0"
-                          styleClass="icon-card"/>
-
+        <VBox alignment="CENTER" spacing="15">
+            <StackPane prefHeight="90" prefWidth="90" styleClass="elevated-card">
                 <!-- Icon ImageView -->
-                <ImageView fitWidth="55.0" preserveRatio="true" smooth="true">
+                <ImageView fitWidth="65" preserveRatio="true" smooth="true">
                     <image>
                         <Image url="@/safe.png"/>
                     </image>
@@ -77,9 +76,12 @@
             </StackPane>
 
             <!-- Label -->
-            <Label text="Safe Rides" styleClass="icon-label"/>
+            <Label text="Safe Rides" styleClass="subtitle"/>
         </VBox>
     </HBox>
+
+    <!-- Spacer to push content up -->
+    <Region VBox.vgrow="ALWAYS"/>
 
 </VBox>
 

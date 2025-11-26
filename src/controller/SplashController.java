@@ -50,7 +50,7 @@ public class SplashController implements Initializable {
     private void navigateToRoleSelection() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/RoleSelection.fxml"));
-            Scene scene = new Scene(loader.load(), 320, 600);
+            Scene scene = new Scene(loader.load(), 390, 750);
 
 
             Stage stage = (Stage) logoImage.getScene().getWindow();

@@ -21,14 +21,14 @@ public class miniuber extends Application { // Fixed naming convention
             MapGraph.CityMapSetup citySetup = new MapGraph.CityMapSetup();
             citySetup.initializeAll();
 
-            stage.setMinWidth(320);
-            stage.setMinHeight(600);
+            stage.setMinWidth(400);
+            stage.setMinHeight(750);
             stage.setResizable(false);
 
             stage.getIcons().add(new Image(getClass().getResourceAsStream("/Logo-removebg-preview.png")));
 
             FXMLLoader fxmlLoader = new FXMLLoader(miniuber.class.getResource("/view/Splash.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 320, 600);
+            Scene scene = new Scene(fxmlLoader.load(), 390, 750);
 
             stage.setTitle("MiniGO");
             stage.setScene(scene);

@@ -5,87 +5,116 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox alignment="TOP_CENTER" prefHeight="700" prefWidth="400" styleClass="role-selection-background" stylesheets="@/style.css" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/17.0.12" fx:controller="controller.RoleSelectionController">
+<VBox alignment="TOP_CENTER"
+      prefHeight="750"
+      prefWidth="390"
+      styleClass="content-container"
+      stylesheets="@/style.css"
+      xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/17.0.12"
+      fx:controller="controller.RoleSelectionController">
 
     <!-- Top Spacing -->
-    <Region prefHeight="60" />
+    <Region prefHeight="55" />
 
     <!-- Logo Image -->
-    <ImageView fitWidth="120" preserveRatio="true">
-        <Image url="@/Logo-removebg-preview.png" />
-    </ImageView>
+    <StackPane>
+        <ImageView fitWidth="130" preserveRatio="true" opacity="1.0">
+            <image>
+                <Image url="@/Logo-removebg-preview.png" />
+            </image>
+        </ImageView>
+    </StackPane>
 
     <!-- Spacing after logo -->
-    <Region prefHeight="40" />
+    <Region prefHeight="35" />
 
     <!-- Title: "Your journey, simplified" -->
-    <Label styleClass="role-selection-title" text="Your journey, simplified">
+    <Label styleClass="title-large"
+           text="Your journey, simplified"
+           textAlignment="CENTER"
+           wrapText="true">
         <VBox.margin>
-            <Insets left="40" right="40" />
+            <Insets left="35" right="35" />
         </VBox.margin>
     </Label>
 
     <!-- Spacing after title -->
-    <Region prefHeight="35" />
+    <Region prefHeight="30" />
 
     <!-- Icon Row: Fast Pickup • Safe Rides -->
-    <HBox alignment="CENTER" spacing="24" styleClass="features-row">
+    <HBox alignment="CENTER" spacing="22" styleClass="features-row">
         <VBox.margin>
-            <Insets left="40" right="40" />
+            <Insets left="35" right="35" />
         </VBox.margin>
 
         <!-- Fast Pickup -->
-        <VBox alignment="CENTER" prefHeight="86.0" prefWidth="86.0" spacing="10" styleClass="icon-container">
-            <StackPane prefHeight="54.0" prefWidth="54.0" styleClass="icon-background">
-                <ImageView fitHeight="53.0" fitWidth="138.0" pickOnBounds="true" preserveRatio="true">
-                    <Image smooth="true" url="@/fast.png" />
+        <VBox alignment="CENTER" spacing="8" styleClass="icon-container">
+            <StackPane prefHeight="65" prefWidth="65" styleClass="elevated-card">
+                <ImageView fitHeight="42" fitWidth="42" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image smooth="true" url="@/fast.png" />
+                    </image>
                 </ImageView>
             </StackPane>
-            <Label prefHeight="18.0" prefWidth="88.0" styleClass="feature-label" text="Fast Pickup" />
+            <Label styleClass="subtitle" text="Fast Pickup" />
         </VBox>
 
         <!-- Bullet Separator -->
-        <Label styleClass="bullet-separator" text="•" />
+        <Label styleClass="title-medium" text="•" />
 
         <!-- Safe Rides -->
-        <VBox alignment="CENTER" spacing="10" styleClass="icon-container">
-            <StackPane prefHeight="0.0" prefWidth="0.0" styleClass="icon-background">
-                <ImageView fitHeight="57.0" fitWidth="33.0" pickOnBounds="true" preserveRatio="true">
-                    <Image smooth="true" url="@/safe.png" />
+        <VBox alignment="CENTER" spacing="8" styleClass="icon-container">
+            <StackPane prefHeight="65" prefWidth="65" styleClass="elevated-card">
+                <ImageView fitHeight="42" fitWidth="42" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image smooth="true" url="@/safe.png" />
+                    </image>
                 </ImageView>
             </StackPane>
-            <Label styleClass="feature-label" text="Safe Rides" />
+            <Label styleClass="subtitle" text="Safe Rides" />
         </VBox>
     </HBox>
 
     <!-- Spacing before card -->
-    <Region prefHeight="45" />
+    <Region prefHeight="40" />
 
     <!-- Get Started Card Container -->
-    <VBox alignment="TOP_CENTER" spacing="20" styleClass="get-started-card">
+    <VBox alignment="TOP_CENTER" spacing="18" styleClass="card-container">
         <VBox.margin>
-            <Insets left="30" right="30" />
+            <Insets left="28" right="28" />
         </VBox.margin>
         <padding>
-            <Insets bottom="35" left="25" right="25" top="30" />
+            <Insets bottom="32" left="26" right="26" top="28" />
         </padding>
 
         <!-- Card Title -->
-        <Label styleClass="card-title" text="Get Started" />
+        <Label styleClass="title-medium" text="Get Started" />
 
         <!-- Spacing after title -->
-        <Region prefHeight="5" />
+        <Region prefHeight="4" />
 
         <!-- Continue as Passenger Button -->
-        <Button fx:id="passengerButton" maxWidth="Infinity" minHeight="50" onAction="#handlePassengerSelection" prefHeight="50" styleClass="btn-passenger" text="Continue as Passenger">
-        </Button>
+        <Button fx:id="passengerButton"
+                maxWidth="Infinity"
+                minHeight="48"
+                onAction="#handlePassengerSelection"
+                prefHeight="48"
+                styleClass="btn-passenger"
+                text="Continue as Passenger" />
 
         <!-- Continue as Driver Button -->
-        <Button fx:id="driverButton" maxWidth="Infinity" minHeight="50" onAction="#handleDriverSelection" prefHeight="50" styleClass="btn-driver" text="Continue as Driver">
-        </Button>
+        <Button fx:id="driverButton"
+                maxWidth="Infinity"
+                minHeight="48"
+                onAction="#handleDriverSelection"
+                prefHeight="48"
+                styleClass="btn-driver"
+                text="Continue as Driver" />
     </VBox>
 
     <!-- Bottom Spacing -->
     <Region VBox.vgrow="ALWAYS" />
 
 </VBox>
+

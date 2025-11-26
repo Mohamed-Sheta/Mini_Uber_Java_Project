@@ -8,7 +8,7 @@ public final class DBConnection {
 
     private static final String URL = "jdbc:mysql://localhost:3306/minigo";
     private static final String USER = "root";
-    private static final String PASS = "1234";
+    private static final String PASS = "sheta123";
 
     static {
         try {

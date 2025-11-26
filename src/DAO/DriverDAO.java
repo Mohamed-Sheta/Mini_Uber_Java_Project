@@ -38,8 +38,8 @@ public class DriverDAO {
             throw new IllegalArgumentException("Driver name must be between 1 and 50 characters.");
         if (d.getPhoneNumber() == null || !d.getPhoneNumber().matches("\\d{11}"))
             throw new IllegalArgumentException("Driver phone must be exactly 11 digits.");
-        if (d.getEmail() == null || !d.getEmail().endsWith("@gmail.com"))
-            throw new IllegalArgumentException("Driver email must end with '@gmail.com'.");
+        if (d.getEmail() == null || !d.getEmail().contains("@"))
+            throw new IllegalArgumentException("Driver email must be valid.");
         if (d.getWalletBalance() < 0 || d.getCreditBalance() < 0)
             throw new IllegalArgumentException("Driver balances cannot be negative.");
         if (d.getLicensePlate() == null || d.getLicensePlate().trim().isEmpty())
@@ -87,8 +87,8 @@ public class DriverDAO {
             throw new IllegalArgumentException("Driver name must be between 1 and 50 characters.");
         if (d.getPhoneNumber() == null || !d.getPhoneNumber().matches("\\d{11}"))
             throw new IllegalArgumentException("Driver phone must be exactly 11 digits.");
-        if (d.getEmail() == null || !d.getEmail().endsWith("@gmail.com"))
-            throw new IllegalArgumentException("Driver email must end with '@gmail.com'.");
+        if (d.getEmail() == null || !d.getEmail().contains("@"))
+            throw new IllegalArgumentException("Driver email must be valid.");
         if (d.getWalletBalance() < 0 || d.getCreditBalance() < 0)
             throw new IllegalArgumentException("Driver balances cannot be negative.");
         final String sql = "UPDATE drivers SET user_ssn=?, name=?, phone_number=?, email=?, wallet_balance=?, credit_balance=?, current_location=?, license_plate=?, car_model=?, active=?, password=? WHERE id=?";

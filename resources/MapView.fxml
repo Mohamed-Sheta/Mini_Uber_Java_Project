@@ -1,90 +1,106 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.control.*?>
 <?import javafx.scene.web.WebView?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
+<?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
 <StackPane xmlns:fx="http://javafx.com/fxml"
            fx:id="rootContainer"
            fx:controller="controller.MapController"
-           prefWidth="420" prefHeight="800">
+           prefWidth="390" prefHeight="750"
+           styleClass="map-container"
+           stylesheets="@/style.css">
 
-<AnchorPane prefWidth="420" prefHeight="800">
+    <AnchorPane prefWidth="390" prefHeight="750">
 
-    <!-- MAP FULLSCREEN -->
-    <WebView fx:id="webView"
-             AnchorPane.topAnchor="0"
-             AnchorPane.bottomAnchor="0"
-             AnchorPane.leftAnchor="0"
-             AnchorPane.rightAnchor="0"/>
+        <!-- MAP FULLSCREEN -->
+        <WebView fx:id="webView"
+                 AnchorPane.topAnchor="0"
+                 AnchorPane.bottomAnchor="0"
+                 AnchorPane.leftAnchor="0"
+                 AnchorPane.rightAnchor="0"/>
 
-    <!-- TOP BAR -->
-    <HBox spacing="10"
-          alignment="CENTER"
-          AnchorPane.topAnchor="12"
-          AnchorPane.leftAnchor="12"
-          AnchorPane.rightAnchor="12"
-          style="-fx-background-color:#27374D; -fx-background-radius:12; -fx-padding:8 12; -fx-opacity:0.98;">
+        <!-- TOP BAR -->
+        <HBox spacing="10"
+              alignment="CENTER"
+              styleClass="map-top-bar"
+              AnchorPane.topAnchor="12"
+              AnchorPane.leftAnchor="12"
+              AnchorPane.rightAnchor="12">
 
-        <ImageView fx:id="settingsBtn"
-                   fitWidth="28" fitHeight="28" pickOnBounds="true" preserveRatio="true">
-            <image>
-                <Image url="@settings_12280787.png"/>
-            </image>
-        </ImageView>
+            <ImageView fx:id="settingsBtn"
+                       fitWidth="28" fitHeight="28"
+                       pickOnBounds="true"
+                       preserveRatio="true"
+                       styleClass="icon-button">
+                <image>
+                    <Image url="@settings_12280787.png"/>
+                </image>
+            </ImageView>
 
-        <Pane HBox.hgrow="ALWAYS"/>
+            <Pane HBox.hgrow="ALWAYS"/>
 
-        <ImageView fx:id="profileBtn"
-                   fitWidth="34" fitHeight="34" pickOnBounds="true" preserveRatio="true">
-            <image>
-                <Image url="@user_17436294.png"/>
-            </image>
-        </ImageView>
+            <ImageView fx:id="profileBtn"
+                       fitWidth="32" fitHeight="32"
+                       pickOnBounds="true"
+                       preserveRatio="true"
+                       styleClass="icon-button">
+                <image>
+                    <Image url="@user_17436294.png"/>
+                </image>
+            </ImageView>
 
-    </HBox>
-
-    <!-- BOTTOM PANEL -->
-    <VBox fx:id="bottomPanel"
-          spacing="12"
-          prefHeight="260"
-          style="-fx-background-color:#27374D; -fx-background-radius:20 20 0 0; -fx-padding:16;"
-          AnchorPane.leftAnchor="0"
-          AnchorPane.rightAnchor="0"
-          AnchorPane.bottomAnchor="0">
-
-        <HBox alignment="CENTER_RIGHT">
-            <Button fx:id="toggleBtn"
-                    text="Hide"
-                    style="-fx-background-color:#9F8383; -fx-text-fill:white; -fx-background-radius:8;"/>
         </HBox>
 
-        <Label text="MiniGo Route Finder"
-               style="-fx-font-size:20; -fx-text-fill:#DDE6ED; -fx-font-weight:bold;"/>
+        <!-- BOTTOM PANEL -->
+        <VBox fx:id="bottomPanel"
+              spacing="12"
+              prefHeight="260"
+              styleClass="map-bottom-panel"
+              AnchorPane.leftAnchor="0"
+              AnchorPane.rightAnchor="0"
+              AnchorPane.bottomAnchor="0">
 
-        <Label text="Start:" style="-fx-text-fill:#9DB2BF;"/>
-        <ComboBox fx:id="startCombo" prefWidth="230"/>
+            <HBox alignment="CENTER_RIGHT">
+                <Button fx:id="toggleBtn"
+                        text="Hide"
+                        styleClass="map-control-button"/>
+            </HBox>
 
-        <Label text="Destination:" style="-fx-text-fill:#9DB2BF;"/>
-        <ComboBox fx:id="endCombo" prefWidth="230"/>
+            <Label text="MiniGo Route Finder"
+                   styleClass="title-medium"/>
 
-        <HBox spacing="10">
-            <Button fx:id="findBtn"
-                    text="Request"
-                    style="-fx-background-color:#526D82; -fx-text-fill:#DDE6ED; -fx-background-radius:8;"/>
+            <VBox spacing="6">
+                <Label text="Start Location" styleClass="field-label"/>
+                <ComboBox fx:id="startCombo" prefWidth="340" maxWidth="Infinity" styleClass="combo-box" prefHeight="42"/>
+            </VBox>
 
-            <Button fx:id="clearBtn"
-                    text="Clear"
-                    style="-fx-background-color:#9DB2BF; -fx-text-fill:#27374D; -fx-background-radius:8;"/>
-        </HBox>
+            <VBox spacing="6">
+                <Label text="Destination" styleClass="field-label"/>
+                <ComboBox fx:id="endCombo" prefWidth="340" maxWidth="Infinity" styleClass="combo-box" prefHeight="42"/>
+            </VBox>
 
-    </VBox>
+            <HBox spacing="10">
+                <Button fx:id="findBtn"
+                        text="Request Ride"
+                        styleClass="button"
+                        prefHeight="42"
+                        HBox.hgrow="ALWAYS"
+                        maxWidth="Infinity"/>
 
-</AnchorPane>
+                <Button fx:id="clearBtn"
+                        text="Clear"
+                        styleClass="button-secondary"
+                        prefHeight="42"
+                        prefWidth="90"/>
+            </HBox>
+
+        </VBox>
+
+    </AnchorPane>
 
 </StackPane>
-
 

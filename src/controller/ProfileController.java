@@ -1,18 +1,24 @@
 package controller;
 
+import DAO.DriverDAO;
 import DAO.PassengerDAO;
 import Model.Driver;
 import Model.Passenger;
 import Model.Person;
 import javafx.animation.ScaleTransition;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 import utils.DBConnection;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -64,6 +70,12 @@ public class ProfileController {
 
     @FXML
     private Button saveButton;
+
+    @FXML
+    private Button backButton;
+
+    @FXML
+    private Button settingsButton;
 
     @FXML
     private Label messageLabel;
@@ -310,17 +322,20 @@ public class ProfileController {
                 name,
                 phone,
                 passenger.getEmail(),
-                "" // empty password to avoid re-hashing
+                passenger.getPassword() // Keep existing hashed password
         );
 
-        // Copy existing password
-        updatedPassenger.setPassword(passenger.getPassword());
+        // Preserve existing balances
         updatedPassenger.updateWalletBalance(passenger.getWalletBalance());
         updatedPassenger.updateCreditBalance(passenger.getCreditBalance());
 
+        // Get location name as string
+        String locationName = (passenger.getCurrentLocation() != null) ?
+                              passenger.getCurrentLocation().getName() : null;
+
         // Update in database
         PassengerDAO passengerDAO = new PassengerDAO();
-        passengerDAO.update(userId, updatedPassenger, null);
+        passengerDAO.update(userId, updatedPassenger, locationName);
     }
 
     /**
@@ -332,10 +347,10 @@ public class ProfileController {
         String carModel = carModelField.getText().trim();
         String licensePlate = licensePlateField.getText().trim();
 
-        // Create updated driver object
+        // Create updated driver object with all existing data preserved
         Driver updatedDriver = new Driver(
-                driver.getLicensePlate(), // Use existing initially
-                driver.getCarModel(), // Use existing initially
+                licensePlate,
+                carModel,
                 driver.isActive(),
                 address, // userSSN (using address field as SSN)
                 name,
@@ -345,36 +360,66 @@ public class ProfileController {
                 driver.getCreditBalance(),
                 driver.getCurrentLocation(),
                 driver.getRideHistory(),
-                "" // empty password to avoid re-hashing
+                driver.getPassword() // Keep existing hashed password
         );
 
-        // Copy existing password
-        updatedDriver.setPassword(driver.getPassword());
+        // Get location name as string
+        String locationName = (driver.getCurrentLocation() != null) ?
+                              driver.getCurrentLocation().getName() : null;
 
-        // Update in database using direct SQL since Driver constructor doesn't allow changing plate/model easily
-        String sql = "UPDATE drivers SET user_ssn=?, name=?, phone_number=?, car_model=?, license_plate=? WHERE id=?";
-
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setString(1, address);
-            ps.setString(2, name);
-            ps.setString(3, phone);
-            ps.setString(4, carModel);
-            ps.setString(5, licensePlate);
-            ps.setLong(6, userId);
-
-            ps.executeUpdate();
-        }
+        // Update in database using DriverDAO
+        DriverDAO driverDAO = new DriverDAO();
+        driverDAO.update(userId, updatedDriver, locationName);
     }
 
     /**
      * Update the current user object with new values
      */
     private void updateUserObject(String name, String phone, String address) {
-        // Note: We can't directly modify the Person fields since they're private
-        // The user object will be refreshed on next login
-        // For now, we just update the UI elements
+        // Create new user object with updated data
+        if (isDriver) {
+            Driver oldDriver = (Driver) currentUser;
+            String carModel = carModelField.getText().trim();
+            String licensePlate = licensePlateField.getText().trim();
+
+            // Create new Driver with updated information
+            currentUser = new Driver(
+                licensePlate,
+                carModel,
+                oldDriver.isActive(),
+                address,
+                name,
+                phone,
+                oldDriver.getEmail(),
+                oldDriver.getWalletBalance(),
+                oldDriver.getCreditBalance(),
+                oldDriver.getCurrentLocation(),
+                oldDriver.getRideHistory(),
+                oldDriver.getPassword()
+            );
+        } else {
+            Passenger oldPassenger = (Passenger) currentUser;
+
+            // Create new Passenger with updated information
+            currentUser = new Passenger(
+                address,
+                name,
+                phone,
+                oldPassenger.getEmail(),
+                oldPassenger.getPassword()
+            );
+
+            // Preserve balances
+            ((Passenger) currentUser).updateWalletBalance(oldPassenger.getWalletBalance());
+            ((Passenger) currentUser).updateCreditBalance(oldPassenger.getCreditBalance());
+        }
+
+        // Refresh all UI fields with new data
+        nameField.setText(name);
+        phoneField.setText(phone);
+        addressField.setText(address);
+        userNameLabel.setText(name);
+        emailField.setText(((Person) currentUser).getEmail());
     }
 
     /**
@@ -404,6 +449,64 @@ public class ProfileController {
         scaleTransition.setCycleCount(2);
         scaleTransition.setAutoReverse(true);
         scaleTransition.play();
+    }
+
+    /**
+     * Handle Back to Map button click
+     * Navigate back to MapView with current user data
+     */
+    @FXML
+    public void onBackToMap() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/MapView.fxml"));
+            Scene scene = new Scene(loader.load(), 390, 750);
+
+            MapController controller = loader.getController();
+            // Pass user data back to map
+            if (currentUser != null) {
+                if (isDriver) {
+                    controller.setDriver((Driver) currentUser);
+                } else {
+                    controller.setPassenger((Passenger) currentUser);
+                }
+            }
+
+            Stage stage = (Stage) backButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            System.err.println("Failed to navigate to Map: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Handle Settings button click
+     * Navigate to AddFunds screen for wallet top-up
+     */
+    @FXML
+    public void onSettingsClick() {
+        System.out.println("=== onSettingsClick() called - Navigating to AddFunds ===");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/AddFunds.fxml"));
+            Scene scene = new Scene(loader.load(), 390, 750);
+
+            AddFundsController controller = loader.getController();
+            // Pass user data to AddFunds screen
+            if (currentUser != null) {
+                controller.setUser(currentUser);
+                System.out.println("User data passed to AddFunds controller");
+            }
+
+            Stage stage = (Stage) settingsButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+
+            System.out.println("AddFunds screen loaded successfully");
+        } catch (IOException e) {
+            System.err.println("Failed to navigate to AddFunds: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }
 
