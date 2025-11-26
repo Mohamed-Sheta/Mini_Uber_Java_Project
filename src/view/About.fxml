@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="controller.AboutController"
+      prefWidth="390" prefHeight="750"
+      styleClass="content-container"
+      alignment="TOP_CENTER"
+      spacing="0"
+      stylesheets="@/style.css">
+
+    <padding>
+        <Insets top="12" bottom="16" left="16" right="16"/>
+    </padding>
+
+    <!-- Header with Back Button -->
+    <HBox alignment="CENTER_LEFT" spacing="8">
+        <VBox.margin>
+            <Insets bottom="10"/>
+        </VBox.margin>
+        <Button fx:id="backButton" text="←" styleClass="back-button" onAction="#onBackToMap"/>
+        <Label text="About" styleClass="title-large"/>
+    </HBox>
+
+    <!-- Main Content Card -->
+    <VBox styleClass="card-container" spacing="16" alignment="TOP_LEFT">
+        <padding>
+            <Insets top="20" bottom="20" left="20" right="20"/>
+        </padding>
+
+        <!-- Project Name -->
+        <Label text="MiniGO" styleClass="title-medium" textAlignment="CENTER">
+            <VBox.margin>
+                <Insets bottom="8"/>
+            </VBox.margin>
+        </Label>
+
+        <!-- Version -->
+        <Label text="Version 1.0" styleClass="subtitle" textAlignment="CENTER">
+            <VBox.margin>
+                <Insets bottom="16"/>
+            </VBox.margin>
+        </Label>
+
+        <!-- Project Info Section -->
+        <VBox spacing="12">
+            <!-- Start Date -->
+            <VBox spacing="4">
+                <Label text="Project Start Date" styleClass="field-label"/>
+                <Label text="October 2025" styleClass="body-text"/>
+            </VBox>
+
+            <!-- Goal -->
+            <VBox spacing="4">
+                <Label text="Goal" styleClass="field-label"/>
+                <Label text="To provide a simple, efficient, and reliable ride-sharing platform that connects passengers with drivers seamlessly. Our mission is to make transportation accessible, affordable, and safe for everyone."
+                       styleClass="body-text"
+                       wrapText="true"
+                       maxWidth="310"/>
+            </VBox>
+
+            <!-- Description -->
+            <VBox spacing="4">
+                <Label text="About This App" styleClass="field-label"/>
+                <Label text="MiniGO is a modern ride-sharing application built with JavaFX. It features real-time map integration, efficient routing algorithms, secure payment processing, and comprehensive ride history tracking. The app serves both passengers looking for rides and drivers seeking to provide transportation services."
+                       styleClass="body-text"
+                       wrapText="true"
+                       maxWidth="310"/>
+            </VBox>
+
+            <!-- Features -->
+            <VBox spacing="4">
+                <Label text="Key Features" styleClass="field-label"/>
+                <VBox spacing="2">
+                    <Label text="• Real-time map navigation" styleClass="body-text"/>
+                    <Label text="• Secure user authentication" styleClass="body-text"/>
+                    <Label text="• Multiple payment options" styleClass="body-text"/>
+                    <Label text="• Ride history tracking" styleClass="body-text"/>
+                    <Label text="• Driver and passenger ratings" styleClass="body-text"/>
+                    <Label text="• Problem reporting system" styleClass="body-text"/>
+                </VBox>
+            </VBox>
+
+            <!-- Copyright -->
+            <VBox spacing="4">
+                <VBox.margin>
+                    <Insets top="8"/>
+                </VBox.margin>
+                <Label text="Copyright" styleClass="field-label"/>
+                <Label text="© 2025 MiniGO Team. All rights reserved." styleClass="caption"/>
+            </VBox>
+        </VBox>
+    </VBox>
+
+</VBox>
+

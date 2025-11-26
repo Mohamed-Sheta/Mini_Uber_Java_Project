@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="controller.TipsDonationDialogController"
+           styleClass="dialog-overlay"
+           stylesheets="@driver-dialog.css">
+
+    <VBox styleClass="dialog-container" maxWidth="313" maxHeight="285" alignment="CENTER">
+        <padding>
+            <Insets top="13" bottom="12" left="20" right="20"/>
+        </padding>
+
+        <!-- Title -->
+        <Label text="Tips &amp; Donation" styleClass="dialog-title" style="-fx-font-size: 16px;">
+            <VBox.margin>
+                <Insets bottom="4"/>
+            </VBox.margin>
+        </Label>
+
+        <!-- Subtitle -->
+        <Label text="Would you like to add a tip or donation?" styleClass="dialog-subtitle" style="-fx-font-size: 10px;">
+            <VBox.margin>
+                <Insets bottom="8"/>
+            </VBox.margin>
+        </Label>
+
+        <!-- Current Total -->
+        <HBox spacing="6" alignment="CENTER">
+            <VBox.margin>
+                <Insets bottom="7"/>
+            </VBox.margin>
+            <Label text="Ride Cost:" styleClass="info-label" style="-fx-font-size: 11px;"/>
+            <Label fx:id="rideCostLabel" text="0.00 EGP" styleClass="info-value-highlight" style="-fx-font-size: 12px;"/>
+        </HBox>
+
+        <!-- Tip Input -->
+        <VBox spacing="4" alignment="CENTER_LEFT" styleClass="info-container" style="-fx-padding: 6;">
+            <VBox.margin>
+                <Insets bottom="6"/>
+            </VBox.margin>
+            <Label text="Tip for Driver (EGP)" styleClass="info-label" style="-fx-font-size: 10px;"/>
+            <TextField fx:id="tipField" promptText="0.00" styleClass="text-field"
+                       prefHeight="30" maxWidth="250" style="-fx-font-size: 12px;"/>
+        </VBox>
+
+        <!-- Donation Input -->
+        <VBox spacing="4" alignment="CENTER_LEFT" styleClass="info-container" style="-fx-padding: 6;">
+            <VBox.margin>
+                <Insets bottom="7"/>
+            </VBox.margin>
+            <Label text="Donation (EGP)" styleClass="info-label" style="-fx-font-size: 10px;"/>
+            <TextField fx:id="donationField" promptText="0.00" styleClass="text-field"
+                       prefHeight="30" maxWidth="250" style="-fx-font-size: 12px;"/>
+        </VBox>
+
+        <!-- Total Amount -->
+        <HBox spacing="6" alignment="CENTER">
+            <VBox.margin>
+                <Insets bottom="8"/>
+            </VBox.margin>
+            <Label text="Total:" styleClass="info-label" style="-fx-font-size: 12px; -fx-font-weight: bold;"/>
+            <Label fx:id="totalLabel" text="0.00 EGP" styleClass="info-value-highlight" style="-fx-font-size: 13px;"/>
+        </HBox>
+
+        <!-- Buttons -->
+        <HBox spacing="10" alignment="CENTER">
+            <Button text="Skip" styleClass="dialog-button-refuse"
+                    prefWidth="105" prefHeight="32" onAction="#onSkip"/>
+            <Button fx:id="confirmButton" text="Confirm" styleClass="dialog-button-ok"
+                    prefWidth="105" prefHeight="32" onAction="#onConfirm" defaultButton="true"/>
+        </HBox>
+
+    </VBox>
+
+</StackPane>
+

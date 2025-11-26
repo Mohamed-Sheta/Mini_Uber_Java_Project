@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="controller.RideCompleteDialogController"
+           styleClass="dialog-overlay"
+           stylesheets="@driver-dialog.css">
+
+    <VBox styleClass="dialog-container" maxWidth="303" maxHeight="260" alignment="CENTER">
+        <padding>
+            <Insets top="14" bottom="12" left="24" right="24"/>
+        </padding>
+
+        <!-- Success Icon -->
+        <Label text="✓" style="-fx-font-size: 42px; -fx-text-fill: #4CAF50; -fx-effect: dropshadow(gaussian, rgba(76, 175, 80, 0.5), 8, 0.5, 0, 0);"/>
+
+        <!-- Title -->
+        <Label text="You Have Arrived!" styleClass="dialog-title" style="-fx-font-size: 17px;">
+            <VBox.margin>
+                <Insets top="5" bottom="4"/>
+            </VBox.margin>
+        </Label>
+
+        <!-- Subtitle -->
+        <Label text="Thank you for riding with us" styleClass="dialog-subtitle" style="-fx-font-size: 10px;">
+            <VBox.margin>
+                <Insets bottom="8"/>
+            </VBox.margin>
+        </Label>
+
+        <!-- Trip Summary -->
+        <VBox spacing="10" styleClass="info-container" alignment="CENTER">
+            <HBox spacing="10" alignment="CENTER">
+                <Label text="From:" styleClass="info-label" minWidth="60"/>
+                <Label fx:id="originLabel" text="Origin" styleClass="info-value"/>
+            </HBox>
+
+            <HBox spacing="10" alignment="CENTER">
+                <Label text="To:" styleClass="info-label" minWidth="60"/>
+                <Label fx:id="destinationLabel" text="Destination" styleClass="info-value"/>
+            </HBox>
+
+            <Region prefHeight="1" styleClass="separator">
+                <VBox.margin>
+                    <Insets top="5" bottom="5"/>
+                </VBox.margin>
+            </Region>
+
+            <HBox spacing="10" alignment="CENTER">
+                <Label text="Distance:" styleClass="info-label" minWidth="60"/>
+                <Label fx:id="distanceLabel" text="10 km" styleClass="info-value-highlight"/>
+            </HBox>
+
+            <HBox spacing="10" alignment="CENTER">
+                <Label text="Total:" styleClass="info-label" minWidth="60"/>
+                <Label fx:id="totalPriceLabel" text="50 EGP" styleClass="info-value-highlight"/>
+            </HBox>
+        </VBox>
+
+        <!-- Info Message -->
+        <Label text="Invoice has been generated and sent" styleClass="info-message" style="-fx-font-size: 10px;">
+            <VBox.margin>
+                <Insets top="8" bottom="7"/>
+            </VBox.margin>
+        </Label>
+
+        <!-- OK Button -->
+        <Button fx:id="okButton" text="Done" styleClass="dialog-button-ok"
+                prefWidth="170" prefHeight="34" onAction="#onClose" defaultButton="true"/>
+
+    </VBox>
+
+</StackPane>
+
+
+

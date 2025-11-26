@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="controller.DriverRatingDialogController"
+           styleClass="dialog-overlay"
+           stylesheets="@driver-dialog.css">
+
+    <VBox styleClass="dialog-container" maxWidth="288" maxHeight="220" alignment="CENTER">
+        <padding>
+            <Insets top="13" bottom="12" left="20" right="20"/>
+        </padding>
+
+        <!-- Title -->
+        <Label text="Rate Your Driver" styleClass="dialog-title" style="-fx-font-size: 16px;">
+            <VBox.margin>
+                <Insets bottom="4"/>
+            </VBox.margin>
+        </Label>
+
+        <!-- Subtitle -->
+        <Label text="How was your experience?" styleClass="dialog-subtitle" style="-fx-font-size: 10px;">
+            <VBox.margin>
+                <Insets bottom="8"/>
+            </VBox.margin>
+        </Label>
+
+        <!-- Driver Name -->
+        <Label fx:id="driverNameLabel" text="Driver Name" styleClass="info-value" style="-fx-font-size: 12px;">
+            <VBox.margin>
+                <Insets bottom="8"/>
+            </VBox.margin>
+        </Label>
+
+        <!-- Star Rating -->
+        <HBox spacing="6" alignment="CENTER" styleClass="star-container">
+            <VBox.margin>
+                <Insets bottom="8"/>
+            </VBox.margin>
+            <Label fx:id="star1" text="★" styleClass="star-empty" style="-fx-font-size: 32px;" onMouseClicked="#onStar1Click"/>
+            <Label fx:id="star2" text="★" styleClass="star-empty" style="-fx-font-size: 32px;" onMouseClicked="#onStar2Click"/>
+            <Label fx:id="star3" text="★" styleClass="star-empty" style="-fx-font-size: 32px;" onMouseClicked="#onStar3Click"/>
+            <Label fx:id="star4" text="★" styleClass="star-empty" style="-fx-font-size: 32px;" onMouseClicked="#onStar4Click"/>
+            <Label fx:id="star5" text="★" styleClass="star-empty" style="-fx-font-size: 32px;" onMouseClicked="#onStar5Click"/>
+        </HBox>
+
+        <!-- Selected Rating Text -->
+        <Label fx:id="ratingTextLabel" text="Select your rating" styleClass="info-label" style="-fx-font-size: 10px;">
+            <VBox.margin>
+                <Insets bottom="8"/>
+            </VBox.margin>
+        </Label>
+
+        <!-- Buttons -->
+        <HBox spacing="10" alignment="CENTER">
+            <Button text="Skip" styleClass="dialog-button-refuse"
+                    prefWidth="82" prefHeight="32" onAction="#onSkip"/>
+            <Button fx:id="submitButton" text="Submit" styleClass="dialog-button-ok"
+                    prefWidth="100" prefHeight="32" onAction="#onSubmit" defaultButton="true"/>
+        </HBox>
+
+    </VBox>
+
+</StackPane>
+

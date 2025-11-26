@@ -1,0 +1,174 @@
+/* Driver Assignment Dialog Styles */
+
+.dialog-overlay {
+    -fx-background-color: rgba(0, 0, 0, 0.6);
+    -fx-alignment: center;
+}
+
+.dialog-container {
+    -fx-background-color: linear-gradient(to bottom, #0D1B2A, #1B2838);
+    -fx-background-radius: 20px;
+    -fx-effect: dropshadow(gaussian, rgba(13, 27, 42, 0.8), 30, 0.3, 0, 10);
+    -fx-border-color: rgba(255, 255, 255, 0.1);
+    -fx-border-width: 1;
+    -fx-border-radius: 20px;
+}
+
+.dialog-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFFFFF;
+    -fx-alignment: center;
+}
+
+.dialog-subtitle {
+    -fx-font-size: 14px;
+    -fx-text-fill: #8B9DAF;
+    -fx-alignment: center;
+}
+
+.driver-avatar-container {
+    -fx-background-color: rgba(255, 255, 255, 0.05);
+    -fx-background-radius: 50%;
+    -fx-padding: 15;
+    -fx-pref-width: 85;
+    -fx-pref-height: 85;
+}
+
+.info-container {
+    -fx-background-color: rgba(255, 255, 255, 0.03);
+    -fx-background-radius: 12px;
+    -fx-padding: 12;
+}
+
+.info-label {
+    -fx-text-fill: #8B9DAF;
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+}
+
+.info-value {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+}
+
+.info-value-highlight {
+    -fx-text-fill: #4CAF50;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.separator {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dialog-button-ok {
+    -fx-background-color: linear-gradient(to bottom, #4CAF50, #388E3C);
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 12px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(76, 175, 80, 0.4), 10, 0.3, 0, 3);
+}
+
+.dialog-button-ok:hover {
+    -fx-background-color: linear-gradient(to bottom, #66BB6A, #4CAF50);
+    -fx-effect: dropshadow(gaussian, rgba(76, 175, 80, 0.6), 12, 0.4, 0, 4);
+    -fx-scale-y: 1.02;
+}
+
+.dialog-button-ok:pressed {
+    -fx-background-color: #388E3C;
+    -fx-scale-y: 0.98;
+}
+
+.dialog-button-refuse {
+    -fx-background-color: linear-gradient(to bottom, #2C3E50, #1A252F);
+    -fx-text-fill: #E0E0E0;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 12px;
+    -fx-cursor: hand;
+    -fx-border-color: rgba(255, 255, 255, 0.2);
+    -fx-border-width: 1;
+    -fx-border-radius: 12px;
+}
+
+.dialog-button-refuse:hover {
+    -fx-background-color: linear-gradient(to bottom, #34495E, #2C3E50);
+    -fx-text-fill: white;
+    -fx-scale-y: 1.02;
+}
+
+.dialog-button-refuse:pressed {
+    -fx-background-color: #1A252F;
+    -fx-scale-y: 0.98;
+}
+
+/* Ride Complete Dialog Styles */
+
+.success-icon {
+    -fx-font-size: 72px;
+    -fx-text-fill: #4CAF50;
+    -fx-effect: dropshadow(gaussian, rgba(76, 175, 80, 0.5), 20, 0.5, 0, 0);
+}
+
+.info-message {
+    -fx-text-fill: #8B9DAF;
+    -fx-font-size: 12px;
+    -fx-font-style: italic;
+    -fx-alignment: center;
+}
+
+/* Star Rating Styles */
+
+.star-container {
+    -fx-padding: 10 0;
+}
+
+.star-empty {
+    -fx-font-size: 42px;
+    -fx-text-fill: #3A4550;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 3, 0.3, 0, 1);
+}
+
+.star-empty:hover {
+    -fx-text-fill: #FFB300;
+    -fx-scale-x: 1.15;
+    -fx-scale-y: 1.15;
+}
+
+.star-filled {
+    -fx-font-size: 42px;
+    -fx-text-fill: #FFB300;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(255, 179, 0, 0.6), 8, 0.5, 0, 2);
+}
+
+.star-filled:hover {
+    -fx-scale-x: 1.15;
+    -fx-scale-y: 1.15;
+}
+
+/* Text Field Styles for Dialogs */
+
+.text-field {
+    -fx-background-color: rgba(255, 255, 255, 0.05);
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: #8B9DAF;
+    -fx-background-radius: 8px;
+    -fx-border-color: rgba(255, 255, 255, 0.1);
+    -fx-border-radius: 8px;
+    -fx-border-width: 1;
+    -fx-padding: 8 12;
+}
+
+.text-field:focused {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-border-color: #4CAF50;
+    -fx-border-width: 2;
+}
+
