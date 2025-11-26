@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="controller.AddFundsController"
+      prefWidth="390" prefHeight="750"
+      styleClass="content-container"
+      alignment="TOP_CENTER"
+      spacing="0"
+      stylesheets="@/style.css">
+
+    <padding>
+        <Insets top="12" bottom="16" left="16" right="16"/>
+    </padding>
+
+    <!-- Header with Back Button -->
+    <HBox alignment="CENTER_LEFT" spacing="8">
+        <VBox.margin>
+            <Insets bottom="20"/>
+        </VBox.margin>
+        <Button fx:id="backButton" text="←" styleClass="back-button" onAction="#onBackToProfile"/>
+        <Label text="Add Funds" styleClass="title-large"/>
+    </HBox>
+
+    <!-- Main Content Card -->
+    <VBox styleClass="card-container" spacing="20" alignment="TOP_CENTER">
+        <padding>
+            <Insets top="30" bottom="30" left="20" right="20"/>
+        </padding>
+
+        <!-- Title -->
+        <Label text="Top Up Your Wallet" styleClass="title-medium" textAlignment="CENTER">
+            <VBox.margin>
+                <Insets bottom="10"/>
+            </VBox.margin>
+        </Label>
+
+        <!-- Current Balance Display -->
+        <VBox spacing="8" alignment="CENTER">
+            <Label text="Current Balance" styleClass="field-label"/>
+            <Label fx:id="currentBalanceLabel" text="0.00 EGP" styleClass="title-medium"
+                   style="-fx-text-fill: #4CAF50;"/>
+        </VBox>
+
+        <!-- Separator -->
+        <Region prefHeight="20"/>
+
+        <!-- Amount Input -->
+        <VBox spacing="8" alignment="CENTER_LEFT">
+            <Label text="Enter Amount (EGP)" styleClass="field-label"/>
+            <TextField fx:id="amountField"
+                       promptText="Enter amount..."
+                       styleClass="text-field"
+                       prefHeight="45"
+                       maxWidth="320"
+                       style="-fx-font-size: 16px;"/>
+        </VBox>
+
+        <!-- Quick Amount Buttons -->
+        <VBox spacing="10" alignment="CENTER">
+            <Label text="Quick Add" styleClass="subtitle" style="-fx-text-fill: #888;"/>
+            <HBox spacing="10" alignment="CENTER">
+                <Button text="50 EGP" styleClass="button-secondary" onAction="#quickAdd50" prefWidth="80"/>
+                <Button text="100 EGP" styleClass="button-secondary" onAction="#quickAdd100" prefWidth="80"/>
+                <Button text="200 EGP" styleClass="button-secondary" onAction="#quickAdd200" prefWidth="80"/>
+            </HBox>
+        </VBox>
+
+        <!-- Message Label -->
+        <Label fx:id="messageLabel" text="" wrapText="true" textAlignment="CENTER" maxWidth="300"
+               style="-fx-font-size: 13px; -fx-padding: 10 0 0 0;"/>
+
+        <!-- Spacer -->
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <!-- Add Money Button -->
+        <Button fx:id="addMoneyButton"
+                text="Add Money"
+                styleClass="button"
+                onAction="#onAddMoney"
+                prefHeight="50"
+                maxWidth="320"
+                style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+        <!-- Separator -->
+        <Region prefHeight="16"/>
+
+        <!-- Logout Button -->
+        <Button fx:id="logoutButton"
+                text="Logout"
+                styleClass="button-secondary"
+                onAction="#onLogout"
+                prefHeight="48"
+                maxWidth="320"
+                style="-fx-font-size: 15px; -fx-background-color: #D32F2F; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;">
+            <VBox.margin>
+                <Insets top="8"/>
+            </VBox.margin>
+        </Button>
+
+    </VBox>
+
+</VBox>
+
