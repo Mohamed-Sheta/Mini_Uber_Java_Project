@@ -213,11 +213,12 @@ public class AddFundsController {
                 refreshBalanceFromDatabase(userId);
             }
 
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/Profile.fxml"));
+            // Navigate back to ProfileSettings (which is the caller)
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ProfileSettings.fxml"));
             Scene scene = new Scene(loader.load(), 390, 750);
 
-            // Pass updated user data back to profile
-            ProfileController controller = loader.getController();
+            // Pass updated user data back
+            ProfileSettingsController controller = loader.getController();
             if (currentUser != null) {
                 controller.setUser(currentUser);
             }
@@ -226,7 +227,7 @@ public class AddFundsController {
             stage.setScene(scene);
             stage.show();
         } catch (IOException e) {
-            System.err.println("Failed to navigate to Profile: " + e.getMessage());
+            System.err.println("Failed to navigate back to ProfileSettings: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -271,4 +272,3 @@ public class AddFundsController {
         messageLabel.setStyle("-fx-text-fill: #4CAF50; -fx-font-weight: bold;");
     }
 }
-

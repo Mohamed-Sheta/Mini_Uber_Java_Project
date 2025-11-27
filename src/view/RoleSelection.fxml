@@ -10,8 +10,8 @@
       prefWidth="390"
       styleClass="content-container"
       stylesheets="@/style.css"
+      xmlns="http://javafx.com/javafx/25"
       xmlns:fx="http://javafx.com/fxml/1"
-      xmlns="http://javafx.com/javafx/17.0.12"
       fx:controller="controller.RoleSelectionController">
 
     <!-- Top Spacing -->

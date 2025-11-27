@@ -74,6 +74,26 @@
     -fx-border-color: #444C56;
 }
 
+/* Clickable Elevated Card (for Rides KPI) */
+.elevated-card-clickable {
+    -fx-background-color: #161B22;
+    -fx-background-radius: 12;
+    -fx-border-color: #3B82F6;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.15), 8, 0, 0, 1);
+    -fx-padding: 12;
+    -fx-cursor: hand;
+}
+
+.elevated-card-clickable:hover {
+    -fx-background-color: #1C2333;
+    -fx-border-color: #60A5FA;
+    -fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.25), 10, 0, 0, 2);
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+}
+
 /* ============================================
    TYPOGRAPHY
    ============================================ */
@@ -249,6 +269,50 @@
 .text-field:hover, .password-field:hover, .text-area:hover {
     -fx-border-color: #444C56;
 }
+
+/* TextArea specific dark theme styling */
+.text-area .content {
+    -fx-background-color: #0D1117;
+}
+
+.text-area .scroll-pane {
+    -fx-background-color: #0D1117;
+}
+
+.text-area .scroll-pane .viewport {
+    -fx-background-color: #0D1117;
+}
+
+.text-area .scroll-pane .content {
+    -fx-background-color: #0D1117;
+}
+
+/* TextArea scrollbars */
+.text-area .scroll-bar:vertical,
+.text-area .scroll-bar:horizontal {
+    -fx-background-color: #0D1117;
+}
+
+.text-area .scroll-bar .thumb {
+    -fx-background-color: #30363D;
+    -fx-background-radius: 4;
+}
+
+.text-area .scroll-bar .thumb:hover {
+    -fx-background-color: #444C56;
+}
+
+.text-area .scroll-bar .increment-button,
+.text-area .scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.text-area .scroll-bar .increment-arrow,
+.text-area .scroll-bar .decrement-arrow {
+    -fx-background-color: transparent;
+}
+
 
 /* ============================================
    COMBOBOX
@@ -464,13 +528,135 @@
 }
 
 /* ============================================
-   ICON CONTAINERS
+   SETTINGS PAGE STYLES
    ============================================ */
-.icon-container {
-    -fx-padding: 8;
+.settings-item-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #E6EDF3;
+    -fx-font-size: 15px;
+    -fx-font-weight: 500;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+    -fx-background-radius: 0;
+    -fx-alignment: CENTER_LEFT;
 }
 
-.features-row {
-    -fx-padding: 8;
+.settings-item-button:hover {
+    -fx-background-color: rgba(59, 130, 246, 0.1);
+    -fx-text-fill: #3B82F6;
+}
+
+.settings-item-button-danger {
+    -fx-background-color: transparent;
+    -fx-text-fill: #EF4444;
+    -fx-font-size: 15px;
+    -fx-font-weight: 500;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+    -fx-background-radius: 0;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.settings-item-button-danger:hover {
+    -fx-background-color: rgba(239, 68, 68, 0.1);
+    -fx-text-fill: #F87171;
+}
+
+.divider {
+    -fx-background-color: #30363D;
+}
+
+/* Dark Dialog Styles */
+.dark-dialog {
+    -fx-background-color: #1C2333;
+}
+
+.dark-dialog .label {
+    -fx-text-fill: #E6EDF3;
+}
+
+.dark-dialog .button {
+    -fx-background-color: #3B82F6;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+    -fx-padding: 8 16;
+}
+
+.dark-dialog .button:hover {
+    -fx-background-color: #2563EB;
+}
+
+/* Transparent ScrollPane */
+.transparent-scroll {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+}
+
+.transparent-scroll .viewport {
+    -fx-background-color: transparent;
+}
+
+.transparent-scroll .scroll-bar {
+    -fx-background-color: transparent;
+}
+
+/* Message Label */
+.message-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-wrap-text: true;
+}
+
+/* ============================================
+   RIDE HISTORY SCREEN
+   ============================================ */
+.header-container {
+    -fx-background-color: transparent;
+}
+
+.stat-card {
+    -fx-background-color: #1C2333;
+    -fx-background-radius: 12;
+    -fx-border-color: #30363D;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+}
+
+.stat-card:hover {
+    -fx-background-color: #21262D;
+    -fx-border-color: #444C56;
+}
+
+/* ============================================
+   DELETE ACCOUNT CONFIRMATION
+   ============================================ */
+.button-danger {
+    -fx-background-color: linear-gradient(to bottom, #E63946, #C1121F);
+    -fx-background-radius: 8;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-padding: 10 18;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+    -fx-effect: dropshadow(gaussian, rgba(230, 57, 70, 0.3), 8, 0, 0, 2);
+}
+
+.button-danger:hover {
+    -fx-background-color: linear-gradient(to bottom, #F85149, #E63946);
+    -fx-effect: dropshadow(gaussian, rgba(230, 57, 70, 0.4), 10, 0, 0, 2);
+}
+
+.button-danger:pressed {
+    -fx-background-color: #C1121F;
+    -fx-effect: dropshadow(gaussian, rgba(230, 57, 70, 0.2), 6, 0, 0, 1);
+}
+
+.warning-box {
+    -fx-background-color: rgba(248, 81, 73, 0.1);
+    -fx-background-radius: 8;
+    -fx-border-color: rgba(248, 81, 73, 0.3);
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
 }
 

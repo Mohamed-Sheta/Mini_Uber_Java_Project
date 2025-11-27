@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx/25"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controller.RideHistoryController"
+      prefWidth="390" prefHeight="750"
+      alignment="TOP_CENTER"
+      spacing="0"
+      style="-fx-background-color: #0B0F17;"
+      stylesheets="@/style.css">
+
+    <padding>
+        <Insets top="12" bottom="16" left="16" right="16"/>
+    </padding>
+
+    <!-- Header with Back Button -->
+    <HBox alignment="CENTER_LEFT" spacing="8" styleClass="header-container">
+        <VBox.margin>
+            <Insets bottom="16"/>
+        </VBox.margin>
+        <Button fx:id="backButton" text="←" styleClass="back-button" onAction="#onBack"/>
+        <Label text="Ride History" styleClass="title-large"/>
+    </HBox>
+
+    <!-- Total Rides Counter -->
+    <HBox alignment="CENTER_LEFT" spacing="8" style="-fx-background-color: #1A2333; -fx-background-radius: 12; -fx-border-color: #30363D; -fx-border-width: 1; -fx-border-radius: 12;">
+        <VBox.margin>
+            <Insets bottom="16"/>
+        </VBox.margin>
+        <padding>
+            <Insets top="12" bottom="12" left="16" right="16"/>
+        </padding>
+        <Label text="🚗" style="-fx-font-size: 24px;"/>
+        <Label fx:id="totalRidesLabel" text="Total Rides: 0" styleClass="stat-value"/>
+    </HBox>
+
+    <!-- Rides List -->
+    <ScrollPane fx:id="ridesScrollPane" fitToWidth="true" styleClass="transparent-scroll" VBox.vgrow="ALWAYS">
+        <VBox fx:id="ridesContainer" spacing="12" style="-fx-background-color: transparent;">
+            <padding>
+                <Insets top="8" bottom="8" left="4" right="4"/>
+            </padding>
+        </VBox>
+    </ScrollPane>
+
+</VBox>
+

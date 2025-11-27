@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx/25"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controller.ReportProblemController"
+      prefWidth="390" prefHeight="750"
+      styleClass="content-container"
+      alignment="TOP_CENTER"
+      spacing="0"
+      stylesheets="@/style.css">
+
+    <padding>
+        <Insets top="12" bottom="16" left="16" right="16"/>
+    </padding>
+
+    <!-- Header with Back Button -->
+    <HBox alignment="CENTER_LEFT" spacing="8">
+        <VBox.margin>
+            <Insets bottom="16"/>
+        </VBox.margin>
+        <Button fx:id="backButton" text="←" styleClass="back-button" onAction="#onBack"/>
+        <Label text="Report a Problem" styleClass="title-large"/>
+    </HBox>
+
+    <!-- Report Form Card -->
+    <ScrollPane fitToWidth="true" styleClass="transparent-scroll" VBox.vgrow="ALWAYS">
+        <VBox styleClass="card-container" spacing="18" alignment="TOP_LEFT" maxWidth="350">
+            <padding>
+                <Insets top="24" bottom="24" left="24" right="24"/>
+            </padding>
+
+            <!-- Icon/Title Section -->
+            <VBox alignment="CENTER" spacing="8">
+                <Label text="⚠️" style="-fx-font-size: 42px;"/>
+                <Label text="Report an Issue" styleClass="title-medium"/>
+                <Label text="Help us improve your experience" styleClass="caption" wrapText="true" textAlignment="CENTER"/>
+            </VBox>
+
+            <!-- Select Ride -->
+            <VBox spacing="8">
+                <Label text="Select Ride" styleClass="field-label"/>
+                <ComboBox fx:id="rideComboBox"
+                         promptText="Choose a completed ride"
+                         styleClass="combo-box"
+                         prefWidth="300"
+                         maxWidth="300"/>
+                <Label text="Select the ride you want to report" styleClass="caption"/>
+            </VBox>
+
+            <!-- Problem Type -->
+            <VBox spacing="8">
+                <Label text="Problem Type" styleClass="field-label"/>
+                <ComboBox fx:id="problemTypeComboBox"
+                         promptText="Select problem type"
+                         styleClass="combo-box"
+                         prefWidth="300"
+                         maxWidth="300"/>
+                <Label text="Choose the category that best describes your issue" styleClass="caption"/>
+            </VBox>
+
+            <!-- Description -->
+            <VBox spacing="8">
+                <Label text="Description" styleClass="field-label"/>
+                <TextArea fx:id="descriptionArea"
+                         promptText="Describe the problem in detail..."
+                         styleClass="text-area"
+                         prefWidth="300"
+                         maxWidth="300"
+                         prefHeight="120"
+                         wrapText="true"/>
+                <Label text="Please provide as much detail as possible" styleClass="caption"/>
+            </VBox>
+
+            <!-- Message Label -->
+            <Label fx:id="messageLabel"
+                   styleClass="message-label"
+                   visible="false"
+                   managed="false"
+                   wrapText="true"
+                   maxWidth="300"
+                   textAlignment="CENTER"/>
+
+            <!-- Buttons Container -->
+            <HBox spacing="12" alignment="CENTER">
+                <VBox.margin>
+                    <Insets top="8"/>
+                </VBox.margin>
+
+                <!-- Submit Button -->
+                <Button fx:id="submitButton"
+                       text="Submit Report"
+                       styleClass="button"
+                       onAction="#onSubmit"
+                       prefWidth="140">
+                    <padding>
+                        <Insets top="12" bottom="12" left="20" right="20"/>
+                    </padding>
+                </Button>
+
+                <!-- Cancel Button -->
+                <Button text="Cancel"
+                       styleClass="button-secondary"
+                       onAction="#onBack"
+                       prefWidth="140">
+                    <padding>
+                        <Insets top="12" bottom="12" left="20" right="20"/>
+                    </padding>
+                </Button>
+            </HBox>
+
+        </VBox>
+    </ScrollPane>
+
+</VBox>
+

@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class ProfileController {
 
@@ -80,28 +81,20 @@ public class ProfileController {
     @FXML
     private Label messageLabel;
 
+    @FXML
+    private VBox ridesCard;
+
     private Person currentUser;
     private boolean isDriver = false;
     private long userId = -1;
 
     public void initialize() {
-        // Make rating label clickable
-        if (ratingLabel != null) {
-            ratingLabel.setOnMouseClicked(e -> openRatingDetails());
-            ratingLabel.setStyle(ratingLabel.getStyle() + "; -fx-cursor: hand;");
+        // Only make rides card clickable
+        if (ridesCard != null) {
+            ridesCard.setOnMouseClicked(e -> openRidesDetails());
         }
 
-        // Make rides label clickable
-        if (totalRidesLabel != null) {
-            totalRidesLabel.setOnMouseClicked(e -> openRidesDetails());
-            totalRidesLabel.setStyle(totalRidesLabel.getStyle() + "; -fx-cursor: hand;");
-        }
-
-        // Make spent label clickable
-        if (totalSpentLabel != null) {
-            totalSpentLabel.setOnMouseClicked(e -> openSpentDetails());
-            totalSpentLabel.setStyle(totalSpentLabel.getStyle() + "; -fx-cursor: hand;");
-        }
+        // Rating and Spent cards are display-only (no click handlers)
     }
 
     /**
@@ -117,6 +110,66 @@ public class ProfileController {
 
         // Load profile data
         loadProfileData();
+    }
+
+    /**
+     * Refresh profile data from database
+     * Call this after wallet updates, ride completion, or any profile changes
+     */
+    public void refreshProfile() {
+        if (currentUser == null || userId == -1) {
+            return;
+        }
+
+        // Reload user data from database to get latest wallet balance, etc.
+        reloadUserFromDatabase();
+
+        // Reload stats and display
+        loadProfileData();
+
+        System.out.println("[Profile] Profile data refreshed successfully");
+    }
+
+    /**
+     * Reload user object from database to get latest data
+     */
+    private void reloadUserFromDatabase() {
+        if (currentUser == null || userId == -1) {
+            return;
+        }
+
+        try {
+            if (isDriver) {
+                DriverDAO driverDAO = new DriverDAO();
+                List<DriverDAO.DriverRow> drivers = driverDAO.showAll();
+                for (DriverDAO.DriverRow row : drivers) {
+                    if (row.id == userId) {
+                        // Update current user object with latest data
+                        Driver driver = (Driver) currentUser;
+                        driver.updateWalletBalance(row.wallet);
+                        driver.updateCreditBalance(row.credit);
+                        System.out.println("[Profile] Driver data reloaded: wallet=" + row.wallet);
+                        break;
+                    }
+                }
+            } else {
+                PassengerDAO passengerDAO = new PassengerDAO();
+                List<PassengerDAO.PassengerRow> passengers = passengerDAO.showAll();
+                for (PassengerDAO.PassengerRow row : passengers) {
+                    if (row.id == userId) {
+                        // Update current user object with latest data
+                        Passenger passenger = (Passenger) currentUser;
+                        passenger.updateWalletBalance(row.wallet);
+                        passenger.updateCreditBalance(row.credit);
+                        System.out.println("[Profile] Passenger data reloaded: wallet=" + row.wallet);
+                        break;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("[Profile] Error reloading user data: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -189,6 +242,8 @@ public class ProfileController {
 
     /**
      * Get total number of rides from ride_history
+     * NOTE: Since we now store TWO records per ride (one for passenger, one for driver),
+     * we must count DISTINCT request_id to get the actual number of rides
      */
     private int getTotalRides() {
         if (userId == -1) {
@@ -196,7 +251,7 @@ public class ProfileController {
         }
 
         String columnName = isDriver ? "driver_id" : "passenger_id";
-        String sql = "SELECT COUNT(*) as total FROM ride_history WHERE " + columnName + " = ?";
+        String sql = "SELECT COUNT(DISTINCT request_id) as total FROM ride_history WHERE " + columnName + " = ?";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -218,6 +273,8 @@ public class ProfileController {
 
     /**
      * Get total amount spent (for passengers) or earned (for drivers)
+     * NOTE: With TWO records per ride, we need to ensure we're not double-counting
+     * We sum the MAX(ride_cost) per request_id to get accurate totals
      */
     private double getTotalSpentOrEarned() {
         if (userId == -1) {
@@ -225,7 +282,11 @@ public class ProfileController {
         }
 
         String columnName = isDriver ? "driver_id" : "passenger_id";
-        String sql = "SELECT SUM(ride_cost) as total FROM ride_history WHERE " + columnName + " = ?";
+        // Use subquery to get one ride_cost per request_id to avoid double-counting
+        String sql = "SELECT SUM(ride_cost) as total FROM (" +
+                     "SELECT MAX(ride_cost) as ride_cost FROM ride_history " +
+                     "WHERE " + columnName + " = ? GROUP BY request_id" +
+                     ") as unique_rides";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -493,12 +554,29 @@ public class ProfileController {
 
     /**
      * Handle Settings button click
-     * Opens a settings modal (NOT money-related)
+     * Navigate to ProfileSettings full-screen page
      */
     @FXML
     public void onSettingsClick() {
-        System.out.println("=== onSettingsClick() called - Opening Settings Modal ===");
-        openSettingsModal();
+        System.out.println("=== onSettingsClick() called - Navigating to ProfileSettings ===");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ProfileSettings.fxml"));
+            Scene scene = new Scene(loader.load(), 390, 750);
+
+            ProfileSettingsController controller = loader.getController();
+            if (currentUser != null) {
+                controller.setUser(currentUser);
+                System.out.println("User data passed to ProfileSettings controller");
+            }
+
+            Stage stage = (Stage) settingsButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+            System.out.println("ProfileSettings screen loaded successfully");
+        } catch (IOException e) {
+            System.err.println("Failed to navigate to ProfileSettings: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     // ====================================================================
@@ -577,13 +655,17 @@ public class ProfileController {
 
     /**
      * Get average rating from ride_history table
+     * For Drivers: Show average of passenger_rating (ratings received FROM passengers)
+     * For Passengers: Show average of driver_rating (ratings received FROM drivers)
      */
     private double getAverageRating() {
         if (userId == -1) {
             return 0.0;
         }
 
-        String columnName = isDriver ? "driver_rating" : "passenger_rating";
+        // FIXED: Drivers should see passenger_rating (ratings they received FROM passengers)
+        // Passengers should see driver_rating (ratings they received FROM drivers)
+        String columnName = isDriver ? "passenger_rating" : "driver_rating";
         String userColumn = isDriver ? "driver_id" : "passenger_id";
         String sql = "SELECT AVG(" + columnName + ") as avg_rating FROM ride_history WHERE " + userColumn + " = ? AND " + columnName + " > 0";
 
@@ -836,10 +918,14 @@ public class ProfileController {
     /**
      * Hash password using SHA-256
      */
+    /**
+     * Hash password using SHA-256
+     * NOTE: Must match the hashing method in LoginController exactly
+     */
     private String hashPassword(String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] hash = md.digest(password.getBytes("UTF-8"));
+            byte[] hash = md.digest(password.getBytes());
             StringBuilder hexString = new StringBuilder();
             for (byte b : hash) {
                 String hex = Integer.toHexString(0xff & b);
@@ -1396,11 +1482,14 @@ public class ProfileController {
 
     /**
      * Calculate average rating from ride history
+     * For Drivers: Show average of passenger_rating (ratings received FROM passengers)
+     * For Passengers: Show average of driver_rating (ratings received FROM drivers)
      */
     private double calculateAverageRating() {
         if (userId == -1) return 0.0;
 
-        String ratingColumn = isDriver ? "driver_rating" : "passenger_rating";
+        // FIXED: Drivers should see passenger_rating (ratings they received FROM passengers)
+        String ratingColumn = isDriver ? "passenger_rating" : "driver_rating";
         String idColumn = isDriver ? "driver_id" : "passenger_id";
         String sql = "SELECT AVG(" + ratingColumn + ") as avg_rating FROM ride_history WHERE " + idColumn + " = ? AND " + ratingColumn + " > 0";
 
@@ -1422,6 +1511,8 @@ public class ProfileController {
 
     /**
      * Load rating history from database
+     * For Drivers: Show passenger_rating (ratings received FROM passengers)
+     * For Passengers: Show driver_rating (ratings received FROM drivers)
      */
     private void loadRatingHistory(VBox container) {
         if (userId == -1) {
@@ -1429,7 +1520,8 @@ public class ProfileController {
             return;
         }
 
-        String ratingColumn = isDriver ? "driver_rating" : "passenger_rating";
+        // FIXED: Drivers should see passenger_rating (ratings they received FROM passengers)
+        String ratingColumn = isDriver ? "passenger_rating" : "driver_rating";
         String idColumn = isDriver ? "driver_id" : "passenger_id";
         String sql = "SELECT rh.id, rh." + ratingColumn + " as rating, rh.completed_at, " +
                      "lo.name as origin, ld.name as destination " +
@@ -1499,72 +1591,31 @@ public class ProfileController {
 
     /**
      * Open Rides Details Page
-     * Shows list of all user rides with status and cost
+     * Navigate to full-page RideHistory screen
      */
     private void openRidesDetails() {
-        Stage detailStage = new Stage();
-
-        // Set window icon FIRST - Rides uses car icon
         try {
-            java.io.InputStream iconStream = getClass().getResourceAsStream("/fast.png");
-            if (iconStream != null) {
-                javafx.scene.image.Image icon = new javafx.scene.image.Image(iconStream);
-                if (!icon.isError()) {
-                    detailStage.getIcons().setAll(icon);
-                }
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/RideHistory.fxml"));
+            Scene scene = new Scene(loader.load(), 390, 750);
+
+            RideHistoryController controller = loader.getController();
+            if (currentUser != null) {
+                controller.setUser(currentUser);
             }
-        } catch (Exception e) {
-            System.err.println("Could not load icon for Rides Details: " + e.getMessage());
+
+            Stage stage = (Stage) backButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            System.err.println("Failed to navigate to Ride History: " + e.getMessage());
+            e.printStackTrace();
         }
-
-        detailStage.initModality(Modality.APPLICATION_MODAL);
-        detailStage.setTitle("🚗 Rides Details");
-        detailStage.setWidth(450);
-        detailStage.setHeight(550);
-
-        VBox layout = new VBox(10);
-        layout.setPadding(new Insets(20));
-        layout.setAlignment(Pos.TOP_CENTER);
-        layout.setStyle("-fx-background-color: #ffffff;");
-
-        // Title
-        Label titleLabel = new Label("Ride History");
-        titleLabel.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #333;");
-
-        // Total rides count
-        int totalRides = getTotalRides();
-        Label countLabel = new Label("Total Rides: " + totalRides);
-        countLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2196F3;");
-
-        // ScrollPane for rides list
-        ScrollPane scrollPane = new ScrollPane();
-        scrollPane.setFitToWidth(true);
-        scrollPane.setPrefHeight(400);
-        scrollPane.setStyle("-fx-background-color: transparent;");
-
-        VBox ridesContainer = new VBox(10);
-        ridesContainer.setPadding(new Insets(10));
-        ridesContainer.setStyle("-fx-background-color: #f9f9f9;");
-
-        // Load rides from database
-        loadRidesHistory(ridesContainer);
-
-        scrollPane.setContent(ridesContainer);
-
-        // Close button
-        Button closeBtn = new Button("Close");
-        closeBtn.setStyle("-fx-background-color: #757575; -fx-text-fill: white; -fx-font-size: 14px; -fx-pref-width: 150;");
-        closeBtn.setOnAction(e -> detailStage.close());
-
-        layout.getChildren().addAll(titleLabel, countLabel, new Label(""), scrollPane, closeBtn);
-
-        Scene scene = new Scene(layout);
-        detailStage.setScene(scene);
-        detailStage.show();
     }
 
     /**
      * Load rides history from database
+     * NOTE: Since we now store TWO records per ride, we use GROUP BY request_id
+     * to avoid showing duplicate rides
      */
     private void loadRidesHistory(VBox container) {
         if (userId == -1) {
@@ -1573,14 +1624,16 @@ public class ProfileController {
         }
 
         String idColumn = isDriver ? "driver_id" : "passenger_id";
-        String sql = "SELECT rh.id, rh.ride_cost, rh.completed_at, rh.payment_method, " +
+        String sql = "SELECT rh.request_id, MAX(rh.ride_cost) as ride_cost, MAX(rh.completed_at) as completed_at, " +
+                     "MAX(rh.payment_method) as payment_method, " +
                      "lo.name as origin, ld.name as destination, rr.distance_km " +
                      "FROM ride_history rh " +
                      "JOIN ride_requests rr ON rh.request_id = rr.id " +
                      "JOIN locations lo ON rr.origin_id = lo.id " +
                      "JOIN locations ld ON rr.destination_id = ld.id " +
                      "WHERE rh." + idColumn + " = ? " +
-                     "ORDER BY rh.completed_at DESC";
+                     "GROUP BY rh.request_id, lo.name, ld.name, rr.distance_km " +
+                     "ORDER BY MAX(rh.completed_at) DESC";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -1591,7 +1644,7 @@ public class ProfileController {
                 while (rs.next()) {
                     count++;
                     VBox rideBox = createRideItem(
-                        rs.getLong("id"),
+                        rs.getLong("request_id"),  // Use request_id instead of rh.id
                         rs.getDouble("ride_cost"),
                         rs.getString("origin"),
                         rs.getString("destination"),
@@ -1722,6 +1775,8 @@ public class ProfileController {
 
     /**
      * Load spending/earnings history from database
+     * NOTE: Since we now store TWO records per ride, we use GROUP BY request_id
+     * to avoid showing duplicate payment records
      */
     private void loadSpentHistory(VBox container) {
         if (userId == -1) {
@@ -1730,14 +1785,16 @@ public class ProfileController {
         }
 
         String idColumn = isDriver ? "driver_id" : "passenger_id";
-        String sql = "SELECT rh.id, rh.ride_cost, rh.payment_method, rh.tips, rh.completed_at, " +
+        String sql = "SELECT rh.request_id, MAX(rh.ride_cost) as ride_cost, MAX(rh.payment_method) as payment_method, " +
+                     "MAX(rh.tips) as tips, MAX(rh.completed_at) as completed_at, " +
                      "lo.name as origin, ld.name as destination " +
                      "FROM ride_history rh " +
                      "JOIN ride_requests rr ON rh.request_id = rr.id " +
                      "JOIN locations lo ON rr.origin_id = lo.id " +
                      "JOIN locations ld ON rr.destination_id = ld.id " +
                      "WHERE rh." + idColumn + " = ? " +
-                     "ORDER BY rh.completed_at DESC";
+                     "GROUP BY rh.request_id, lo.name, ld.name " +
+                     "ORDER BY MAX(rh.completed_at) DESC";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -1748,7 +1805,7 @@ public class ProfileController {
                 while (rs.next()) {
                     count++;
                     VBox paymentBox = createPaymentItem(
-                        rs.getLong("id"),
+                        rs.getLong("request_id"),  // Use request_id instead of rh.id
                         rs.getDouble("ride_cost"),
                         rs.getDouble("tips"),
                         rs.getString("payment_method"),
@@ -1970,18 +2027,21 @@ public class ProfileController {
 
     /**
      * Load recent rides into ComboBox for easy selection
+     * NOTE: Since we now store TWO records per ride, we use GROUP BY request_id
+     * to avoid showing duplicate rides in the dropdown
      */
     private void loadRecentRidesIntoComboBox(ComboBox<String> comboBox) {
         if (userId == -1) return;
 
         String idColumn = isDriver ? "driver_id" : "passenger_id";
-        String sql = "SELECT rh.id, lo.name as origin, ld.name as destination, rh.completed_at " +
+        String sql = "SELECT rh.request_id, lo.name as origin, ld.name as destination, MAX(rh.completed_at) as completed_at " +
                      "FROM ride_history rh " +
                      "JOIN ride_requests rr ON rh.request_id = rr.id " +
                      "JOIN locations lo ON rr.origin_id = lo.id " +
                      "JOIN locations ld ON rr.destination_id = ld.id " +
                      "WHERE rh." + idColumn + " = ? " +
-                     "ORDER BY rh.completed_at DESC LIMIT 10";
+                     "GROUP BY rh.request_id, lo.name, ld.name " +
+                     "ORDER BY MAX(rh.completed_at) DESC LIMIT 10";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -1990,7 +2050,7 @@ public class ProfileController {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     String item = String.format("Ride #%d - %s → %s (%s)",
-                        rs.getLong("id"),
+                        rs.getLong("request_id"),  // Use request_id instead of rh.id
                         rs.getString("origin"),
                         rs.getString("destination"),
                         rs.getTimestamp("completed_at").toString().substring(0, 16)

@@ -29,6 +29,9 @@ import Model.*;
 import javafx.concurrent.Task;
 import java.util.*;
 import java.sql.SQLException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 import java.io.IOException;
 
@@ -129,7 +132,6 @@ public class MapController {
         });
 
         settingsBtn.setOnMouseClicked(e -> {
-            System.out.println("Open Settings screen");
             navigateToAbout();
         });
     }
@@ -184,6 +186,9 @@ public class MapController {
             ProfileController controller = loader.getController();
             if (currentUser != null) {
                 controller.setUser(currentUser);
+                // Always refresh profile data when navigating from map
+                // This ensures updated wallet, rides count, and ratings are displayed
+                controller.refreshProfile();
             }
 
             Stage stage = (Stage) profileBtn.getScene().getWindow();
@@ -1244,29 +1249,57 @@ public class MapController {
             System.out.println("[FINALIZE] Ride Cost: " + rideCost + " EGP");
             System.out.println("[FINALIZE] Final Total: " + finalTotal + " EGP");
 
-            // STEP 1: Insert into ride_history using existing DAO
-            // NOTE: RideManager also tries to insert, but we disable it there to avoid duplicates
-            System.out.println("[FINALIZE] Step 1: Inserting into ride_history...");
+            // STEP 1: Delete the initial ride_history record created by RideManager (if exists)
+            // Then insert TWO new records - one for passenger perspective, one for driver perspective
+            System.out.println("[FINALIZE] Step 1: Deleting initial ride_history and inserting TWO new records...");
             RideHistoryDAO rideHistoryDAO = new RideHistoryDAO();
-            long historyId = -1;
+
             try {
-                historyId = rideHistoryDAO.insert(
+                // First, delete any existing ride_history record for this request
+                String deleteSql = "DELETE FROM ride_history WHERE request_id = ?";
+                try (Connection con = utils.DBConnection.getConnection();
+                     PreparedStatement ps = con.prepareStatement(deleteSql)) {
+                    ps.setLong(1, rideRequestId);
+                    int deleted = ps.executeUpdate();
+                    System.out.println("[FINALIZE] Deleted " + deleted + " existing ride_history record(s)");
+                }
+
+                // INSERT RECORD #1: Passenger's perspective
+                // This record represents the passenger's experience of the ride
+                long passengerRecordId = rideHistoryDAO.insert(
                     rideRequestId,
                     driverId,
                     passengerId,
-                    passengerRating,  // passenger_rating
-                    0,                // driver_rating (not implemented)
-                    finalTotal,       // ride_cost (includes tip + donation)
+                    passengerRating,  // Passenger's rating OF the driver
+                    0,                // Driver didn't rate passenger (not implemented)
+                    finalTotal,       // Full cost including tips and donation
                     Model.PaymentType.wallet,
                     tipAmount,
                     donationAmount,
                     donationAmount > 0 ? "MiniGO Foundation" : ""
                 );
-                System.out.println("[FINALIZE] ✅ ride_history inserted successfully, id=" + historyId);
+                System.out.println("[FINALIZE] ✅ Record #1 (Passenger perspective) inserted, id=" + passengerRecordId);
+
+                // INSERT RECORD #2: Driver's perspective
+                // This record represents the driver's experience of the same ride
+                long driverRecordId = rideHistoryDAO.insert(
+                    rideRequestId,
+                    driverId,
+                    passengerId,
+                    0,                // Passenger didn't rate in driver's record
+                    0,                // Driver's rating of passenger (not implemented)
+                    rideCost + tipAmount,  // Driver's earnings (no donation)
+                    Model.PaymentType.wallet,
+                    tipAmount,
+                    0.0,              // Driver doesn't see donation
+                    ""
+                );
+                System.out.println("[FINALIZE] ✅ Record #2 (Driver perspective) inserted, id=" + driverRecordId);
+
             } catch (Exception e) {
-                System.err.println("[FINALIZE] ❌ Failed to insert into ride_history: " + e.getMessage());
+                System.err.println("[FINALIZE] ❌ Failed to insert ride_history records: " + e.getMessage());
                 e.printStackTrace();
-                throw e; // Re-throw to prevent deletion of ride_request
+                throw e;
             }
 
             // STEP 2: Keep ride_request with Completed status (do NOT delete)
@@ -1349,16 +1382,12 @@ public class MapController {
             Passenger passenger = (Passenger) currentUser;
             String invoiceId = "INV" + System.currentTimeMillis();
 
-            // Call the existing PDF generator from Main class using reflection
-            // since Main is in the default package
-            Class<?> mainClass = Class.forName("Main");
-            java.lang.reflect.Method method = mainClass.getMethod("generateInvoicePdf", String.class, String.class, double.class);
-            method.invoke(null, invoiceId, passenger.getName(), amount);
+            // Generate PDF invoice using InvoiceGenerator utility
+            String pdfFilePath = utils.InvoiceGenerator.generateInvoicePdf(invoiceId, passenger.getName(), amount);
 
             System.out.println("[INVOICE] PDF generated: " + invoiceId);
 
             // Send invoice via email
-            String pdfFilePath = "resources/invoices/invoice_" + invoiceId + ".pdf";
             String passengerEmail = passenger.getEmail();
             String passengerName = passenger.getName();
 
