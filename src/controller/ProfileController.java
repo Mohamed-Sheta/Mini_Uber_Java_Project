@@ -12,6 +12,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
@@ -84,6 +85,28 @@ public class ProfileController {
     @FXML
     private VBox ridesCard;
 
+    // Inline Settings buttons
+    @FXML
+    private Button addFundsButtonInline;
+
+    @FXML
+    private Button changePasswordButtonInline;
+
+    @FXML
+    private Button reportRideButtonInline;
+
+    @FXML
+    private Button deleteAccountButtonInline;
+
+    @FXML
+    private Button logoutButtonInline;
+
+    @FXML
+    private Region addFundsDivider;
+
+    @FXML
+    private Region reportRideDivider;
+
     private Person currentUser;
     private boolean isDriver = false;
     private long userId = -1;
@@ -95,6 +118,43 @@ public class ProfileController {
         }
 
         // Rating and Spent cards are display-only (no click handlers)
+
+        // Check if user is already in session and load their data
+        if (UserSession.getInstance().isLoggedIn()) {
+            setUser(UserSession.getInstance().getCurrentUser());
+        }
+
+        // Apply role-based visibility
+        applyRoleBasedVisibility();
+    }
+
+    /**
+     * Apply role-based visibility rules to UI elements
+     */
+    private void applyRoleBasedVisibility() {
+        boolean isDriverUser = UserSession.getInstance().isDriver();
+
+        // Hide Add Funds for drivers
+        if (addFundsButtonInline != null) {
+            addFundsButtonInline.setVisible(!isDriverUser);
+            addFundsButtonInline.setManaged(!isDriverUser);
+        }
+        if (addFundsDivider != null) {
+            addFundsDivider.setVisible(!isDriverUser);
+            addFundsDivider.setManaged(!isDriverUser);
+        }
+
+        // Hide Report a Ride for drivers
+        if (reportRideButtonInline != null) {
+            reportRideButtonInline.setVisible(!isDriverUser);
+            reportRideButtonInline.setManaged(!isDriverUser);
+        }
+        if (reportRideDivider != null) {
+            reportRideDivider.setVisible(!isDriverUser);
+            reportRideDivider.setManaged(!isDriverUser);
+        }
+
+        System.out.println("[Profile] Role-based visibility applied. Is Driver: " + isDriverUser);
     }
 
     /**
@@ -193,7 +253,9 @@ public class ProfileController {
 
         if (isDriver) {
             spentLabelText.setText("Earned");
-            totalSpentLabel.setText(String.format("$%.0f", stats.spent));
+            // For drivers, show total earned (with tips)
+            double totalEarned = getTotalEarnedWithTips();
+            totalSpentLabel.setText(String.format("$%.0f", totalEarned));
         } else {
             spentLabelText.setText("Spent");
             totalSpentLabel.setText(String.format("$%.0f", stats.spent));
@@ -212,6 +274,42 @@ public class ProfileController {
             driverFieldsContainer.setManaged(true);
             carModelField.setText(driver.getCarModel());
             licensePlateField.setText(driver.getLicensePlate());
+
+            // Hide Add Funds and Report Ride for drivers
+            if (addFundsButtonInline != null) {
+                addFundsButtonInline.setVisible(false);
+                addFundsButtonInline.setManaged(false);
+            }
+            if (addFundsDivider != null) {
+                addFundsDivider.setVisible(false);
+                addFundsDivider.setManaged(false);
+            }
+            if (reportRideButtonInline != null) {
+                reportRideButtonInline.setVisible(false);
+                reportRideButtonInline.setManaged(false);
+            }
+            if (reportRideDivider != null) {
+                reportRideDivider.setVisible(false);
+                reportRideDivider.setManaged(false);
+            }
+        } else {
+            // Show all options for passengers
+            if (addFundsButtonInline != null) {
+                addFundsButtonInline.setVisible(true);
+                addFundsButtonInline.setManaged(true);
+            }
+            if (addFundsDivider != null) {
+                addFundsDivider.setVisible(true);
+                addFundsDivider.setManaged(true);
+            }
+            if (reportRideButtonInline != null) {
+                reportRideButtonInline.setVisible(true);
+                reportRideButtonInline.setManaged(true);
+            }
+            if (reportRideDivider != null) {
+                reportRideDivider.setVisible(true);
+                reportRideDivider.setManaged(true);
+            }
         }
     }
 
@@ -300,6 +398,42 @@ public class ProfileController {
             }
         } catch (SQLException e) {
             System.err.println("Error getting total amount: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return 0.0;
+    }
+
+    /**
+     * Get total amount earned by driver including tips
+     * This sums ride_cost + tips for all completed rides
+     */
+    private double getTotalEarnedWithTips() {
+        if (userId == -1 || !isDriver) {
+            return 0.0;
+        }
+
+        // For drivers, sum (ride_cost + tips) from ride_history
+        // Use subquery to avoid double-counting since each ride has 2 records
+        String sql = "SELECT SUM(total) as grand_total FROM (" +
+                     "SELECT MAX(ride_cost + COALESCE(tips, 0)) as total " +
+                     "FROM ride_history " +
+                     "WHERE driver_id = ? " +
+                     "GROUP BY request_id" +
+                     ") as unique_rides";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setLong(1, userId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("grand_total");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting total earned with tips: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -530,24 +664,35 @@ public class ProfileController {
     @FXML
     public void onBackToMap() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/MapView.fxml"));
-            Scene scene = new Scene(loader.load(), 390, 750);
+            if (isDriver) {
+                // Navigate to DriverDashboard for drivers
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DriverDashboard.fxml"));
+                Scene scene = new Scene(loader.load(), 390, 750);
 
-            MapController controller = loader.getController();
-            // Pass user data back to map
-            if (currentUser != null) {
-                if (isDriver) {
+                DriverDashboardController controller = loader.getController();
+                if (currentUser != null) {
                     controller.setDriver((Driver) currentUser);
-                } else {
+                }
+
+                Stage stage = (Stage) backButton.getScene().getWindow();
+                stage.setScene(scene);
+                stage.show();
+            } else {
+                // Navigate to MapView for passengers
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/MapView.fxml"));
+                Scene scene = new Scene(loader.load(), 390, 750);
+
+                MapController controller = loader.getController();
+                if (currentUser != null) {
                     controller.setPassenger((Passenger) currentUser);
                 }
-            }
 
-            Stage stage = (Stage) backButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.show();
+                Stage stage = (Stage) backButton.getScene().getWindow();
+                stage.setScene(scene);
+                stage.show();
+            }
         } catch (IOException e) {
-            System.err.println("Failed to navigate to Map: " + e.getMessage());
+            System.err.println("Failed to navigate back: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -558,23 +703,41 @@ public class ProfileController {
      */
     @FXML
     public void onSettingsClick() {
-        System.out.println("=== onSettingsClick() called - Navigating to ProfileSettings ===");
+        System.out.println("=== onSettingsClick() called - Navigating to Settings ===");
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ProfileSettings.fxml"));
-            Scene scene = new Scene(loader.load(), 390, 750);
+            if (isDriver) {
+                // Navigate to DriverSettings for drivers
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DriverSettings.fxml"));
+                Scene scene = new Scene(loader.load(), 390, 750);
 
-            ProfileSettingsController controller = loader.getController();
-            if (currentUser != null) {
-                controller.setUser(currentUser);
-                System.out.println("User data passed to ProfileSettings controller");
+                DriverSettingsController controller = loader.getController();
+                if (currentUser != null) {
+                    controller.setUser(currentUser);
+                    System.out.println("User data passed to DriverSettings controller");
+                }
+
+                Stage stage = (Stage) settingsButton.getScene().getWindow();
+                stage.setScene(scene);
+                stage.show();
+                System.out.println("DriverSettings screen loaded successfully");
+            } else {
+                // Navigate to ProfileSettings for passengers
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ProfileSettings.fxml"));
+                Scene scene = new Scene(loader.load(), 390, 750);
+
+                ProfileSettingsController controller = loader.getController();
+                if (currentUser != null) {
+                    controller.setUser(currentUser);
+                    System.out.println("User data passed to ProfileSettings controller");
+                }
+
+                Stage stage = (Stage) settingsButton.getScene().getWindow();
+                stage.setScene(scene);
+                stage.show();
+                System.out.println("ProfileSettings screen loaded successfully");
             }
-
-            Stage stage = (Stage) settingsButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.show();
-            System.out.println("ProfileSettings screen loaded successfully");
         } catch (IOException e) {
-            System.err.println("Failed to navigate to ProfileSettings: " + e.getMessage());
+            System.err.println("Failed to navigate to Settings: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -647,7 +810,8 @@ public class ProfileController {
         totalRidesLabel.setText(String.valueOf(stats.rides));
 
         if (isDriver) {
-            totalSpentLabel.setText(String.format("$%.0f", stats.spent));
+            double totalEarned = getTotalEarnedWithTips();
+            totalSpentLabel.setText(String.format("$%.0f", totalEarned));
         } else {
             totalSpentLabel.setText(String.format("$%.0f", stats.spent));
         }
@@ -725,12 +889,15 @@ public class ProfileController {
         Label titleLabel = new Label("Settings");
         titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
 
-        // Add Funds Button (NEW - FEATURE 1)
-        Button addFundsBtn = createSettingsButton("Add Funds", "#4CAF50");
-        addFundsBtn.setOnAction(e -> {
-            settingsStage.close();
-            openAddFundsPage();
-        });
+        // Add Funds Button (Passengers only - not shown for drivers)
+        Button addFundsBtn = null;
+        if (!isDriver) {
+            addFundsBtn = createSettingsButton("Add Funds", "#4CAF50");
+            addFundsBtn.setOnAction(e -> {
+                settingsStage.close();
+                openAddFundsPage();
+            });
+        }
 
         // Change Password Section
         Button changePasswordBtn = createSettingsButton("Change Password", "#2196F3");
@@ -745,12 +912,15 @@ public class ProfileController {
         notifToggle.setSelected(true);
         notifBox.getChildren().addAll(notifLabel, notifToggle);
 
-        // Report a Ride Button
-        Button reportRideBtn = createSettingsButton("Report a Ride", "#FF5722");
-        reportRideBtn.setOnAction(e -> {
-            settingsStage.close();
-            openReportPage();
-        });
+        // Report a Ride Button (Passengers only - not shown for drivers)
+        Button reportRideBtn = null;
+        if (!isDriver) {
+            reportRideBtn = createSettingsButton("Report a Ride", "#FF5722");
+            reportRideBtn.setOnAction(e -> {
+                settingsStage.close();
+                openReportPage();
+            });
+        }
 
         // Delete Account
         Button deleteAccountBtn = createSettingsButton("Delete Account", "#F44336");
@@ -764,14 +934,20 @@ public class ProfileController {
         Button closeBtn = createSettingsButton("Close", "#757575");
         closeBtn.setOnAction(e -> settingsStage.close());
 
+        // Build layout conditionally based on user type
+        mainLayout.getChildren().addAll(titleLabel, new Label(""));
+
+        if (addFundsBtn != null) {
+            mainLayout.getChildren().add(addFundsBtn);
+        }
+
+        mainLayout.getChildren().addAll(changePasswordBtn, notifBox, new Label(""));
+
+        if (reportRideBtn != null) {
+            mainLayout.getChildren().add(reportRideBtn);
+        }
+
         mainLayout.getChildren().addAll(
-            titleLabel,
-            new Label(""),
-            addFundsBtn,
-            changePasswordBtn,
-            notifBox,
-            new Label(""),
-            reportRideBtn,
             deleteAccountBtn,
             logoutBtn,
             new Label(""),
@@ -793,6 +969,28 @@ public class ProfileController {
         btn.setStyle("-fx-background-color: " + color + "; -fx-text-fill: white; " +
                     "-fx-font-size: 14px; -fx-background-radius: 5px; -fx-cursor: hand;");
         return btn;
+    }
+
+    /**
+     * Open Report Problem page
+     */
+    private void openReportPage() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ReportProblem.fxml"));
+            Scene scene = new Scene(loader.load(), 390, 750);
+
+            ReportProblemController reportController = loader.getController();
+            if (currentUser != null) {
+                reportController.setUser(currentUser);
+            }
+
+            Stage stage = (Stage) backButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            System.err.println("Failed to navigate to Report Problem: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -1869,359 +2067,123 @@ public class ProfileController {
     }
 
     // ====================================================================
-    // FEATURE 2: REPORT A RIDE PAGE
+    // INLINE SETTINGS HANDLERS (for settings section inside profile)
     // ====================================================================
 
     /**
-     * Open Report a Ride page
+     * Handle Add Funds button click (inline)
      */
-    private void openReportPage() {
-        Stage reportStage = new Stage();
-
-        // Set window icon FIRST - Report uses settings icon
-        try {
-            java.io.InputStream iconStream = getClass().getResourceAsStream("/settings_12280787.png");
-            if (iconStream != null) {
-                javafx.scene.image.Image icon = new javafx.scene.image.Image(iconStream);
-                if (!icon.isError()) {
-                    reportStage.getIcons().setAll(icon);
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Could not load icon for Report Ride: " + e.getMessage());
-        }
-
-        reportStage.initModality(Modality.APPLICATION_MODAL);
-        reportStage.setTitle("📝 Report a Ride");
-        reportStage.setWidth(450);
-        reportStage.setHeight(500);
-
-        VBox layout = new VBox(15);
-        layout.setPadding(new Insets(25));
-        layout.setAlignment(Pos.TOP_CENTER);
-        layout.setStyle("-fx-background-color: #ffffff;");
-
-        // Title
-        Label titleLabel = new Label("Report a Problem");
-        titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333;");
-
-        Label subtitleLabel = new Label("Help us improve your experience");
-        subtitleLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #999;");
-
-        // Ride ID Section
-        Label rideIdLabel = new Label("Ride ID:");
-        rideIdLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold;");
-
-        TextField rideIdField = new TextField();
-        rideIdField.setPromptText("Enter ride ID (e.g., 12345)");
-        rideIdField.setPrefWidth(380);
-        rideIdField.setStyle("-fx-font-size: 13px; -fx-padding: 10;");
-
-        // Or select from recent rides
-        Label orLabel = new Label("— OR select from recent rides —");
-        orLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #999;");
-
-        ComboBox<String> recentRidesCombo = new ComboBox<>();
-        recentRidesCombo.setPromptText("Select a recent ride");
-        recentRidesCombo.setPrefWidth(380);
-        recentRidesCombo.setStyle("-fx-font-size: 13px;");
-        loadRecentRidesIntoComboBox(recentRidesCombo);
-
-        // Auto-fill ride ID when combo box selection changes
-        recentRidesCombo.setOnAction(e -> {
-            String selected = recentRidesCombo.getValue();
-            if (selected != null && !selected.isEmpty()) {
-                String rideId = selected.split(" - ")[0].replace("Ride #", "");
-                rideIdField.setText(rideId);
-            }
-        });
-
-        // Problem Description
-        Label descLabel = new Label("Problem Description:");
-        descLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold;");
-
-        TextArea descArea = new TextArea();
-        descArea.setPromptText("Please describe the problem you experienced in detail...");
-        descArea.setPrefHeight(150);
-        descArea.setWrapText(true);
-        descArea.setStyle("-fx-font-size: 13px;");
-
-        // Message Label
-        Label messageLabel = new Label();
-        messageLabel.setWrapText(true);
-        messageLabel.setMaxWidth(380);
-
-        // Buttons
-        HBox buttonBox = new HBox(15);
-        buttonBox.setAlignment(Pos.CENTER);
-
-        Button submitBtn = new Button("Submit Report");
-        submitBtn.setStyle("-fx-background-color: #FF5722; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 10 20;");
-        submitBtn.setPrefWidth(160);
-
-        Button cancelBtn = new Button("Cancel");
-        cancelBtn.setStyle("-fx-background-color: #757575; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10 20;");
-        cancelBtn.setPrefWidth(160);
-        cancelBtn.setOnAction(e -> reportStage.close());
-
-        submitBtn.setOnAction(e -> {
-            String rideId = rideIdField.getText().trim();
-            String description = descArea.getText().trim();
-
-            if (rideId.isEmpty()) {
-                messageLabel.setText("⚠ Please enter a ride ID or select from recent rides");
-                messageLabel.setStyle("-fx-text-fill: #F44336; -fx-font-size: 12px;");
-                return;
-            }
-
-            if (description.isEmpty() || description.length() < 10) {
-                messageLabel.setText("⚠ Please provide a detailed description (minimum 10 characters)");
-                messageLabel.setStyle("-fx-text-fill: #F44336; -fx-font-size: 12px;");
-                return;
-            }
-
-            // Submit report to database
-            long reportId = submitRideReportToDatabase(userId, rideId, description);
-
-            if (reportId > 0) {
-                messageLabel.setText("✓ Report submitted successfully! Reference ID: " + reportId);
-                messageLabel.setStyle("-fx-text-fill: #4CAF50; -fx-font-size: 12px; -fx-font-weight: bold;");
-
-                // Clear fields
-                rideIdField.clear();
-                descArea.clear();
-                recentRidesCombo.setValue(null);
-
-                // Close after 2.5 seconds
-                javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(Duration.seconds(2.5));
-                pause.setOnFinished(ev -> reportStage.close());
-                pause.play();
-            } else {
-                messageLabel.setText("✗ Failed to submit report. Please try again later.");
-                messageLabel.setStyle("-fx-text-fill: #F44336; -fx-font-size: 12px;");
-            }
-        });
-
-        buttonBox.getChildren().addAll(submitBtn, cancelBtn);
-
-        layout.getChildren().addAll(
-            titleLabel,
-            subtitleLabel,
-            new Label(""),
-            rideIdLabel,
-            rideIdField,
-            orLabel,
-            recentRidesCombo,
-            new Label(""),
-            descLabel,
-            descArea,
-            messageLabel,
-            new Label(""),
-            buttonBox
-        );
-
-        Scene scene = new Scene(layout);
-        reportStage.setScene(scene);
-        reportStage.show();
-    }
-
-    /**
-     * Load recent rides into ComboBox for easy selection
-     * NOTE: Since we now store TWO records per ride, we use GROUP BY request_id
-     * to avoid showing duplicate rides in the dropdown
-     */
-    private void loadRecentRidesIntoComboBox(ComboBox<String> comboBox) {
-        if (userId == -1) return;
-
-        String idColumn = isDriver ? "driver_id" : "passenger_id";
-        String sql = "SELECT rh.request_id, lo.name as origin, ld.name as destination, MAX(rh.completed_at) as completed_at " +
-                     "FROM ride_history rh " +
-                     "JOIN ride_requests rr ON rh.request_id = rr.id " +
-                     "JOIN locations lo ON rr.origin_id = lo.id " +
-                     "JOIN locations ld ON rr.destination_id = ld.id " +
-                     "WHERE rh." + idColumn + " = ? " +
-                     "GROUP BY rh.request_id, lo.name, ld.name " +
-                     "ORDER BY MAX(rh.completed_at) DESC LIMIT 10";
-
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setLong(1, userId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    String item = String.format("Ride #%d - %s → %s (%s)",
-                        rs.getLong("request_id"),  // Use request_id instead of rh.id
-                        rs.getString("origin"),
-                        rs.getString("destination"),
-                        rs.getTimestamp("completed_at").toString().substring(0, 16)
-                    );
-                    comboBox.getItems().add(item);
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("Error loading recent rides: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Submit ride report to database using existing problem_reports table
-     */
-    private long submitRideReportToDatabase(long userId, String rideId, String description) {
-        // First, validate that the ride exists and belongs to the user
-        long requestId = validateRideOwnership(userId, rideId);
-        if (requestId == -1) {
-            System.err.println("Invalid ride ID or ride does not belong to user");
-            return -1;
-        }
-
-        // Get driver ID from ride history if user is passenger
-        Long driverId = null;
-        if (!isDriver) {
-            driverId = getDriverIdFromRide(requestId);
-        }
-
-        String sql = "INSERT INTO problem_reports (request_id, reporter_passenger_id, driver_id, created_at) " +
-                     "VALUES (?, ?, ?, ?)";
-
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
-            ps.setLong(1, requestId);
-            ps.setLong(2, isDriver ? 0 : userId); // If driver, set 0 (or you can modify schema)
-            if (driverId != null) {
-                ps.setLong(3, driverId);
-            } else {
-                ps.setNull(3, Types.BIGINT);
-            }
-            ps.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()));
-
-            ps.executeUpdate();
-
-            try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) {
-                    long reportId = rs.getLong(1);
-                    System.out.println("\n=== Ride Problem Report Submitted ===");
-                    System.out.println("User ID: " + userId);
-                    System.out.println("Is Driver: " + isDriver);
-                    System.out.println("Request ID: " + requestId);
-                    System.out.println("Description: " + description);
-                    System.out.println("Report ID: " + reportId);
-                    System.out.println("=====================================\n");
-                    return reportId;
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("Error submitting ride report: " + e.getMessage());
-            e.printStackTrace();
-        }
-
-        return -1;
-    }
-
-    /**
-     * Validate that the ride exists and belongs to the user
-     */
-    private long validateRideOwnership(long userId, String rideIdStr) {
-        try {
-            long rideId = Long.parseLong(rideIdStr);
-            String idColumn = isDriver ? "driver_id" : "passenger_id";
-            String sql = "SELECT request_id FROM ride_history WHERE id = ? AND " + idColumn + " = ?";
-
-            try (Connection con = DBConnection.getConnection();
-                 PreparedStatement ps = con.prepareStatement(sql)) {
-
-                ps.setLong(1, rideId);
-                ps.setLong(2, userId);
-
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        return rs.getLong("request_id");
-                    }
-                }
-            }
-        } catch (NumberFormatException | SQLException e) {
-            System.err.println("Error validating ride ownership: " + e.getMessage());
-        }
-
-        return -1;
-    }
-
-    /**
-     * Get driver ID from a ride request
-     */
-    private Long getDriverIdFromRide(long requestId) {
-        String sql = "SELECT driver_id FROM ride_history WHERE request_id = ?";
-
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setLong(1, requestId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getLong("driver_id");
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("Error getting driver ID: " + e.getMessage());
-        }
-
-        return null;
-    }
-
-    // ====================================================================
-    // FEATURE 3: UPDATE SPENT VALUE AFTER RIDE COMPLETION
-    // ====================================================================
-
-    /**
-     * Update spent/earned value after ride completion
-     * This should be called after a ride is marked as completed
-     *
-     * @param userId The user ID
-     * @param rideCost The cost of the completed ride
-     */
-    public void updateSpentAfterRideCompletion(long userId, double rideCost) {
-        if (userId == -1) {
-            System.err.println("Invalid user ID for spent update");
+    @FXML
+    public void onAddFundsInline() {
+        // Prevent drivers from accessing Add Funds
+        if (UserSession.getInstance().isDriver()) {
+            System.out.println("[Profile] Add Funds blocked for drivers");
             return;
         }
+        // Reuse existing Add Funds page/functionality
+        openAddFundsPage();
+    }
 
+    /**
+     * Handle Change Password button click (inline)
+     */
+    @FXML
+    public void onChangePasswordInline() {
         try {
-            // Update user stats
-            updateUserStats(userId, rideCost);
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ChangePassword.fxml"));
+            Scene scene = new Scene(loader.load(), 390, 750);
 
-            // Refresh the profile UI if this is the current user
-            if (this.userId == userId) {
-                refreshStatsUI();
-                System.out.println("Profile UI refreshed with new spent value: $" + getTotalSpentOrEarned());
+            ChangePasswordController controller = loader.getController();
+            if (currentUser != null) {
+                controller.setUser(currentUser);
             }
 
-        } catch (Exception e) {
-            System.err.println("Error updating spent value: " + e.getMessage());
+            Stage stage = (Stage) backButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            System.err.println("Failed to navigate to Change Password: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     /**
-     * Calculate and update total spent based on all rides
-     * Call this method to recalculate from scratch
+     * Handle Report Ride button click (inline)
      */
-    public void recalculateTotalSpent() {
-        if (userId == -1) {
-            System.err.println("Invalid user ID for recalculation");
+    @FXML
+    public void onReportRideInline() {
+        // Prevent drivers from accessing Report Ride
+        if (UserSession.getInstance().isDriver()) {
+            System.out.println("[Profile] Report Ride blocked for drivers");
             return;
         }
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ReportProblem.fxml"));
+            Scene scene = new Scene(loader.load(), 390, 750);
 
-        double totalSpent = getTotalSpentOrEarned();
-        int totalRides = getTotalRides();
-        double avgRating = calculateAverageRating();
+            ReportProblemController reportController = loader.getController();
+            if (currentUser != null) {
+                reportController.setUser(currentUser);
+            }
 
-        refreshStatsUI();
+            Stage stage = (Stage) backButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            System.err.println("Failed to navigate to Report Problem: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
-        System.out.println("\n=== Spent Recalculated ===");
-        System.out.println("User ID: " + userId);
-        System.out.println("Total Rides: " + totalRides);
-        System.out.println("Total " + (isDriver ? "Earned" : "Spent") + ": $" + totalSpent);
-        System.out.println("Average Rating: " + avgRating);
-        System.out.println("========================\n");
+    /**
+     * Handle Delete Account button click (inline)
+     */
+    @FXML
+    public void onDeleteAccountInline() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DeleteAccountConfirm.fxml"));
+            Scene scene = new Scene(loader.load(), 390, 750);
+
+            DeleteAccountConfirmController controller = loader.getController();
+            if (currentUser != null) {
+                controller.setUser(currentUser);
+            }
+
+            Stage stage = (Stage) backButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            System.err.println("Failed to navigate to Delete Account Confirmation: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Handle Logout button click (inline)
+     */
+    @FXML
+    public void onLogoutInline() {
+        // Clear the user session
+        UserSession.getInstance().clearSession();
+        System.out.println("[Profile] User logged out, session cleared");
+        navigateToRoleSelection();
+    }
+
+    /**
+     * Navigate to role selection screen
+     */
+    private void navigateToRoleSelection() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/RoleSelection.fxml"));
+            Scene scene = new Scene(loader.load(), 390, 750);
+
+            Stage stage = (Stage) backButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            System.err.println("Failed to navigate to Role Selection: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }
+

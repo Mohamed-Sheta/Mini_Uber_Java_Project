@@ -87,6 +87,28 @@ public class RideHistoryDAO {
         }
     }
 
+    /**
+     * Delete all ride history records for a specific passenger
+     */
+    public int deleteByPassenger(Connection con, long passengerId) throws SQLException {
+        final String sql = "DELETE FROM ride_history WHERE passenger_id=?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, passengerId);
+            return ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Delete all ride history records for a specific driver
+     */
+    public int deleteByDriver(Connection con, long driverId) throws SQLException {
+        final String sql = "DELETE FROM ride_history WHERE driver_id=?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, driverId);
+            return ps.executeUpdate();
+        }
+    }
+
     public List<RideHistoryRow> showAll() throws SQLException {
         final String sql = "SELECT id, request_id, driver_id, passenger_id, passenger_rating, driver_rating, ride_cost, payment_method, tips, donation_amount, donation_organization, completed_at FROM ride_history ORDER BY id";
         List<RideHistoryRow> out = new ArrayList<>();

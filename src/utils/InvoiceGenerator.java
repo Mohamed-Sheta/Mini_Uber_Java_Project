@@ -7,19 +7,9 @@ import java.io.*;
 import java.time.*;
 import java.time.format.*;
 
-/**
- * Utility class for generating PDF invoices for completed rides
- */
 public class InvoiceGenerator {
 
-    /**
-     * Generate a PDF invoice for a ride
-     * @param invoiceId Unique invoice ID
-     * @param passengerName Name of the passenger
-     * @param amount Total amount charged (including tips and donation)
-     * @return Path to the generated PDF file
-     * @throws Exception if PDF generation fails
-     */
+
     public static String generateInvoicePdf(String invoiceId, String passengerName, double amount) throws Exception {
         // Create invoices directory if it doesn't exist
         File dir = new File("resources/invoices");

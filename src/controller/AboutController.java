@@ -27,41 +27,51 @@ public class AboutController {
     }
 
     /**
-     * Navigate back to MapView
+     * Navigate back to MapView or DriverDashboard
      */
     @FXML
     public void onBackToMap() {
         try {
-            // Get URL first, then create FXMLLoader
-            java.net.URL fxmlUrl = getClass().getResource("/MapView.fxml");
-            if (fxmlUrl == null) {
-                fxmlUrl = getClass().getClassLoader().getResource("MapView.fxml");
-            }
-            if (fxmlUrl == null) {
-                System.err.println("ERROR: Could not find MapView.fxml");
-                return;
-            }
+            if (isDriver) {
+                // Navigate to DriverDashboard for drivers
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DriverDashboard.fxml"));
+                Scene scene = new Scene(loader.load(), 390, 750);
 
-            System.out.println("Loading MapView from: " + fxmlUrl);
-            FXMLLoader loader = new FXMLLoader(fxmlUrl);
-            Scene scene = new Scene(loader.load(), 390, 750);
-
-            MapController controller = loader.getController();
-            // Pass user data back to map
-            if (currentUser != null) {
-                if (isDriver) {
+                DriverDashboardController controller = loader.getController();
+                if (currentUser != null) {
                     controller.setDriver((Driver) currentUser);
-                } else {
+                }
+
+                Stage stage = (Stage) backButton.getScene().getWindow();
+                stage.setScene(scene);
+                stage.show();
+            } else {
+                // Navigate to MapView for passengers
+                java.net.URL fxmlUrl = getClass().getResource("/MapView.fxml");
+                if (fxmlUrl == null) {
+                    fxmlUrl = getClass().getClassLoader().getResource("MapView.fxml");
+                }
+                if (fxmlUrl == null) {
+                    System.err.println("ERROR: Could not find MapView.fxml");
+                    return;
+                }
+
+                System.out.println("Loading MapView from: " + fxmlUrl);
+                FXMLLoader loader = new FXMLLoader(fxmlUrl);
+                Scene scene = new Scene(loader.load(), 390, 750);
+
+                MapController controller = loader.getController();
+                if (currentUser != null) {
                     controller.setPassenger((Passenger) currentUser);
                 }
-            }
 
-            Stage stage = (Stage) backButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.show();
-            System.out.println("MapView loaded successfully");
+                Stage stage = (Stage) backButton.getScene().getWindow();
+                stage.setScene(scene);
+                stage.show();
+                System.out.println("MapView loaded successfully");
+            }
         } catch (IOException e) {
-            System.err.println("Failed to navigate to Map: " + e.getMessage());
+            System.err.println("Failed to navigate back: " + e.getMessage());
             e.printStackTrace();
         } catch (Exception e) {
             System.err.println("Unexpected error: " + e.getMessage());

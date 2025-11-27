@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 import utils.DBConnection;
+import utils.EmailSender;
 
 import java.io.IOException;
 import java.sql.*;
@@ -180,12 +181,11 @@ public class ReportProblemController {
             return;
         }
 
-        // Validate description
+        // Description is now OPTIONAL - use fallback text if empty
         String description = descriptionArea.getText().trim();
         if (description.isEmpty()) {
-            showMessage("❌ Please enter a description", true);
-            System.err.println("[ReportProblem] No description entered");
-            return;
+            description = "No description provided";
+            System.out.println("[ReportProblem] No description entered - using fallback text");
         }
 
         try {
@@ -210,6 +210,12 @@ public class ReportProblemController {
                 // Insert the problem type and description
                 insertProblemDetails(reportId, problemType.ordinal() + 1, description);
                 System.out.println("[ReportProblem] Problem details inserted successfully");
+
+                // Get ride details for email
+                String rideDetails = rideComboBox.getSelectionModel().getSelectedItem();
+
+                // Send email notification with report details
+                sendReportEmail(reportId, requestId, problemType, description, rideDetails);
 
                 showMessage("✓ Report submitted successfully!", false);
 
@@ -325,6 +331,198 @@ public class ReportProblemController {
             System.err.println("Failed to navigate back to ProfileSettings: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Send problem report email notification
+     */
+    private void sendReportEmail(long reportId, long requestId, ProblemType problemType,
+                                 String description, String rideDetails) {
+        try {
+            // Get current timestamp
+            Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+
+            // Format problem type for display
+            String formattedProblemType = formatProblemType(problemType);
+
+            // Get passenger name and email
+            String passengerName = currentUser.getName();
+            String passengerEmail = currentUser.getEmail();
+
+            // Generate email body
+            String emailBody = generateReportEmailBody(
+                reportId,
+                requestId,
+                rideDetails,
+                formattedProblemType,
+                description,
+                passengerName,
+                passengerEmail,
+                timestamp
+            );
+
+            // Email subject
+            String subject = "Problem Report #" + reportId + " - " + formattedProblemType;
+
+            // Send to the configured email address (from EmailSender)
+            // Note: This sends to the sender email as a notification
+            String recipientEmail = "minigorides.official@gmail.com"; // Your email from EmailSender
+
+            System.out.println("[ReportProblem] Sending email notification to: " + recipientEmail);
+
+            // Use a simpler email sending method without attachment
+            boolean sent = sendSimpleEmail(recipientEmail, "MiniGO Support", subject, emailBody);
+
+            if (sent) {
+                System.out.println("[ReportProblem] ✅ Email notification sent successfully");
+            } else {
+                System.out.println("[ReportProblem] ⚠️ Email notification could not be sent");
+            }
+
+        } catch (Exception e) {
+            System.err.println("[ReportProblem] Error sending email: " + e.getMessage());
+            e.printStackTrace();
+            // Don't fail the report submission if email fails
+        }
+    }
+
+    /**
+     * Send simple email without attachment using EmailSender utility
+     */
+    private boolean sendSimpleEmail(String recipientEmail, String recipientName,
+                                   String subject, String body) {
+        try {
+            // We'll use reflection or create a simple email sender
+            // Since EmailSender.sendInvoiceEmail requires a PDF, we'll create our own sender here
+
+            java.util.Properties props = new java.util.Properties();
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.starttls.enable", "true");
+            props.put("mail.smtp.host", "smtp.gmail.com");
+            props.put("mail.smtp.port", "587");
+            props.put("mail.smtp.ssl.protocols", "TLSv1.2");
+            props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
+            props.put("mail.smtp.ssl.checkserveridentity", "false");
+
+            // Use credentials from EmailSender (same email account)
+            String senderEmail = "minigorides.official@gmail.com";
+            String senderPassword = "dpuq boji fuuf nyly";
+
+            javax.mail.Authenticator auth = new javax.mail.Authenticator() {
+                @Override
+                protected javax.mail.PasswordAuthentication getPasswordAuthentication() {
+                    return new javax.mail.PasswordAuthentication(senderEmail, senderPassword);
+                }
+            };
+
+            javax.mail.Session session = javax.mail.Session.getInstance(props, auth);
+            javax.mail.Message message = new javax.mail.internet.MimeMessage(session);
+            message.setFrom(new javax.mail.internet.InternetAddress(senderEmail, "MiniGO Egypt"));
+            message.setRecipients(javax.mail.Message.RecipientType.TO,
+                                javax.mail.internet.InternetAddress.parse(recipientEmail));
+            message.setSubject(subject);
+            message.setContent(body, "text/html; charset=UTF-8");
+
+            javax.mail.Transport.send(message);
+            return true;
+
+        } catch (Exception e) {
+            System.err.println("[ReportProblem] Email sending failed: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Generate HTML email body for problem report
+     */
+    private String generateReportEmailBody(long reportId, long requestId, String rideDetails,
+                                          String problemType, String description,
+                                          String passengerName, String passengerEmail,
+                                          Timestamp timestamp) {
+        return "<!DOCTYPE html>\n" +
+            "<html>\n" +
+            "<head>\n" +
+            "    <style>\n" +
+            "        body { font-family: Arial, sans-serif; color: #333; }\n" +
+            "        .container { max-width: 600px; margin: 0 auto; padding: 20px; }\n" +
+            "        .header { background: linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%);\n" +
+            "                 color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }\n" +
+            "        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }\n" +
+            "        .info-box { background: white; padding: 15px; margin: 15px 0; border-left: 4px solid #FF6B6B; }\n" +
+            "        .label { font-weight: bold; color: #666; }\n" +
+            "        .value { color: #333; margin-bottom: 10px; }\n" +
+            "        .description-box { background: #FFF8E1; padding: 15px; margin: 15px 0; border-radius: 5px; }\n" +
+            "        .footer { text-align: center; margin-top: 30px; color: #999; font-size: 12px; }\n" +
+            "    </style>\n" +
+            "</head>\n" +
+            "<body>\n" +
+            "    <div class=\"container\">\n" +
+            "        <div class=\"header\">\n" +
+            "            <h1>⚠️ Problem Report</h1>\n" +
+            "            <p>Report #" + reportId + "</p>\n" +
+            "        </div>\n" +
+            "        <div class=\"content\">\n" +
+            "            <div class=\"info-box\">\n" +
+            "                <div class=\"value\">\n" +
+            "                    <span class=\"label\">Report ID:</span> " + reportId + "\n" +
+            "                </div>\n" +
+            "                <div class=\"value\">\n" +
+            "                    <span class=\"label\">Request ID:</span> " + requestId + "\n" +
+            "                </div>\n" +
+            "                <div class=\"value\">\n" +
+            "                    <span class=\"label\">Timestamp:</span> " + timestamp.toString() + "\n" +
+            "                </div>\n" +
+            "            </div>\n" +
+            "            \n" +
+            "            <h3 style=\"color: #FF6B6B;\">📍 Ride Details</h3>\n" +
+            "            <div class=\"info-box\">\n" +
+            "                <div class=\"value\">" + rideDetails + "</div>\n" +
+            "            </div>\n" +
+            "            \n" +
+            "            <h3 style=\"color: #FF6B6B;\">👤 Reporter Information</h3>\n" +
+            "            <div class=\"info-box\">\n" +
+            "                <div class=\"value\">\n" +
+            "                    <span class=\"label\">Name:</span> " + passengerName + "\n" +
+            "                </div>\n" +
+            "                <div class=\"value\">\n" +
+            "                    <span class=\"label\">Email:</span> " + passengerEmail + "\n" +
+            "                </div>\n" +
+            "            </div>\n" +
+            "            \n" +
+            "            <h3 style=\"color: #FF6B6B;\">🔍 Problem Type</h3>\n" +
+            "            <div class=\"info-box\">\n" +
+            "                <div class=\"value\" style=\"font-size: 16px; font-weight: bold;\">" + problemType + "</div>\n" +
+            "            </div>\n" +
+            "            \n" +
+            "            <h3 style=\"color: #FF6B6B;\">📝 Description</h3>\n" +
+            "            <div class=\"description-box\">\n" +
+            "                <p style=\"margin: 0; white-space: pre-wrap;\">" +
+            (description.equals("No description provided") ?
+                "<em style=\"color: #999;\">No description provided</em>" : description) +
+            "</p>\n" +
+            "            </div>\n" +
+            "            \n" +
+            "            <hr style=\"border: none; border-top: 1px solid #ddd; margin: 30px 0;\">\n" +
+            "            \n" +
+            "            <p style=\"color: #666; font-size: 14px;\">\n" +
+            "                This report has been automatically recorded in the system.\n" +
+            "                Please review and take appropriate action.\n" +
+            "            </p>\n" +
+            "            \n" +
+            "            <div style=\"text-align: center; margin-top: 30px;\">\n" +
+            "                <p style=\"color: #FF6B6B; font-weight: bold;\">\n" +
+            "                    Immediate attention required ⚠️\n" +
+            "                </p>\n" +
+            "            </div>\n" +
+            "        </div>\n" +
+            "        <div class=\"footer\">\n" +
+            "            <p>© 2025 MiniGO Egypt. All rights reserved.</p>\n" +
+            "            <p>This is an automated notification from the MiniGO system.</p>\n" +
+            "        </div>\n" +
+            "    </div>\n" +
+            "</body>\n" +
+            "</html>";
     }
 
     /**

@@ -397,6 +397,10 @@
     -fx-border-width: 2;
     -fx-border-radius: 50;
     -fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.2), 8, 0, 0, 0);
+    -fx-min-width: 90;
+    -fx-min-height: 90;
+    -fx-max-width: 90;
+    -fx-max-height: 90;
 }
 
 .stat-icon {
@@ -441,6 +445,17 @@
 .profile-save-button:hover {
     -fx-background-color: linear-gradient(to bottom, #3FB950, #2EA043);
     -fx-effect: dropshadow(gaussian, rgba(35, 134, 54, 0.4), 10, 0, 0, 2);
+}
+
+/* Ensure elevated cards have consistent height */
+.elevated-card {
+    -fx-min-height: 66;
+    -fx-pref-height: 66;
+}
+
+.elevated-card-clickable {
+    -fx-min-height: 66;
+    -fx-pref-height: 66;
 }
 
 /* ============================================

@@ -92,6 +92,29 @@ public class RideRequestDAO {
         }
     }
 
+    /**
+     * Delete all ride requests for a specific passenger
+     */
+    public int deleteByPassenger(Connection con, long passengerId) throws SQLException {
+        final String sql = "DELETE FROM ride_requests WHERE passenger_id=?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, passengerId);
+            return ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Set driver_id to NULL for all ride requests assigned to a specific driver
+     * (Used when deleting a driver - we want to keep the request history)
+     */
+    public int clearDriverFromRequests(Connection con, long driverId) throws SQLException {
+        final String sql = "UPDATE ride_requests SET driver_id = NULL WHERE driver_id = ?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, driverId);
+            return ps.executeUpdate();
+        }
+    }
+
     public List<RideRequestRow> showAll() throws SQLException {
         final String sql = "SELECT id, passenger_id, driver_id, origin_id, destination_id, status, distance_km, estimated_time, estimated_price, acceptance_time, driver_arrived, passenger_arrived " +
                            "FROM ride_requests ORDER BY id";

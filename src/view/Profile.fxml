@@ -18,13 +18,13 @@
       stylesheets="@/style.css">
 
     <padding>
-        <Insets top="15" bottom="20" left="20" right="20"/>
+        <Insets top="12" bottom="16" left="20" right="20"/>
     </padding>
 
     <!-- Header with Back Button -->
     <HBox alignment="CENTER_LEFT" spacing="10">
         <VBox.margin>
-            <Insets bottom="12"/>
+            <Insets bottom="10"/>
         </VBox.margin>
         <Button fx:id="backButton" text="←" styleClass="back-button" onAction="#onBackToMap"/>
         <Label text="Profile" styleClass="title-large"/>
@@ -33,19 +33,19 @@
     </HBox>
 
     <!-- Main Profile Card -->
-    <VBox styleClass="card-container" spacing="0" alignment="TOP_CENTER">
+    <VBox styleClass="card-container" spacing="0" alignment="TOP_CENTER" maxWidth="360">
         <padding>
-            <Insets top="18" bottom="20" left="18" right="18"/>
+            <Insets top="16" bottom="18" left="18" right="18"/>
         </padding>
 
         <!-- Top Stats Cards Row -->
-        <HBox spacing="8" alignment="CENTER">
+        <HBox spacing="8" alignment="CENTER" maxHeight="80">
             <VBox.margin>
-                <Insets bottom="16"/>
+                <Insets bottom="12"/>
             </VBox.margin>
 
             <!-- Rating Card (Display Only) -->
-            <VBox styleClass="elevated-card" spacing="6" alignment="CENTER" prefWidth="88">
+            <VBox styleClass="elevated-card" spacing="6" alignment="CENTER" prefWidth="88" maxHeight="66">
                 <HBox alignment="CENTER" spacing="3">
                     <Text text="⭐" styleClass="stat-icon"/>
                     <Label fx:id="ratingLabel" text="0.0" styleClass="stat-value"/>
@@ -54,7 +54,7 @@
             </VBox>
 
             <!-- Total Rides Card (Clickable - Wider with Highlight) -->
-            <VBox fx:id="ridesCard" styleClass="elevated-card-clickable" spacing="6" alignment="CENTER" prefWidth="105">
+            <VBox fx:id="ridesCard" styleClass="elevated-card-clickable" spacing="6" alignment="CENTER" prefWidth="105" maxHeight="66">
                 <HBox alignment="CENTER" spacing="3">
                     <Text text="🚗" styleClass="stat-icon"/>
                     <Label fx:id="totalRidesLabel" text="0" styleClass="stat-value"/>
@@ -63,7 +63,7 @@
             </VBox>
 
             <!-- Total Spent/Earned Card (Display Only) -->
-            <VBox styleClass="elevated-card" spacing="6" alignment="CENTER" prefWidth="88">
+            <VBox styleClass="elevated-card" spacing="6" alignment="CENTER" prefWidth="88" maxHeight="66">
                 <HBox alignment="CENTER" spacing="3">
                     <Text text="💰" styleClass="stat-icon"/>
                     <Label fx:id="totalSpentLabel" text="0" styleClass="stat-value"/>
@@ -73,13 +73,13 @@
         </HBox>
 
         <!-- Avatar Section -->
-        <VBox alignment="CENTER" spacing="10">
+        <VBox alignment="CENTER" spacing="6" maxHeight="130">
             <VBox.margin>
-                <Insets bottom="16"/>
+                <Insets bottom="12"/>
             </VBox.margin>
 
             <!-- Avatar -->
-            <StackPane styleClass="profile-avatar-container">
+            <StackPane styleClass="profile-avatar-container" prefWidth="90" prefHeight="90" maxWidth="90" maxHeight="90">
                 <ImageView fx:id="avatarImageView" fitWidth="90" fitHeight="90" preserveRatio="true">
                     <image>
                         <Image url="@/avatar.png"/>
@@ -91,58 +91,58 @@
             </StackPane>
 
             <!-- User Name and Role -->
-            <VBox alignment="CENTER" spacing="4">
+            <VBox alignment="CENTER" spacing="2">
                 <Label fx:id="userNameLabel" text="User Name" styleClass="profile-name"/>
                 <Label fx:id="userRoleLabel" text="Passenger" styleClass="profile-role"/>
             </VBox>
         </VBox>
 
         <!-- Form Fields -->
-        <VBox spacing="8" alignment="CENTER">
+        <VBox spacing="10" alignment="CENTER" maxWidth="280">
 
             <!-- Full Name Field -->
-            <VBox spacing="4" alignment="CENTER_LEFT">
+            <VBox spacing="4" alignment="CENTER_LEFT" maxWidth="280">
                 <Label text="Full Name" styleClass="field-label"/>
-                <TextField fx:id="nameField" promptText="Enter your full name" styleClass="text-field" prefWidth="280" prefHeight="36"/>
+                <TextField fx:id="nameField" promptText="Enter your full name" styleClass="text-field" prefWidth="280" prefHeight="36" maxWidth="280" maxHeight="36"/>
             </VBox>
 
             <!-- Email Field -->
-            <VBox spacing="4" alignment="CENTER_LEFT">
+            <VBox spacing="4" alignment="CENTER_LEFT" maxWidth="280">
                 <Label text="Email" styleClass="field-label"/>
-                <TextField fx:id="emailField" promptText="Enter your email" styleClass="text-field" editable="false" prefWidth="280" prefHeight="36"/>
+                <TextField fx:id="emailField" promptText="Enter your email" styleClass="text-field" editable="false" prefWidth="280" prefHeight="36" maxWidth="280" maxHeight="36"/>
             </VBox>
 
             <!-- Phone Number Field -->
-            <VBox spacing="4" alignment="CENTER_LEFT">
+            <VBox spacing="4" alignment="CENTER_LEFT" maxWidth="280">
                 <Label text="Phone Number" styleClass="field-label"/>
-                <TextField fx:id="phoneField" promptText="Enter your phone number" styleClass="text-field" prefWidth="280" prefHeight="36"/>
+                <TextField fx:id="phoneField" promptText="Enter your phone number" styleClass="text-field" prefWidth="280" prefHeight="36" maxWidth="280" maxHeight="36"/>
             </VBox>
 
             <!-- Home Address Field -->
-            <VBox spacing="4" alignment="CENTER_LEFT">
+            <VBox spacing="4" alignment="CENTER_LEFT" maxWidth="280">
                 <Label text="Home Address" styleClass="field-label"/>
-                <TextField fx:id="addressField" promptText="Enter your home address" styleClass="text-field" prefWidth="280" prefHeight="36"/>
+                <TextField fx:id="addressField" promptText="Enter your home address" styleClass="text-field" prefWidth="280" prefHeight="36" maxWidth="280" maxHeight="36"/>
             </VBox>
 
             <!-- Driver-specific fields -->
-            <VBox fx:id="driverFieldsContainer" spacing="8" visible="false" managed="false" alignment="CENTER">
+            <VBox fx:id="driverFieldsContainer" spacing="10" visible="false" managed="false" alignment="CENTER" maxWidth="280">
 
                 <!-- Car Model Field -->
-                <VBox spacing="4" alignment="CENTER_LEFT">
+                <VBox spacing="4" alignment="CENTER_LEFT" maxWidth="280">
                     <Label text="Car Model" styleClass="field-label"/>
-                    <TextField fx:id="carModelField" promptText="Enter your car model" styleClass="text-field" prefWidth="280" prefHeight="36"/>
+                    <TextField fx:id="carModelField" promptText="Enter your car model" styleClass="text-field" prefWidth="280" prefHeight="36" maxWidth="280" maxHeight="36"/>
                 </VBox>
 
                 <!-- License Plate Field -->
-                <VBox spacing="4" alignment="CENTER_LEFT">
+                <VBox spacing="4" alignment="CENTER_LEFT" maxWidth="280">
                     <Label text="License Plate" styleClass="field-label"/>
-                    <TextField fx:id="licensePlateField" promptText="Enter your license plate" styleClass="text-field" prefWidth="280" prefHeight="36"/>
+                    <TextField fx:id="licensePlateField" promptText="Enter your license plate" styleClass="text-field" prefWidth="280" prefHeight="36" maxWidth="280" maxHeight="36"/>
                 </VBox>
 
             </VBox>
 
             <!-- Save Changes Button -->
-            <Button fx:id="saveButton" text="Save Changes" styleClass="profile-save-button" onAction="#onSaveChanges" prefWidth="280" prefHeight="38">
+            <Button fx:id="saveButton" text="Save Changes" styleClass="profile-save-button" onAction="#onSaveChanges" prefWidth="280" prefHeight="38" maxWidth="280" maxHeight="38">
                 <VBox.margin>
                     <Insets top="6"/>
                 </VBox.margin>
@@ -153,6 +153,70 @@
 
         </VBox>
 
+    </VBox>
+
+    <!-- Settings Section -->
+    <VBox spacing="0" maxWidth="360">
+        <VBox.margin>
+            <Insets top="14"/>
+        </VBox.margin>
+
+        <!-- Settings Header -->
+        <Label text="Settings" styleClass="title-medium">
+            <VBox.margin>
+                <Insets bottom="10"/>
+            </VBox.margin>
+        </Label>
+
+        <!-- Settings Options Card -->
+        <VBox styleClass="card-container" spacing="0" alignment="TOP_LEFT">
+            <padding>
+                <Insets top="6" bottom="6" left="0" right="0"/>
+            </padding>
+
+            <!-- Add Funds Button (Passengers only - hidden for drivers) -->
+            <Button fx:id="addFundsButtonInline" text="💰 Add Funds" styleClass="settings-item-button" onAction="#onAddFundsInline" alignment="CENTER_LEFT" visible="true" managed="true" maxHeight="50">
+                <padding>
+                    <Insets top="14" bottom="14" left="20" right="20"/>
+                </padding>
+            </Button>
+
+            <Region fx:id="addFundsDivider" prefHeight="1" styleClass="divider" visible="true" managed="true"/>
+
+            <!-- Change Password Button -->
+            <Button fx:id="changePasswordButtonInline" text="🔒 Change Password" styleClass="settings-item-button" onAction="#onChangePasswordInline" alignment="CENTER_LEFT" maxHeight="50">
+                <padding>
+                    <Insets top="14" bottom="14" left="20" right="20"/>
+                </padding>
+            </Button>
+
+            <Region prefHeight="1" styleClass="divider"/>
+
+            <!-- Report a Ride Button (Passengers only - hidden for drivers) -->
+            <Button fx:id="reportRideButtonInline" text="📝 Report a Ride" styleClass="settings-item-button" onAction="#onReportRideInline" alignment="CENTER_LEFT" visible="true" managed="true" maxHeight="50">
+                <padding>
+                    <Insets top="14" bottom="14" left="20" right="20"/>
+                </padding>
+            </Button>
+
+            <Region fx:id="reportRideDivider" prefHeight="1" styleClass="divider" visible="true" managed="true"/>
+
+            <!-- Delete Account Button -->
+            <Button fx:id="deleteAccountButtonInline" text="🗑️ Delete Account" styleClass="settings-item-button-danger" onAction="#onDeleteAccountInline" alignment="CENTER_LEFT" maxHeight="50">
+                <padding>
+                    <Insets top="14" bottom="14" left="20" right="20"/>
+                </padding>
+            </Button>
+
+            <Region prefHeight="1" styleClass="divider"/>
+
+            <!-- Logout Button -->
+            <Button fx:id="logoutButtonInline" text="🚪 Logout" styleClass="settings-item-button" onAction="#onLogoutInline" alignment="CENTER_LEFT" maxHeight="50">
+                <padding>
+                    <Insets top="14" bottom="14" left="20" right="20"/>
+                </padding>
+            </Button>
+        </VBox>
     </VBox>
 
 </VBox>

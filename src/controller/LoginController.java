@@ -4,6 +4,7 @@ import DAO.DriverDAO;
 import DAO.PassengerDAO;
 import Model.Driver;
 import Model.Passenger;
+import Model.Person;
 import javafx.animation.ScaleTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -136,7 +137,7 @@ public class LoginController {
             }
 
             if (loginSuccess) {
-                // Navigate to home screen
+                // Store user in session
                 navigateToHome(event, user);
             } else {
                 showError("Account not found. Please register.");

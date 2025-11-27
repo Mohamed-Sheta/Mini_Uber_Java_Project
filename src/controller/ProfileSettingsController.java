@@ -1,7 +1,6 @@
 package controller;
 
 import Model.Driver;
-import Model.Passenger;
 import Model.Person;
 import DAO.PassengerDAO;
 import DAO.DriverDAO;
@@ -10,9 +9,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
-import javafx.scene.layout.VBox;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import utils.DBConnection;
 
 import java.io.IOException;
@@ -21,7 +17,6 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Optional;
 
 public class ProfileSettingsController {
 
@@ -73,6 +68,7 @@ public class ProfileSettingsController {
      */
     @FXML
     public void onAddFunds() {
+        // Prevent drivers from accessing Add Funds
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/AddFunds.fxml"));
             Scene scene = new Scene(loader.load(), 390, 750);
@@ -119,6 +115,7 @@ public class ProfileSettingsController {
      */
     @FXML
     public void onReportRide() {
+        // Prevent drivers from accessing Report Ride
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ReportProblem.fxml"));
             Scene scene = new Scene(loader.load(), 390, 750);

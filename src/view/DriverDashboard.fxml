@@ -113,5 +113,24 @@
         <Label text="Turn on your status to start receiving ride requests" styleClass="subtitle" wrapText="true" textAlignment="CENTER"/>
     </VBox>
 
+    <!-- Bottom Navigation -->
+    <HBox spacing="10" alignment="CENTER">
+        <VBox.margin>
+            <Insets top="15"/>
+        </VBox.margin>
+
+        <Button text="👤 Profile" styleClass="button-secondary" onAction="#onProfile" prefWidth="150">
+            <padding>
+                <Insets top="10" right="15" bottom="10" left="15"/>
+            </padding>
+        </Button>
+
+        <Button text="ℹ About" styleClass="button-secondary" onAction="#onAbout" prefWidth="150">
+            <padding>
+                <Insets top="10" right="15" bottom="10" left="15"/>
+            </padding>
+        </Button>
+    </HBox>
+
 </VBox>
 

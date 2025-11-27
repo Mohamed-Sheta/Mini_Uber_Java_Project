@@ -68,6 +68,56 @@ public class ProblemReportDAO {
         }
     }
 
+    /**
+     * Delete all problem reports filed by a specific passenger
+     * @param passengerId the passenger ID
+     * @return number of reports deleted
+     */
+    public int deleteReportsByPassenger(long passengerId) throws SQLException {
+        final String sql = "DELETE FROM problem_reports WHERE reporter_passenger_id=?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, passengerId);
+            return ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Delete all problem reports about a specific driver
+     * @param driverId the driver ID
+     * @return number of reports deleted
+     */
+    public int deleteReportsByDriver(long driverId) throws SQLException {
+        final String sql = "DELETE FROM problem_reports WHERE driver_id=?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, driverId);
+            return ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Delete all problem reports filed by a passenger using a specific connection (for transactions)
+     */
+    public int deleteReportsByPassenger(Connection con, long passengerId) throws SQLException {
+        final String sql = "DELETE FROM problem_reports WHERE reporter_passenger_id=?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, passengerId);
+            return ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Delete all problem reports about a driver using a specific connection (for transactions)
+     */
+    public int deleteReportsByDriver(Connection con, long driverId) throws SQLException {
+        final String sql = "DELETE FROM problem_reports WHERE driver_id=?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, driverId);
+            return ps.executeUpdate();
+        }
+    }
+
     public List<ProblemReportRow> showAllReports() throws SQLException {
         final String sql = "SELECT id, request_id, reporter_passenger_id, driver_id, created_at FROM problem_reports ORDER BY id";
         List<ProblemReportRow> out = new ArrayList<>();
