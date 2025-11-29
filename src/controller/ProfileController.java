@@ -19,6 +19,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import utils.DBConnection;
+import utils.UserSession;
 
 import java.io.IOException;
 import java.security.MessageDigest;
