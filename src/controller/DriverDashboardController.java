@@ -85,7 +85,7 @@ public class DriverDashboardController {
             isDriverOnline = false;
             if (statusLabel != null) {
                 statusLabel.setText("Offline");
-                statusLabel.setStyle("-fx-text-fill: #8B92A8; -fx-font-weight: 600;");
+                statusLabel.setStyle("-fx-text-fill: #8B92A8; -fx-font-weight: 500; -fx-font-size: 13px;");
             }
             if (rideRequestWidget != null) {
                 rideRequestWidget.setVisible(false);
@@ -132,7 +132,7 @@ public class DriverDashboardController {
             animateToggleToOn();
             if (statusLabel != null) {
                 statusLabel.setText("Online");
-                statusLabel.setStyle("-fx-text-fill: #10B981; -fx-font-weight: 600;");
+                statusLabel.setStyle("-fx-text-fill: #00D26A; -fx-font-weight: 600; -fx-font-size: 13px;");
             }
             System.out.println("[DriverDashboard] Driver status set to ONLINE (active=true)");
             startPollingForRides();
@@ -141,7 +141,7 @@ public class DriverDashboardController {
             animateToggleToOff();
             if (statusLabel != null) {
                 statusLabel.setText("Offline");
-                statusLabel.setStyle("-fx-text-fill: #8B92A8; -fx-font-weight: 600;");
+                statusLabel.setStyle("-fx-text-fill: #8B92A8; -fx-font-weight: 500; -fx-font-size: 13px;");
             }
             System.out.println("[DriverDashboard] Driver status set to OFFLINE (active=false)");
             stopPollingForRides();
@@ -220,35 +220,51 @@ public class DriverDashboardController {
     }
 
     /**
-     * Animate toggle switch to ON position (right side, green)
+     * Animate toggle switch to ON position (right side, bright green)
      */
     private void animateToggleToOn() {
         if (toggleThumb == null || toggleSwitch == null) return;
 
-        // Animate thumb to right position
-        TranslateTransition transition = new TranslateTransition(Duration.millis(200), toggleThumb);
-        transition.setToX(28); // Move 28px to the right (56 - 24 - 4 padding)
+        // Animate thumb to right position (new dimensions: 64px width, 26px thumb)
+        TranslateTransition transition = new TranslateTransition(Duration.millis(250), toggleThumb);
+        transition.setToX(32); // Move 32px to the right (64 - 26 - 6 padding)
+        transition.setInterpolator(javafx.animation.Interpolator.EASE_BOTH);
         transition.play();
 
-        // Change background color to green
-        toggleSwitch.setStyle("-fx-background-color: #10B981; -fx-background-radius: 14; -fx-cursor: hand;");
-        toggleThumb.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12;");
+        // Change background to bright green (#00D26A) with shadow
+        toggleSwitch.setStyle("-fx-background-color: #00D26A; " +
+                             "-fx-background-radius: 16; " +
+                             "-fx-cursor: hand; " +
+                             "-fx-effect: dropshadow(gaussian, rgba(0, 212, 106, 0.3), 6, 0.0, 0, 1);");
+
+        // Keep white thumb with shadow
+        toggleThumb.setStyle("-fx-background-color: #FFFFFF; " +
+                            "-fx-background-radius: 13; " +
+                            "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 6, 0.0, 0, 2);");
     }
 
     /**
-     * Animate toggle switch to OFF position (left side, grey)
+     * Animate toggle switch to OFF position (left side, dark grey)
      */
     private void animateToggleToOff() {
         if (toggleThumb == null || toggleSwitch == null) return;
 
         // Animate thumb to left position
-        TranslateTransition transition = new TranslateTransition(Duration.millis(200), toggleThumb);
+        TranslateTransition transition = new TranslateTransition(Duration.millis(250), toggleThumb);
         transition.setToX(0); // Back to original position
+        transition.setInterpolator(javafx.animation.Interpolator.EASE_BOTH);
         transition.play();
 
-        // Change background color to dark grey
-        toggleSwitch.setStyle("-fx-background-color: #30363D; -fx-background-radius: 14; -fx-cursor: hand;");
-        toggleThumb.setStyle("-fx-background-color: #8B92A8; -fx-background-radius: 12;");
+        // Change background to dark grey (#2E2E2E) with shadow
+        toggleSwitch.setStyle("-fx-background-color: #2E2E2E; " +
+                             "-fx-background-radius: 16; " +
+                             "-fx-cursor: hand; " +
+                             "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 4, 0.0, 0, 1);");
+
+        // Keep white thumb with shadow
+        toggleThumb.setStyle("-fx-background-color: #FFFFFF; " +
+                            "-fx-background-radius: 13; " +
+                            "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 6, 0.0, 0, 2);");
     }
 
     public void setDriver(Driver driver) {
