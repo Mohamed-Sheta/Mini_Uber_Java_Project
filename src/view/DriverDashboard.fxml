@@ -2,6 +2,8 @@
 
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 <?import javafx.geometry.Insets?>
 
 <VBox xmlns="http://javafx.com/javafx/25"
@@ -14,34 +16,75 @@
       stylesheets="@/style.css">
 
     <padding>
-        <Insets top="20" bottom="20" left="20" right="20"/>
+        <Insets top="16" bottom="20" left="20" right="20"/>
     </padding>
 
+    <!-- Top Navigation Bar -->
+    <HBox spacing="10"
+          alignment="CENTER"
+          styleClass="map-top-bar"
+          prefHeight="48"
+          minHeight="48"
+          maxHeight="48">
+        <padding>
+            <Insets top="8" bottom="8" left="12" right="12"/>
+        </padding>
+        <VBox.margin>
+            <Insets bottom="10"/>
+        </VBox.margin>
+
+        <ImageView fx:id="aboutBtn"
+                   fitWidth="28" fitHeight="28"
+                   pickOnBounds="true"
+                   preserveRatio="true"
+                   styleClass="icon-button">
+            <image>
+                <Image url="@/settings_12280787.png"/>
+            </image>
+        </ImageView>
+
+        <Pane HBox.hgrow="ALWAYS"/>
+
+        <ImageView fx:id="profileBtn"
+                   fitWidth="32" fitHeight="32"
+                   pickOnBounds="true"
+                   preserveRatio="true"
+                   styleClass="icon-button">
+            <image>
+                <Image url="@/user_17436294.png"/>
+            </image>
+        </ImageView>
+    </HBox>
+
     <!-- Header Section -->
-    <HBox alignment="CENTER" spacing="10">
+    <HBox alignment="CENTER_LEFT" spacing="10">
         <VBox.margin>
             <Insets bottom="10"/>
         </VBox.margin>
         <Label fx:id="welcomeLabel" text="Welcome Back, Driver" styleClass="title-large"/>
-        <Region HBox.hgrow="ALWAYS"/>
-        <Button text="Logout" styleClass="button-secondary" onAction="#onLogout">
-            <padding>
-                <Insets top="8" right="12" bottom="8" left="12"/>
-            </padding>
-        </Button>
     </HBox>
 
     <!-- Driver Mode Toggle -->
-    <VBox styleClass="card-container" spacing="10" alignment="CENTER">
+    <VBox styleClass="card-container" spacing="12" alignment="CENTER">
         <padding>
             <Insets top="15" bottom="15" left="15" right="15"/>
         </padding>
         <Label text="Driver Status" styleClass="title-small"/>
-        <ToggleButton fx:id="driverModeToggle" text="Offline" prefWidth="150">
-            <padding>
-                <Insets top="10" right="20" bottom="10" left="20"/>
-            </padding>
-        </ToggleButton>
+
+        <!-- Custom Toggle Switch -->
+        <HBox alignment="CENTER" spacing="12">
+            <Label fx:id="statusLabel" text="Offline" styleClass="body-text"
+                   style="-fx-text-fill: #8B92A8; -fx-font-weight: 600;"/>
+
+            <!-- Toggle Switch Container -->
+            <Pane fx:id="toggleSwitch" prefWidth="56" prefHeight="28"
+                  style="-fx-background-color: #30363D; -fx-background-radius: 14; -fx-cursor: hand;">
+
+                <!-- Toggle Circle (Thumb) -->
+                <Pane fx:id="toggleThumb" layoutX="2" layoutY="2" prefWidth="24" prefHeight="24"
+                      style="-fx-background-color: #8B92A8; -fx-background-radius: 12;"/>
+            </Pane>
+        </HBox>
     </VBox>
 
     <!-- Statistics Cards -->
@@ -113,24 +156,6 @@
         <Label text="Turn on your status to start receiving ride requests" styleClass="subtitle" wrapText="true" textAlignment="CENTER"/>
     </VBox>
 
-    <!-- Bottom Navigation -->
-    <HBox spacing="10" alignment="CENTER">
-        <VBox.margin>
-            <Insets top="15"/>
-        </VBox.margin>
-
-        <Button text="👤 Profile" styleClass="button-secondary" onAction="#onProfile" prefWidth="150">
-            <padding>
-                <Insets top="10" right="15" bottom="10" left="15"/>
-            </padding>
-        </Button>
-
-        <Button text="ℹ About" styleClass="button-secondary" onAction="#onAbout" prefWidth="150">
-            <padding>
-                <Insets top="10" right="15" bottom="10" left="15"/>
-            </padding>
-        </Button>
-    </HBox>
 
 </VBox>
 

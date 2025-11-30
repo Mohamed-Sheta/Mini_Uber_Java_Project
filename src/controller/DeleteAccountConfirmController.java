@@ -10,6 +10,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
 import utils.DBConnection;
+import utils.UserSession;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -49,38 +50,26 @@ public class DeleteAccountConfirmController {
         try {
             System.out.println("[DeleteAccount] Starting account deletion for: " + currentUser.getEmail());
 
-            // Delete user with proper cascade handling
-            boolean success = deleteUserFromDatabase();
+            // ALWAYS use manual cascade deletion to properly handle foreign key constraints
+            // This ensures related records (problem_reports, ride_history, etc.) are deleted first
+            boolean success = deleteWithManualCascade();
 
             if (success) {
                 System.out.println("[DeleteAccount] ✅ Account deleted successfully");
+                // Clear user session
+                UserSession.getInstance().clearSession();
                 // Navigate to RoleSelection after successful deletion
                 navigateToRoleSelection();
             } else {
-                System.err.println("[DeleteAccount] ❌ Account deletion failed - no rows affected");
+                System.err.println("[DeleteAccount] ❌ Account deletion failed");
                 showError("Failed to delete account. Please try again.");
             }
         } catch (SQLException e) {
-            // Handle foreign key constraint violations gracefully
-            System.err.println("[DeleteAccount] ❌ SQL Error during deletion:");
+            System.err.println("[DeleteAccount] ❌ SQL Error during deletion: " + e.getMessage());
             e.printStackTrace();
 
             if (e.getMessage() != null && e.getMessage().contains("foreign key constraint")) {
-                // Try to manually clean up related records before deletion
-                System.out.println("[DeleteAccount] Foreign key constraint detected. Attempting manual cleanup...");
-                try {
-                    boolean cleanupSuccess = deleteWithManualCascade();
-                    if (cleanupSuccess) {
-                        System.out.println("[DeleteAccount] ✅ Account deleted successfully after manual cleanup");
-                        navigateToRoleSelection();
-                        return;
-                    }
-                } catch (Exception cleanupException) {
-                    System.err.println("[DeleteAccount] Manual cleanup failed: " + cleanupException.getMessage());
-                    cleanupException.printStackTrace();
-                }
-
-                showError("Unable to delete account. Please contact support.");
+                showError("Unable to delete account due to database constraints. Please contact support.");
             } else {
                 showError("Failed to delete account. Please try again.");
             }
@@ -113,8 +102,8 @@ public class DeleteAccountConfirmController {
     }
 
     /**
-     * Delete user with manual cascade - delete related records first using DAOs
-     * This is a fallback if ON DELETE CASCADE is not configured in the database
+     * Delete user with manual cascade - delete related records first using DAOs and SQL
+     * This handles all foreign key constraints properly
      */
     private boolean deleteWithManualCascade() throws SQLException {
         Connection con = null;
@@ -137,8 +126,6 @@ public class DeleteAccountConfirmController {
 
             // Initialize DAOs
             ProblemReportDAO problemReportDAO = new ProblemReportDAO();
-            RideHistoryDAO rideHistoryDAO = new RideHistoryDAO();
-            RideRequestDAO rideRequestDAO = new RideRequestDAO();
 
             // Step 1: Delete problem reports using DAO
             if (!isDriver) {
@@ -151,39 +138,47 @@ public class DeleteAccountConfirmController {
                 System.out.println("[DeleteAccount] Deleted " + deleted + " problem report(s) about driver");
             }
 
-            // Step 2: Delete ride history using DAO
-            int historyDeleted;
-            if (isDriver) {
-                historyDeleted = rideHistoryDAO.deleteByDriver(con, userId);
-            } else {
-                historyDeleted = rideHistoryDAO.deleteByPassenger(con, userId);
+            // Step 2: Delete ride history using SQL (no DAO method exists)
+            String historyColumn = isDriver ? "driver_id" : "passenger_id";
+            String deleteHistorySql = "DELETE FROM ride_history WHERE " + historyColumn + " = ?";
+            int historyDeleted = 0;
+            try (PreparedStatement ps = con.prepareStatement(deleteHistorySql)) {
+                ps.setLong(1, userId);
+                historyDeleted = ps.executeUpdate();
+                System.out.println("[DeleteAccount] Deleted " + historyDeleted + " ride history record(s)");
             }
-            System.out.println("[DeleteAccount] Deleted " + historyDeleted + " ride history record(s)");
 
-            // Step 3: Handle ride requests using DAO
+            // Step 3: Handle ride requests using SQL
+            int requestsAffected = 0;
             if (isDriver) {
                 // For drivers: set driver_id to NULL (preserve request history)
-                int updated = rideRequestDAO.clearDriverFromRequests(con, userId);
-                System.out.println("[DeleteAccount] Cleared driver from " + updated + " ride request(s)");
+                String updateRequestsSql = "UPDATE ride_requests SET driver_id = NULL WHERE driver_id = ?";
+                try (PreparedStatement ps = con.prepareStatement(updateRequestsSql)) {
+                    ps.setLong(1, userId);
+                    requestsAffected = ps.executeUpdate();
+                    System.out.println("[DeleteAccount] Cleared driver from " + requestsAffected + " ride request(s)");
+                }
             } else {
                 // For passengers: delete all their requests
-                int deleted = rideRequestDAO.deleteByPassenger(con, userId);
-                System.out.println("[DeleteAccount] Deleted " + deleted + " ride request(s)");
+                String deleteRequestsSql = "DELETE FROM ride_requests WHERE passenger_id = ?";
+                try (PreparedStatement ps = con.prepareStatement(deleteRequestsSql)) {
+                    ps.setLong(1, userId);
+                    requestsAffected = ps.executeUpdate();
+                    System.out.println("[DeleteAccount] Deleted " + requestsAffected + " ride request(s)");
+                }
             }
 
-            // Step 4: Finally, delete the user using DAO
-            int userDeleted;
-            if (isDriver) {
-                DriverDAO driverDAO = new DriverDAO();
-                userDeleted = driverDAO.delete(userId);
-            } else {
-                PassengerDAO passengerDAO = new PassengerDAO();
-                userDeleted = passengerDAO.delete(userId);
+            // Step 4: Finally, delete the user using SQL (not DAO to avoid connection conflict)
+            String deleteUserSql = "DELETE FROM " + userTable + " WHERE id = ?";
+            int userDeleted = 0;
+            try (PreparedStatement ps = con.prepareStatement(deleteUserSql)) {
+                ps.setLong(1, userId);
+                userDeleted = ps.executeUpdate();
+                System.out.println("[DeleteAccount] Deleted user account: " + (userDeleted > 0 ? "SUCCESS" : "FAILED"));
             }
-
-            System.out.println("[DeleteAccount] Deleted user account: " + (userDeleted > 0 ? "SUCCESS" : "FAILED"));
 
             if (userDeleted == 0) {
+                System.err.println("[DeleteAccount] Failed to delete user record");
                 con.rollback();
                 return false;
             }
@@ -245,23 +240,39 @@ public class DeleteAccountConfirmController {
     }
 
     /**
-     * Navigate back to ProfileSettings
+     * Navigate back to ProfileSettings (Passenger) or DriverSettings (Driver)
      */
     private void navigateToProfileSettings() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ProfileSettings.fxml"));
-            Scene scene = new Scene(loader.load(), 390, 750);
+            if (isDriver) {
+                // Navigate to DriverSettings
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DriverSettings.fxml"));
+                Scene scene = new Scene(loader.load(), 390, 750);
 
-            ProfileSettingsController controller = loader.getController();
-            if (currentUser != null) {
-                controller.setUser(currentUser);
+                DriverSettingsController controller = loader.getController();
+                if (currentUser != null) {
+                    controller.setUser(currentUser);
+                }
+
+                Stage stage = (Stage) cancelButton.getScene().getWindow();
+                stage.setScene(scene);
+                stage.show();
+            } else {
+                // Navigate to PassengerSettings (ProfileSettings)
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ProfileSettings.fxml"));
+                Scene scene = new Scene(loader.load(), 390, 750);
+
+                ProfileSettingsController controller = loader.getController();
+                if (currentUser != null) {
+                    controller.setUser(currentUser);
+                }
+
+                Stage stage = (Stage) cancelButton.getScene().getWindow();
+                stage.setScene(scene);
+                stage.show();
             }
-
-            Stage stage = (Stage) cancelButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.show();
         } catch (IOException e) {
-            System.err.println("Failed to navigate to ProfileSettings: " + e.getMessage());
+            System.err.println("Failed to navigate back to Settings: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -271,6 +282,10 @@ public class DeleteAccountConfirmController {
      */
     private void navigateToRoleSelection() {
         try {
+            // Clear the user session (logout after account deletion)
+            UserSession.getInstance().clearSession();
+            System.out.println("[DeleteAccount] Session cleared, navigating to Role Selection");
+
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/RoleSelection.fxml"));
             Scene scene = new Scene(loader.load(), 390, 750);
 

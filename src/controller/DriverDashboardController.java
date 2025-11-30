@@ -12,12 +12,17 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.Pane;
+import javafx.animation.TranslateTransition;
+import javafx.util.Duration;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import utils.DBConnection;
+import utils.UserSession;
 
 import java.io.IOException;
 import java.sql.*;
@@ -28,8 +33,14 @@ import java.util.TimerTask;
 
 public class DriverDashboardController {
 
+    // Navigation icons
+    @FXML private ImageView aboutBtn;
+    @FXML private ImageView profileBtn;
+
     @FXML private Label welcomeLabel;
-    @FXML private ToggleButton driverModeToggle;
+    @FXML private Pane toggleSwitch;
+    @FXML private Pane toggleThumb;
+    @FXML private Label statusLabel;
     @FXML private Label todayEarningsLabel;
     @FXML private Label ridesTodayLabel;
     @FXML private VBox noRidesContainer;
@@ -42,6 +53,7 @@ public class DriverDashboardController {
 
     private Driver currentDriver;
     private long currentDriverId;
+    private boolean isDriverOnline = false;
     private RideRequestDAO.RideRequestRow currentRideRequest;
     private Timer pollTimer;
 
@@ -55,15 +67,26 @@ public class DriverDashboardController {
     public void initialize() {
         System.out.println("DriverDashboardController.initialize() called");
 
-        if (driverModeToggle == null || noRidesContainer == null) {
+        if (toggleSwitch == null || noRidesContainer == null) {
             System.err.println("ERROR: UI components are null");
             return;
         }
 
         try {
-            // Setup default state
-            driverModeToggle.setSelected(false);
-            driverModeToggle.setText("Offline");
+            // Setup navigation icons
+            if (aboutBtn != null) {
+                aboutBtn.setOnMouseClicked(e -> navigateToAbout());
+            }
+            if (profileBtn != null) {
+                profileBtn.setOnMouseClicked(e -> navigateToProfile());
+            }
+
+            // Setup default state (OFF)
+            isDriverOnline = false;
+            if (statusLabel != null) {
+                statusLabel.setText("Offline");
+                statusLabel.setStyle("-fx-text-fill: #8B92A8; -fx-font-weight: 600;");
+            }
             if (rideRequestWidget != null) {
                 rideRequestWidget.setVisible(false);
                 rideRequestWidget.setManaged(false);
@@ -71,19 +94,10 @@ public class DriverDashboardController {
             noRidesContainer.setVisible(true);
             noRidesContainer.setManaged(true);
 
-            // Setup toggle listener
-            driverModeToggle.selectedProperty().addListener((obs, wasSelected, isSelected) -> {
-                if (isSelected) {
-                    driverModeToggle.setText("Online");
-                    driverModeToggle.setStyle("-fx-background-color: #10B981; -fx-text-fill: white;");
-                    startPollingForRides();
-                } else {
-                    driverModeToggle.setText("Offline");
-                    driverModeToggle.setStyle("");
-                    stopPollingForRides();
-                    hideRideRequest();
-                }
-            });
+            // Setup toggle switch click handler
+            if (toggleSwitch != null) {
+                toggleSwitch.setOnMouseClicked(e -> toggleDriverStatus());
+            }
 
             // Setup accept ride button
             if (acceptRideButton != null) {
@@ -95,6 +109,146 @@ public class DriverDashboardController {
             System.err.println("ERROR in initialize(): " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Toggle driver online/offline status with smooth animation
+     * Updates the database immediately using existing DAO methods
+     */
+    private void toggleDriverStatus() {
+        isDriverOnline = !isDriverOnline;
+
+        // Update database first
+        if (!updateDriverStatusInDatabase(isDriverOnline)) {
+            // If database update fails, revert the toggle
+            isDriverOnline = !isDriverOnline;
+            System.err.println("[DriverDashboard] Failed to update driver status in database");
+            return;
+        }
+
+        // Update UI after successful database update
+        if (isDriverOnline) {
+            // Switch to ON state
+            animateToggleToOn();
+            if (statusLabel != null) {
+                statusLabel.setText("Online");
+                statusLabel.setStyle("-fx-text-fill: #10B981; -fx-font-weight: 600;");
+            }
+            System.out.println("[DriverDashboard] Driver status set to ONLINE (active=true)");
+            startPollingForRides();
+        } else {
+            // Switch to OFF state
+            animateToggleToOff();
+            if (statusLabel != null) {
+                statusLabel.setText("Offline");
+                statusLabel.setStyle("-fx-text-fill: #8B92A8; -fx-font-weight: 600;");
+            }
+            System.out.println("[DriverDashboard] Driver status set to OFFLINE (active=false)");
+            stopPollingForRides();
+            hideRideRequest();
+        }
+    }
+
+    /**
+     * Update driver status in database using existing DriverDAO.update() method
+     * @param isActive true for online (active=1), false for offline (active=0)
+     * @return true if update succeeded, false otherwise
+     */
+    private boolean updateDriverStatusInDatabase(boolean isActive) {
+        try {
+            // Use the currentDriver field that was set in setDriver()
+            if (currentDriver == null) {
+                System.err.println("[DriverDashboard] Cannot update status - driver not set");
+                return false;
+            }
+
+            // Get driver ID
+            if (currentDriverId == 0) {
+                System.err.println("[DriverDashboard] Cannot update status - driver ID not set");
+                return false;
+            }
+
+            // Create updated Driver object with new active status
+            // Note: We must preserve all existing values, only change active status
+            Driver updatedDriver = new Driver(
+                currentDriver.getLicensePlate(),
+                currentDriver.getCarModel(),
+                isActive, // NEW status value
+                currentDriver.getUserSSN(),
+                currentDriver.getName(),
+                currentDriver.getPhoneNumber(),
+                currentDriver.getEmail(),
+                currentDriver.getWalletBalance(),
+                currentDriver.getCreditBalance(),
+                currentDriver.getCurrentLocation(),
+                currentDriver.getRideHistory(),
+                currentDriver.getPassword()
+            );
+
+            // Update database using existing DAO method
+            DriverDAO driverDAO = new DriverDAO();
+            String currentLocationName = currentDriver.getCurrentLocation() != null ?
+                                        currentDriver.getCurrentLocation().getName() : null;
+            int rowsUpdated = driverDAO.update(currentDriverId, updatedDriver, currentLocationName);
+
+            if (rowsUpdated > 0) {
+                System.out.println("[DriverDashboard] ✅ Database updated: driver.active = " + isActive);
+
+                // Update the in-memory driver object
+                this.currentDriver = updatedDriver;
+
+                // Also update UserSession if it has the driver
+                if (UserSession.getInstance().isDriver()) {
+                    UserSession.getInstance().updateCurrentUser(updatedDriver);
+                }
+
+                return true;
+            } else {
+                System.err.println("[DriverDashboard] ❌ No rows updated in database");
+                return false;
+            }
+
+        } catch (SQLException e) {
+            System.err.println("[DriverDashboard] ❌ SQL Error updating driver status: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        } catch (Exception e) {
+            System.err.println("[DriverDashboard] ❌ Unexpected error updating driver status: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Animate toggle switch to ON position (right side, green)
+     */
+    private void animateToggleToOn() {
+        if (toggleThumb == null || toggleSwitch == null) return;
+
+        // Animate thumb to right position
+        TranslateTransition transition = new TranslateTransition(Duration.millis(200), toggleThumb);
+        transition.setToX(28); // Move 28px to the right (56 - 24 - 4 padding)
+        transition.play();
+
+        // Change background color to green
+        toggleSwitch.setStyle("-fx-background-color: #10B981; -fx-background-radius: 14; -fx-cursor: hand;");
+        toggleThumb.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12;");
+    }
+
+    /**
+     * Animate toggle switch to OFF position (left side, grey)
+     */
+    private void animateToggleToOff() {
+        if (toggleThumb == null || toggleSwitch == null) return;
+
+        // Animate thumb to left position
+        TranslateTransition transition = new TranslateTransition(Duration.millis(200), toggleThumb);
+        transition.setToX(0); // Back to original position
+        transition.play();
+
+        // Change background color to dark grey
+        toggleSwitch.setStyle("-fx-background-color: #30363D; -fx-background-radius: 14; -fx-cursor: hand;");
+        toggleThumb.setStyle("-fx-background-color: #8B92A8; -fx-background-radius: 12;");
     }
 
     public void setDriver(Driver driver) {
@@ -111,13 +265,16 @@ public class DriverDashboardController {
             welcomeLabel.setText("Welcome Back, " + driver.getName());
         }
 
-        // Get driver ID from database
+        // Get driver ID from database and load current status
         try {
             DriverDAO driverDAO = new DriverDAO();
             Long driverId = driverDAO.getDriverIdByEmail(driver.getEmail());
             if (driverId != null) {
                 this.currentDriverId = driverId;
                 System.out.println("Driver ID loaded: " + driverId);
+
+                // Load driver's current active status from database
+                loadDriverStatusFromDatabase();
             }
         } catch (Exception e) {
             System.err.println("Error loading driver ID: " + e.getMessage());
@@ -125,6 +282,67 @@ public class DriverDashboardController {
 
         // Load today's statistics
         loadTodayStatistics();
+    }
+
+    /**
+     * Load the driver's current active status from database and update toggle UI
+     */
+    private void loadDriverStatusFromDatabase() {
+        try {
+            DriverDAO driverDAO = new DriverDAO();
+            List<DriverDAO.DriverRow> drivers = driverDAO.showAll();
+
+            // Find this driver's row
+            for (DriverDAO.DriverRow row : drivers) {
+                if (row.id == currentDriverId) {
+                    // Set the toggle to match database status
+                    isDriverOnline = row.active;
+
+                    System.out.println("[DriverDashboard] Loaded status from DB: active=" + row.active);
+
+                    // Update UI to match database state (without animation on initial load)
+                    if (isDriverOnline) {
+                        // Set to ON state immediately
+                        if (toggleThumb != null) {
+                            toggleThumb.setTranslateX(28);
+                        }
+                        if (toggleSwitch != null) {
+                            toggleSwitch.setStyle("-fx-background-color: #10B981; -fx-background-radius: 14; -fx-cursor: hand;");
+                        }
+                        if (toggleThumb != null) {
+                            toggleThumb.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12;");
+                        }
+                        if (statusLabel != null) {
+                            statusLabel.setText("Online");
+                            statusLabel.setStyle("-fx-text-fill: #10B981; -fx-font-weight: 600;");
+                        }
+
+                        // Start polling if driver is online
+                        startPollingForRides();
+                    } else {
+                        // Set to OFF state immediately
+                        if (toggleThumb != null) {
+                            toggleThumb.setTranslateX(0);
+                        }
+                        if (toggleSwitch != null) {
+                            toggleSwitch.setStyle("-fx-background-color: #30363D; -fx-background-radius: 14; -fx-cursor: hand;");
+                        }
+                        if (toggleThumb != null) {
+                            toggleThumb.setStyle("-fx-background-color: #8B92A8; -fx-background-radius: 12;");
+                        }
+                        if (statusLabel != null) {
+                            statusLabel.setText("Offline");
+                            statusLabel.setStyle("-fx-text-fill: #8B92A8; -fx-font-weight: 600;");
+                        }
+                    }
+
+                    break;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("[DriverDashboard] Error loading driver status from database: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void loadTodayStatistics() {
@@ -287,7 +505,7 @@ public class DriverDashboardController {
                 controller.setRideDetails(rideId, currentDriver, currentDriverId);
             }
 
-            Stage stage = (Stage) driverModeToggle.getScene().getWindow();
+            Stage stage = (Stage) toggleSwitch.getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.show();
         } catch (Exception e) {
@@ -295,43 +513,80 @@ public class DriverDashboardController {
         }
     }
 
-    @FXML
-    private void onProfile() {
-        stopPollingForRides();
+
+    /**
+     * Navigate to About page (same as passenger version)
+     */
+    private void navigateToAbout() {
+        System.out.println("[DriverDashboard] Navigating to About page");
+        stopPollingForRides(); // Stop polling when navigating away
+        try {
+            // Try multiple paths to locate About.fxml
+            java.net.URL fxmlUrl = getClass().getResource("/view/About.fxml");
+            if (fxmlUrl == null) {
+                fxmlUrl = getClass().getClassLoader().getResource("view/About.fxml");
+            }
+            if (fxmlUrl == null) {
+                fxmlUrl = getClass().getResource("/About.fxml");
+            }
+            if (fxmlUrl == null) {
+                System.err.println("ERROR: Could not find About.fxml in any location");
+                return;
+            }
+
+            System.out.println("Loading About.fxml from: " + fxmlUrl);
+            FXMLLoader loader = new FXMLLoader(fxmlUrl);
+            javafx.scene.Parent root = loader.load();
+
+            // Pass driver data to About controller if it has setUser method
+            AboutController controller = loader.getController();
+            if (controller != null && currentDriver != null) {
+                try {
+                    controller.setUser(currentDriver);
+                } catch (Exception e) {
+                    System.out.println("About controller doesn't require user data");
+                }
+            }
+
+            Scene scene = new Scene(root, 390, 750);
+            Stage stage = (Stage) aboutBtn.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+
+            System.out.println("Successfully navigated to About page");
+        } catch (IOException ex) {
+            System.err.println("Failed to load About screen: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+
+    /**
+     * Navigate to Profile page (uses same Profile.fxml but for driver)
+     */
+    private void navigateToProfile() {
+        System.out.println("[DriverDashboard] Navigating to Driver Profile page");
+        stopPollingForRides(); // Stop polling when navigating away
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/Profile.fxml"));
             Scene scene = new Scene(loader.load(), 390, 750);
 
+            // Pass driver data to profile controller
             ProfileController controller = loader.getController();
             if (currentDriver != null) {
                 controller.setUser(currentDriver);
+                // Always refresh profile data when navigating
+                controller.refreshProfile();
+                System.out.println("Driver data passed to Profile: " + currentDriver.getName());
             }
 
-            Stage stage = (Stage) driverModeToggle.getScene().getWindow();
+            Stage stage = (Stage) profileBtn.getScene().getWindow();
             stage.setScene(scene);
             stage.show();
-        } catch (IOException e) {
-            System.err.println("Error opening profile: " + e.getMessage());
-        }
-    }
 
-    @FXML
-    private void onAbout() {
-        stopPollingForRides();
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/About.fxml"));
-            Scene scene = new Scene(loader.load(), 390, 750);
-
-            AboutController controller = loader.getController();
-            if (currentDriver != null) {
-                controller.setUser(currentDriver);
-            }
-
-            Stage stage = (Stage) driverModeToggle.getScene().getWindow();
-            stage.setScene(scene);
-            stage.show();
-        } catch (IOException e) {
-            System.err.println("Error opening about: " + e.getMessage());
+            System.out.println("Successfully navigated to Driver Profile page");
+        } catch (IOException ex) {
+            System.err.println("Failed to load Profile screen: " + ex.getMessage());
+            ex.printStackTrace();
         }
     }
 

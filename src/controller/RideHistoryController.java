@@ -69,6 +69,7 @@ public class RideHistoryController {
 
     /**
      * Load ride history from database
+     * Each ride is stored as ONE record containing all information
      */
     private void loadRideHistory() {
         if (userId == -1) {
@@ -83,16 +84,15 @@ public class RideHistoryController {
         ridesContainer.getChildren().clear();
 
         String idColumn = isDriver ? "driver_id" : "passenger_id";
-        String sql = "SELECT rh.request_id, MAX(rh.ride_cost) as ride_cost, MAX(rh.completed_at) as completed_at, " +
-                     "MAX(rh.payment_method) as payment_method, " +
+        // Simplified query - no GROUP BY needed since each ride is a single record
+        String sql = "SELECT rh.id, rh.request_id, rh.ride_cost, rh.completed_at, rh.payment_method, " +
                      "lo.name as origin, ld.name as destination, rr.distance_km, rr.status " +
                      "FROM ride_history rh " +
                      "JOIN ride_requests rr ON rh.request_id = rr.id " +
                      "JOIN locations lo ON rr.origin_id = lo.id " +
                      "JOIN locations ld ON rr.destination_id = ld.id " +
                      "WHERE rh." + idColumn + " = ? " +
-                     "GROUP BY rh.request_id, lo.name, ld.name, rr.distance_km, rr.status " +
-                     "ORDER BY MAX(rh.completed_at) DESC";
+                     "ORDER BY rh.completed_at DESC";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -123,6 +123,7 @@ public class RideHistoryController {
             }
         } catch (SQLException e) {
             System.err.println("Error loading rides history: " + e.getMessage());
+            e.printStackTrace();
             Label errorLabel = new Label("Error loading ride history");
             errorLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #ff5252;");
             ridesContainer.getChildren().add(errorLabel);
@@ -131,6 +132,7 @@ public class RideHistoryController {
 
     /**
      * Get total number of rides
+     * Each ride is stored as ONE record in ride_history
      */
     private int getTotalRides() {
         if (userId == -1) {
@@ -138,7 +140,8 @@ public class RideHistoryController {
         }
 
         String columnName = isDriver ? "driver_id" : "passenger_id";
-        String sql = "SELECT COUNT(DISTINCT request_id) as total FROM ride_history WHERE " + columnName + " = ?";
+        // Use COUNT(*) since each ride is a single record
+        String sql = "SELECT COUNT(*) as total FROM ride_history WHERE " + columnName + " = ?";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {

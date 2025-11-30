@@ -58,7 +58,7 @@ public abstract class Person {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
-    private double getAverageRating() {
+    public double getAverageRating() {
         System.out.println("rideHistory is null: " + (rideHistory == null));
         int total = 0;
         int count = 0;

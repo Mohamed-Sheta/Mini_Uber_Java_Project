@@ -11,6 +11,7 @@ import javafx.scene.control.PasswordField;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import utils.DBConnection;
+import utils.UserSession;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -113,6 +114,7 @@ public class ChangePasswordController {
             // Verify current password
             String hashedCurrent = hashPassword(currentPassword);
             if (!currentUser.getPassword().equals(hashedCurrent)) {
+                System.out.println("[ChangePassword] Current password verification failed");
                 return false;
             }
 
@@ -127,11 +129,17 @@ public class ChangePasswordController {
                 ps.setLong(2, userId);
                 int rowsUpdated = ps.executeUpdate();
 
-                // Update the user object's password
+                // Update the user object's password and UserSession
                 if (rowsUpdated > 0) {
                     currentUser.setPassword(hashedNew);
+
+                    // Update UserSession to reflect the new password
+                    UserSession.getInstance().updateCurrentUser(currentUser);
+
+                    System.out.println("[ChangePassword] ✅ Password updated successfully in database and session");
                     return true;
                 }
+                System.err.println("[ChangePassword] ❌ No rows updated");
                 return false;
             }
         } catch (Exception e) {
@@ -188,23 +196,39 @@ public class ChangePasswordController {
     }
 
     /**
-     * Navigate to Profile Settings screen
+     * Navigate to Profile Settings screen (Driver or Passenger)
      */
     private void navigateToProfileSettings() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ProfileSettings.fxml"));
-            Scene scene = new Scene(loader.load(), 390, 750);
+            if (isDriver) {
+                // Navigate to DriverSettings
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DriverSettings.fxml"));
+                Scene scene = new Scene(loader.load(), 390, 750);
 
-            ProfileSettingsController controller = loader.getController();
-            if (currentUser != null) {
-                controller.setUser(currentUser);
+                DriverSettingsController controller = loader.getController();
+                if (currentUser != null) {
+                    controller.setUser(currentUser);
+                }
+
+                Stage stage = (Stage) backButton.getScene().getWindow();
+                stage.setScene(scene);
+                stage.show();
+            } else {
+                // Navigate to ProfileSettings (Passenger)
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ProfileSettings.fxml"));
+                Scene scene = new Scene(loader.load(), 390, 750);
+
+                ProfileSettingsController controller = loader.getController();
+                if (currentUser != null) {
+                    controller.setUser(currentUser);
+                }
+
+                Stage stage = (Stage) backButton.getScene().getWindow();
+                stage.setScene(scene);
+                stage.show();
             }
-
-            Stage stage = (Stage) backButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.show();
         } catch (IOException e) {
-            System.err.println("Failed to navigate to ProfileSettings: " + e.getMessage());
+            System.err.println("Failed to navigate to Settings: " + e.getMessage());
             e.printStackTrace();
         }
     }

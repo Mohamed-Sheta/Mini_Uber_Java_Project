@@ -86,27 +86,6 @@ public class ProfileController {
     @FXML
     private VBox ridesCard;
 
-    // Inline Settings buttons
-    @FXML
-    private Button addFundsButtonInline;
-
-    @FXML
-    private Button changePasswordButtonInline;
-
-    @FXML
-    private Button reportRideButtonInline;
-
-    @FXML
-    private Button deleteAccountButtonInline;
-
-    @FXML
-    private Button logoutButtonInline;
-
-    @FXML
-    private Region addFundsDivider;
-
-    @FXML
-    private Region reportRideDivider;
 
     private Person currentUser;
     private boolean isDriver = false;
@@ -124,38 +103,6 @@ public class ProfileController {
         if (UserSession.getInstance().isLoggedIn()) {
             setUser(UserSession.getInstance().getCurrentUser());
         }
-
-        // Apply role-based visibility
-        applyRoleBasedVisibility();
-    }
-
-    /**
-     * Apply role-based visibility rules to UI elements
-     */
-    private void applyRoleBasedVisibility() {
-        boolean isDriverUser = UserSession.getInstance().isDriver();
-
-        // Hide Add Funds for drivers
-        if (addFundsButtonInline != null) {
-            addFundsButtonInline.setVisible(!isDriverUser);
-            addFundsButtonInline.setManaged(!isDriverUser);
-        }
-        if (addFundsDivider != null) {
-            addFundsDivider.setVisible(!isDriverUser);
-            addFundsDivider.setManaged(!isDriverUser);
-        }
-
-        // Hide Report a Ride for drivers
-        if (reportRideButtonInline != null) {
-            reportRideButtonInline.setVisible(!isDriverUser);
-            reportRideButtonInline.setManaged(!isDriverUser);
-        }
-        if (reportRideDivider != null) {
-            reportRideDivider.setVisible(!isDriverUser);
-            reportRideDivider.setManaged(!isDriverUser);
-        }
-
-        System.out.println("[Profile] Role-based visibility applied. Is Driver: " + isDriverUser);
     }
 
     /**
@@ -254,12 +201,12 @@ public class ProfileController {
 
         if (isDriver) {
             spentLabelText.setText("Earned");
-            // For drivers, show total earned (with tips)
+            // For drivers, show total earned (with tips and 8% commission deducted)
             double totalEarned = getTotalEarnedWithTips();
-            totalSpentLabel.setText(String.format("$%.0f", totalEarned));
+            totalSpentLabel.setText(String.format("$%.2f", totalEarned));
         } else {
             spentLabelText.setText("Spent");
-            totalSpentLabel.setText(String.format("$%.0f", stats.spent));
+            totalSpentLabel.setText(String.format("$%.2f", stats.spent));
         }
 
         // Fill form fields
@@ -275,42 +222,6 @@ public class ProfileController {
             driverFieldsContainer.setManaged(true);
             carModelField.setText(driver.getCarModel());
             licensePlateField.setText(driver.getLicensePlate());
-
-            // Hide Add Funds and Report Ride for drivers
-            if (addFundsButtonInline != null) {
-                addFundsButtonInline.setVisible(false);
-                addFundsButtonInline.setManaged(false);
-            }
-            if (addFundsDivider != null) {
-                addFundsDivider.setVisible(false);
-                addFundsDivider.setManaged(false);
-            }
-            if (reportRideButtonInline != null) {
-                reportRideButtonInline.setVisible(false);
-                reportRideButtonInline.setManaged(false);
-            }
-            if (reportRideDivider != null) {
-                reportRideDivider.setVisible(false);
-                reportRideDivider.setManaged(false);
-            }
-        } else {
-            // Show all options for passengers
-            if (addFundsButtonInline != null) {
-                addFundsButtonInline.setVisible(true);
-                addFundsButtonInline.setManaged(true);
-            }
-            if (addFundsDivider != null) {
-                addFundsDivider.setVisible(true);
-                addFundsDivider.setManaged(true);
-            }
-            if (reportRideButtonInline != null) {
-                reportRideButtonInline.setVisible(true);
-                reportRideButtonInline.setManaged(true);
-            }
-            if (reportRideDivider != null) {
-                reportRideDivider.setVisible(true);
-                reportRideDivider.setManaged(true);
-            }
         }
     }
 
@@ -341,16 +252,16 @@ public class ProfileController {
 
     /**
      * Get total number of rides from ride_history
-     * NOTE: Since we now store TWO records per ride (one for passenger, one for driver),
-     * we must count DISTINCT request_id to get the actual number of rides
+     * Each ride creates ONE record in ride_history table
      */
     private int getTotalRides() {
         if (userId == -1) {
+            System.out.println("[Profile] getTotalRides: Invalid userId, returning 0");
             return 0;
         }
 
         String columnName = isDriver ? "driver_id" : "passenger_id";
-        String sql = "SELECT COUNT(DISTINCT request_id) as total FROM ride_history WHERE " + columnName + " = ?";
+        String sql = "SELECT COUNT(*) as total FROM ride_history WHERE " + columnName + " = ?";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -359,33 +270,33 @@ public class ProfileController {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getInt("total");
+                    int count = rs.getInt("total");
+                    System.out.println("[Profile] Fetched rides=" + count + " for " + (isDriver ? "driver" : "passenger") + " id=" + userId);
+                    return count;
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Error getting total rides: " + e.getMessage());
+            System.err.println("[Profile] Error getting total rides: " + e.getMessage());
             e.printStackTrace();
         }
 
+        System.out.println("[Profile] No ride data found, returning 0");
         return 0;
     }
 
     /**
      * Get total amount spent (for passengers) or earned (for drivers)
-     * NOTE: With TWO records per ride, we need to ensure we're not double-counting
-     * We sum the MAX(ride_cost) per request_id to get accurate totals
+     * For passengers: returns total ride_cost
+     * For drivers: returns ride_cost (this will be used by getTotalEarnedWithTips for full calculation)
      */
     private double getTotalSpentOrEarned() {
         if (userId == -1) {
+            System.out.println("[Profile] getTotalSpentOrEarned: Invalid userId, returning 0.0");
             return 0.0;
         }
 
         String columnName = isDriver ? "driver_id" : "passenger_id";
-        // Use subquery to get one ride_cost per request_id to avoid double-counting
-        String sql = "SELECT SUM(ride_cost) as total FROM (" +
-                     "SELECT MAX(ride_cost) as ride_cost FROM ride_history " +
-                     "WHERE " + columnName + " = ? GROUP BY request_id" +
-                     ") as unique_rides";
+        String sql = "SELECT SUM(ride_cost) as total FROM ride_history WHERE " + columnName + " = ?";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -394,34 +305,35 @@ public class ProfileController {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getDouble("total");
+                    double total = rs.getDouble("total");
+                    System.out.println("[Profile] Fetched spent/earned=" + String.format("%.2f", total) +
+                                      " for " + (isDriver ? "driver" : "passenger") + " id=" + userId);
+                    return total;
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Error getting total amount: " + e.getMessage());
+            System.err.println("[Profile] Error getting total amount: " + e.getMessage());
             e.printStackTrace();
         }
 
+        System.out.println("[Profile] No spending/earning data found, returning 0.0");
         return 0.0;
     }
 
     /**
      * Get total amount earned by driver including tips
-     * This sums ride_cost + tips for all completed rides
+     * Driver receives 92% of ride_cost (8% goes to company) + 100% of tips
+     * Formula: SUM((ride_cost * 0.92) + tips)
      */
     private double getTotalEarnedWithTips() {
         if (userId == -1 || !isDriver) {
+            System.out.println("[Profile] getTotalEarnedWithTips: Invalid userId or not driver, returning 0.0");
             return 0.0;
         }
 
-        // For drivers, sum (ride_cost + tips) from ride_history
-        // Use subquery to avoid double-counting since each ride has 2 records
-        String sql = "SELECT SUM(total) as grand_total FROM (" +
-                     "SELECT MAX(ride_cost + COALESCE(tips, 0)) as total " +
-                     "FROM ride_history " +
-                     "WHERE driver_id = ? " +
-                     "GROUP BY request_id" +
-                     ") as unique_rides";
+        // Calculate (ride_cost * 0.92) + tips for each ride
+        String sql = "SELECT SUM((ride_cost * 0.92) + COALESCE(tips, 0)) as total_earned " +
+                     "FROM ride_history WHERE driver_id = ?";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -430,14 +342,17 @@ public class ProfileController {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getDouble("grand_total");
+                    double earned = rs.getDouble("total_earned");
+                    System.out.println("[Profile] Fetched earned=" + String.format("%.2f", earned) + " for driver id=" + userId);
+                    return earned;
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Error getting total earned with tips: " + e.getMessage());
+            System.err.println("[Profile] Error getting total earned with tips: " + e.getMessage());
             e.printStackTrace();
         }
 
+        System.out.println("[Profile] No earning data found, returning 0.0");
         return 0.0;
     }
 
@@ -779,6 +694,69 @@ public class ProfileController {
     }
 
     /**
+     * Get average rating using the existing Person.getAverageRating() method
+     * This method reloads ride history from database first to ensure fresh data
+     */
+    private double getAverageRating() {
+        if (currentUser == null) {
+            System.out.println("[Profile] getAverageRating: currentUser is null, returning 0.0");
+            return 0.0;
+        }
+
+        // Reload ride history from database to ensure Person has fresh data
+        reloadRideHistoryFromDatabase();
+
+        // Use the existing Person.getAverageRating() method
+        double rating = currentUser.getAverageRating();
+
+        System.out.println("[Profile] Fetched rating=" + String.format("%.1f", rating) +
+                          " for " + (isDriver ? "driver" : "passenger") +
+                          ", rides in history=" + (currentUser.getRideHistory() != null ? currentUser.getRideHistory().size() : 0));
+
+        return rating;
+    }
+
+    /**
+     * Reload ride history from database and populate currentUser's rideHistory list
+     * This ensures Person.getAverageRating() has the latest data
+     */
+    private void reloadRideHistoryFromDatabase() {
+        if (currentUser == null || userId == -1) {
+            return;
+        }
+
+        try {
+            DAO.RideHistoryDAO rideHistoryDAO = new DAO.RideHistoryDAO();
+            List<DAO.RideHistoryDAO.RideHistoryRow> rows = rideHistoryDAO.showAll();
+
+            // Filter rows for this user and build RideHistory objects
+            currentUser.getRideHistory().clear();
+
+            for (DAO.RideHistoryDAO.RideHistoryRow row : rows) {
+                boolean isThisUser = isDriver ? (row.driverId == userId) : (row.passengerId == userId);
+
+                if (isThisUser) {
+                    // Create minimal RideHistory object for rating calculation
+                    // Person.getAverageRating() only needs passenger/driver rating values
+                    Model.RideHistory rideHistory = new Model.RideHistory(
+                        null, // driver - not needed for rating calculation
+                        null, // passenger - not needed for rating calculation
+                        row.passengerRating,
+                        row.driverRating,
+                        null  // request - not needed for rating calculation
+                    );
+                    currentUser.getRideHistory().add(rideHistory);
+                }
+            }
+
+            System.out.println("[Profile] Reloaded " + currentUser.getRideHistory().size() + " ride history records from DB");
+        } catch (Exception e) {
+            System.err.println("[Profile] Error reloading ride history: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Update user stats after a completed ride
      * Recalculates dynamically from ride_history - no caching needed
      */
@@ -812,46 +790,12 @@ public class ProfileController {
 
         if (isDriver) {
             double totalEarned = getTotalEarnedWithTips();
-            totalSpentLabel.setText(String.format("$%.0f", totalEarned));
+            totalSpentLabel.setText(String.format("$%.2f", totalEarned));
         } else {
-            totalSpentLabel.setText(String.format("$%.0f", stats.spent));
+            totalSpentLabel.setText(String.format("$%.2f", stats.spent));
         }
     }
 
-    /**
-     * Get average rating from ride_history table
-     * For Drivers: Show average of passenger_rating (ratings received FROM passengers)
-     * For Passengers: Show average of driver_rating (ratings received FROM drivers)
-     */
-    private double getAverageRating() {
-        if (userId == -1) {
-            return 0.0;
-        }
-
-        // FIXED: Drivers should see passenger_rating (ratings they received FROM passengers)
-        // Passengers should see driver_rating (ratings they received FROM drivers)
-        String columnName = isDriver ? "passenger_rating" : "driver_rating";
-        String userColumn = isDriver ? "driver_id" : "passenger_id";
-        String sql = "SELECT AVG(" + columnName + ") as avg_rating FROM ride_history WHERE " + userColumn + " = ? AND " + columnName + " > 0";
-
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setLong(1, userId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    double avgRating = rs.getDouble("avg_rating");
-                    return Double.isNaN(avgRating) ? 0.0 : avgRating;
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("Error getting average rating: " + e.getMessage());
-            e.printStackTrace();
-        }
-
-        return 0.0;
-    }
 
     // ====================================================================
     // FEATURE 2: SETTINGS MODAL (NOT MONEY-RELATED)
@@ -2068,123 +2012,6 @@ public class ProfileController {
     }
 
     // ====================================================================
-    // INLINE SETTINGS HANDLERS (for settings section inside profile)
-    // ====================================================================
-
-    /**
-     * Handle Add Funds button click (inline)
-     */
-    @FXML
-    public void onAddFundsInline() {
-        // Prevent drivers from accessing Add Funds
-        if (UserSession.getInstance().isDriver()) {
-            System.out.println("[Profile] Add Funds blocked for drivers");
-            return;
-        }
-        // Reuse existing Add Funds page/functionality
-        openAddFundsPage();
-    }
-
-    /**
-     * Handle Change Password button click (inline)
-     */
-    @FXML
-    public void onChangePasswordInline() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ChangePassword.fxml"));
-            Scene scene = new Scene(loader.load(), 390, 750);
-
-            ChangePasswordController controller = loader.getController();
-            if (currentUser != null) {
-                controller.setUser(currentUser);
-            }
-
-            Stage stage = (Stage) backButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.show();
-        } catch (IOException e) {
-            System.err.println("Failed to navigate to Change Password: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Handle Report Ride button click (inline)
-     */
-    @FXML
-    public void onReportRideInline() {
-        // Prevent drivers from accessing Report Ride
-        if (UserSession.getInstance().isDriver()) {
-            System.out.println("[Profile] Report Ride blocked for drivers");
-            return;
-        }
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ReportProblem.fxml"));
-            Scene scene = new Scene(loader.load(), 390, 750);
-
-            ReportProblemController reportController = loader.getController();
-            if (currentUser != null) {
-                reportController.setUser(currentUser);
-            }
-
-            Stage stage = (Stage) backButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.show();
-        } catch (IOException e) {
-            System.err.println("Failed to navigate to Report Problem: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Handle Delete Account button click (inline)
-     */
-    @FXML
-    public void onDeleteAccountInline() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DeleteAccountConfirm.fxml"));
-            Scene scene = new Scene(loader.load(), 390, 750);
-
-            DeleteAccountConfirmController controller = loader.getController();
-            if (currentUser != null) {
-                controller.setUser(currentUser);
-            }
-
-            Stage stage = (Stage) backButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.show();
-        } catch (IOException e) {
-            System.err.println("Failed to navigate to Delete Account Confirmation: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Handle Logout button click (inline)
-     */
-    @FXML
-    public void onLogoutInline() {
-        // Clear the user session
-        UserSession.getInstance().clearSession();
-        System.out.println("[Profile] User logged out, session cleared");
-        navigateToRoleSelection();
-    }
-
-    /**
-     * Navigate to role selection screen
-     */
-    private void navigateToRoleSelection() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/RoleSelection.fxml"));
-            Scene scene = new Scene(loader.load(), 390, 750);
-
-            Stage stage = (Stage) backButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.show();
-        } catch (IOException e) {
-            System.err.println("Failed to navigate to Role Selection: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
+    // END OF ProfileController
 }
 

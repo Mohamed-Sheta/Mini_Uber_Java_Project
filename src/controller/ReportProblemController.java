@@ -85,8 +85,7 @@ public class ReportProblemController {
 
     /**
      * Load completed rides for the current user
-     * NOTE: Since we now store TWO records per ride, we use DISTINCT and GROUP BY
-     * to avoid showing duplicate rides in the dropdown
+     * Each ride is stored as ONE record in ride_history
      */
     private void loadCompletedRides() {
         if (currentUser == null) {
@@ -105,16 +104,15 @@ public class ReportProblemController {
             System.out.println("[ReportProblem] Loading rides for user ID: " + userId);
 
             // Get completed rides from ride_history table
-            // Use GROUP BY request_id to get only one entry per ride
-            String sql = "SELECT rh.request_id, MAX(rh.completed_at) as completed_at, " +
-                        "l1.name as origin, l2.name as destination, MAX(rh.ride_cost) as ride_cost " +
+            // Simplified query - no GROUP BY needed since each ride is a single record
+            String sql = "SELECT rh.request_id, rh.completed_at, rh.ride_cost, " +
+                        "l1.name as origin, l2.name as destination " +
                         "FROM ride_history rh " +
                         "JOIN ride_requests rr ON rh.request_id = rr.id " +
                         "JOIN locations l1 ON rr.origin_id = l1.id " +
                         "JOIN locations l2 ON rr.destination_id = l2.id " +
                         "WHERE rh.passenger_id = ? " +
-                        "GROUP BY rh.request_id, l1.name, l2.name " +
-                        "ORDER BY MAX(rh.completed_at) DESC";
+                        "ORDER BY rh.completed_at DESC";
 
             try (Connection con = DBConnection.getConnection();
                  PreparedStatement ps = con.prepareStatement(sql)) {
@@ -287,6 +285,30 @@ public class ReportProblemController {
     }
 
     /**
+     * Get driver name for a specific request
+     */
+    private String getDriverNameForRequest(long requestId) {
+        String sql = "SELECT d.name FROM drivers d " +
+                     "JOIN ride_history rh ON d.id = rh.driver_id " +
+                     "WHERE rh.request_id = ?";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setLong(1, requestId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("name");
+            }
+        } catch (SQLException e) {
+            System.err.println("[ReportProblem] Error getting driver name: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return "Unknown Driver";
+    }
+
+    /**
      * Get user ID from database
      */
     private long getUserIdFromDatabase() {
@@ -324,13 +346,50 @@ public class ReportProblemController {
                 controller.setUser(currentUser);
             }
 
-            Stage stage = (Stage) backButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.show();
+            // Get the stage using multiple fallback methods
+            Stage stage = getStage();
+            if (stage != null) {
+                stage.setScene(scene);
+                stage.show();
+            } else {
+                System.err.println("Failed to get Stage - cannot navigate back");
+            }
         } catch (IOException e) {
             System.err.println("Failed to navigate back to ProfileSettings: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Get the current Stage using multiple fallback methods
+     */
+    private Stage getStage() {
+        // Try method 1: Get stage from backButton
+        if (backButton != null && backButton.getScene() != null && backButton.getScene().getWindow() != null) {
+            return (Stage) backButton.getScene().getWindow();
+        }
+
+        // Try method 2: Get stage from submitButton
+        if (submitButton != null && submitButton.getScene() != null && submitButton.getScene().getWindow() != null) {
+            return (Stage) submitButton.getScene().getWindow();
+        }
+
+        // Try method 3: Get stage from rideComboBox
+        if (rideComboBox != null && rideComboBox.getScene() != null && rideComboBox.getScene().getWindow() != null) {
+            return (Stage) rideComboBox.getScene().getWindow();
+        }
+
+        // Try method 4: Get stage from problemTypeComboBox
+        if (problemTypeComboBox != null && problemTypeComboBox.getScene() != null && problemTypeComboBox.getScene().getWindow() != null) {
+            return (Stage) problemTypeComboBox.getScene().getWindow();
+        }
+
+        // Try method 5: Get stage from descriptionArea
+        if (descriptionArea != null && descriptionArea.getScene() != null && descriptionArea.getScene().getWindow() != null) {
+            return (Stage) descriptionArea.getScene().getWindow();
+        }
+
+        return null;
     }
 
     /**
@@ -349,7 +408,10 @@ public class ReportProblemController {
             String passengerName = currentUser.getName();
             String passengerEmail = currentUser.getEmail();
 
-            // Generate email body
+            // Get driver name for the reported ride
+            String driverName = getDriverNameForRequest(requestId);
+
+            // Generate email body including driver name
             String emailBody = generateReportEmailBody(
                 reportId,
                 requestId,
@@ -358,6 +420,7 @@ public class ReportProblemController {
                 description,
                 passengerName,
                 passengerEmail,
+                driverName,
                 timestamp
             );
 
@@ -439,7 +502,7 @@ public class ReportProblemController {
     private String generateReportEmailBody(long reportId, long requestId, String rideDetails,
                                           String problemType, String description,
                                           String passengerName, String passengerEmail,
-                                          Timestamp timestamp) {
+                                          String driverName, Timestamp timestamp) {
         return "<!DOCTYPE html>\n" +
             "<html>\n" +
             "<head>\n" +
@@ -483,10 +546,17 @@ public class ReportProblemController {
             "            <h3 style=\"color: #FF6B6B;\">👤 Reporter Information</h3>\n" +
             "            <div class=\"info-box\">\n" +
             "                <div class=\"value\">\n" +
-            "                    <span class=\"label\">Name:</span> " + passengerName + "\n" +
+            "                    <span class=\"label\">Passenger Name:</span> " + passengerName + "\n" +
             "                </div>\n" +
             "                <div class=\"value\">\n" +
-            "                    <span class=\"label\">Email:</span> " + passengerEmail + "\n" +
+            "                    <span class=\"label\">Passenger Email:</span> " + passengerEmail + "\n" +
+            "                </div>\n" +
+            "            </div>\n" +
+            "            \n" +
+            "            <h3 style=\"color: #FF6B6B;\">🚗 Driver Information</h3>\n" +
+            "            <div class=\"info-box\">\n" +
+            "                <div class=\"value\">\n" +
+            "                    <span class=\"label\">Driver Name:</span> " + driverName + "\n" +
             "                </div>\n" +
             "            </div>\n" +
             "            \n" +

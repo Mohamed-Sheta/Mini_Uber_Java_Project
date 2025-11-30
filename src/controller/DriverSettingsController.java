@@ -12,6 +12,7 @@ import javafx.scene.layout.VBox;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import utils.DBConnection;
+import utils.UserSession;
 
 import java.io.IOException;
 import java.security.MessageDigest;
@@ -24,7 +25,7 @@ import java.util.Optional;
 public class DriverSettingsController {
 
     @FXML private Button backButton;
-    @FXML private Button addFundsButton;
+    @FXML private Label balanceLabel;
     @FXML private Button changePasswordButton;
     @FXML private Button deleteAccountButton;
     @FXML private Button logoutButton;
@@ -33,11 +34,17 @@ public class DriverSettingsController {
     private boolean isDriver = true;
 
     /**
-     * Set the current user
+     * Set the current user and update balance display
      */
     public void setUser(Person user) {
         this.currentUser = user;
         this.isDriver = (user instanceof Driver);
+
+        // Update balance display
+        if (balanceLabel != null && currentUser != null) {
+            double balance = currentUser.getWalletBalance();
+            balanceLabel.setText(String.format("%.2f EGP", balance));
+        }
     }
 
     /**
@@ -63,28 +70,6 @@ public class DriverSettingsController {
         }
     }
 
-    /**
-     * Navigate to Add Funds screen
-     */
-    @FXML
-    public void onAddFunds() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/AddFunds.fxml"));
-            Scene scene = new Scene(loader.load(), 390, 750);
-
-            AddFundsController controller = loader.getController();
-            if (currentUser != null) {
-                controller.setUser(currentUser);
-            }
-
-            Stage stage = (Stage) addFundsButton.getScene().getWindow();
-            stage.setScene(scene);
-            stage.show();
-        } catch (IOException e) {
-            System.err.println("Failed to navigate to Add Funds: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
 
     /**
      * Navigate to Change Password screen
@@ -145,6 +130,10 @@ public class DriverSettingsController {
      */
     private void navigateToRoleSelection() {
         try {
+            // Clear the user session (logout)
+            UserSession.getInstance().clearSession();
+            System.out.println("[DriverSettings] Session cleared, navigating to Role Selection");
+
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/RoleSelection.fxml"));
             Scene scene = new Scene(loader.load(), 390, 750);
 

@@ -1249,55 +1249,41 @@ public class MapController {
             System.out.println("[FINALIZE] Ride Cost: " + rideCost + " EGP");
             System.out.println("[FINALIZE] Final Total: " + finalTotal + " EGP");
 
-            // STEP 1: Delete the initial ride_history record created by RideManager (if exists)
-            // Then insert TWO new records - one for passenger perspective, one for driver perspective
-            System.out.println("[FINALIZE] Step 1: Deleting initial ride_history and inserting TWO new records...");
+            // STEP 1: Insert ride_history record into database
+            // Note: RideManager.completeRide() already inserted a record, but with old values
+            // We need to delete it and insert a new one with updated tips/donation/rating
+            System.out.println("[FINALIZE] Step 1: Inserting into ride_history...");
             RideHistoryDAO rideHistoryDAO = new RideHistoryDAO();
 
             try {
                 // First, delete any existing ride_history record for this request
+                // (RideManager already created one with old values)
                 String deleteSql = "DELETE FROM ride_history WHERE request_id = ?";
                 try (Connection con = utils.DBConnection.getConnection();
                      PreparedStatement ps = con.prepareStatement(deleteSql)) {
                     ps.setLong(1, rideRequestId);
                     int deleted = ps.executeUpdate();
-                    System.out.println("[FINALIZE] Deleted " + deleted + " existing ride_history record(s)");
+                    System.out.println("[FINALIZE] Deleted " + deleted + " old ride_history record(s) from RideManager");
                 }
 
-                // INSERT RECORD #1: Passenger's perspective
-                // This record represents the passenger's experience of the ride
-                long passengerRecordId = rideHistoryDAO.insert(
+                // Insert ONE new record with complete information
+                // This single record contains all data for both passenger and driver
+                long historyId = rideHistoryDAO.insert(
                     rideRequestId,
                     driverId,
                     passengerId,
-                    passengerRating,  // Passenger's rating OF the driver
-                    0,                // Driver didn't rate passenger (not implemented)
-                    finalTotal,       // Full cost including tips and donation
+                    passengerRating,  // Rating passenger gave TO driver (driver_rating column)
+                    0,                // Rating driver gave TO passenger (not implemented yet)
+                    finalTotal,       // Total cost including tips and donation
                     Model.PaymentType.wallet,
                     tipAmount,
                     donationAmount,
                     donationAmount > 0 ? "MiniGO Foundation" : ""
                 );
-                System.out.println("[FINALIZE] ✅ Record #1 (Passenger perspective) inserted, id=" + passengerRecordId);
-
-                // INSERT RECORD #2: Driver's perspective
-                // This record represents the driver's experience of the same ride
-                long driverRecordId = rideHistoryDAO.insert(
-                    rideRequestId,
-                    driverId,
-                    passengerId,
-                    0,                // Passenger didn't rate in driver's record
-                    0,                // Driver's rating of passenger (not implemented)
-                    rideCost + tipAmount,  // Driver's earnings (no donation)
-                    Model.PaymentType.wallet,
-                    tipAmount,
-                    0.0,              // Driver doesn't see donation
-                    ""
-                );
-                System.out.println("[FINALIZE] ✅ Record #2 (Driver perspective) inserted, id=" + driverRecordId);
+                System.out.println("[FINALIZE] ✅ ride_history inserted successfully, id=" + historyId);
 
             } catch (Exception e) {
-                System.err.println("[FINALIZE] ❌ Failed to insert ride_history records: " + e.getMessage());
+                System.err.println("[FINALIZE] ❌ Failed to insert ride_history record: " + e.getMessage());
                 e.printStackTrace();
                 throw e;
             }
@@ -1308,44 +1294,42 @@ public class MapController {
             System.out.println("[FINALIZE] Step 2: ride_request kept with status='Completed' (not deleted)");
             System.out.println("[FINALIZE] ✅ ride_request remains in database with foreign key intact");
 
-            // STEP 3: Update passenger wallet - deduct final total
-            System.out.println("[FINALIZE] Step 3: Updating passenger wallet...");
+            // STEP 3: Sync wallet balances to database
+            // Note: RideManager.completeRide() → Payment.updateProcessPayment() already deducted from passenger
+            // and added to driver. We just need to save the updated balances to the database.
+            System.out.println("[FINALIZE] Step 3: Syncing passenger wallet to database...");
             try {
-                double passengerBalance = passenger.getWalletBalance();
-                double newPassengerBalance = passengerBalance - finalTotal;
-                passenger.updateWalletBalance(newPassengerBalance);
+                double currentPassengerBalance = passenger.getWalletBalance();
 
-                // Update passenger in database
+                // Update passenger in database with current balance (already deducted by Payment)
                 PassengerDAO passengerDAO = new PassengerDAO();
                 passengerDAO.update(
                     passengerId,
                     passenger,
                     passenger.getCurrentLocation() != null ? passenger.getCurrentLocation().getName() : null
                 );
-                System.out.println("[FINALIZE] ✅ Passenger wallet updated: " + passengerBalance + " -> " + newPassengerBalance + " EGP");
+                System.out.println("[FINALIZE] ✅ Passenger wallet synced to DB: " + currentPassengerBalance + " EGP");
             } catch (Exception e) {
-                System.err.println("[FINALIZE] ❌ Failed to update passenger wallet: " + e.getMessage());
+                System.err.println("[FINALIZE] ❌ Failed to sync passenger wallet: " + e.getMessage());
                 e.printStackTrace();
             }
 
-            // STEP 4: Update driver wallet - add ride cost + tip
-            System.out.println("[FINALIZE] Step 4: Updating driver wallet...");
+            // STEP 4: Sync driver wallet to database
+            // Note: Payment.processPayment() already added earnings to driver wallet (amount * 0.92)
+            System.out.println("[FINALIZE] Step 4: Syncing driver wallet to database...");
             try {
-                double driverEarnings = rideCost + tipAmount;  // Driver gets ride cost + tip (not donation)
-                double driverBalance = assignedDriver.getWalletBalance();
-                double newDriverBalance = driverBalance + driverEarnings;
-                assignedDriver.updateWalletBalance(newDriverBalance);
+                double currentDriverBalance = assignedDriver.getWalletBalance();
 
-                // Update driver in database
+                // Update driver in database with current balance (already added by Payment)
                 DriverDAO driverDAO = new DriverDAO();
                 driverDAO.update(
                     driverId,
                     assignedDriver,
                     assignedDriver.getCurrentLocation() != null ? assignedDriver.getCurrentLocation().getName() : null
                 );
-                System.out.println("[FINALIZE] ✅ Driver wallet updated: " + driverBalance + " -> " + newDriverBalance + " EGP (earned: " + driverEarnings + ")");
+                System.out.println("[FINALIZE] ✅ Driver wallet synced to DB: " + currentDriverBalance + " EGP");
             } catch (Exception e) {
-                System.err.println("[FINALIZE] ❌ Failed to update driver wallet: " + e.getMessage());
+                System.err.println("[FINALIZE] ❌ Failed to sync driver wallet: " + e.getMessage());
                 e.printStackTrace();
             }
 

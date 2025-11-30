@@ -27,15 +27,100 @@ public class ProfileSettingsController {
     @FXML private Button deleteAccountButton;
     @FXML private Button logoutButton;
 
+    @FXML private javafx.scene.layout.Region addFundsDivider;
+    @FXML private javafx.scene.layout.Region reportRideDivider;
+
+    @FXML private javafx.scene.layout.VBox driverBalanceCard;
+    @FXML private Label driverBalanceLabel;
+
     private Person currentUser;
     private boolean isDriver = false;
 
     /**
-     * Set the current user
+     * Initialize the controller
+     */
+    @FXML
+    public void initialize() {
+        // Will apply visibility rules after user is set
+    }
+
+    /**
+     * Set the current user and apply role-based visibility
      */
     public void setUser(Person user) {
         this.currentUser = user;
         this.isDriver = (user instanceof Driver);
+
+        // Apply driver-specific visibility rules
+        applyDriverVisibilityRules();
+    }
+
+    /**
+     * Hide Add Funds and Report Ride buttons for drivers, show balance card
+     */
+    private void applyDriverVisibilityRules() {
+        if (isDriver) {
+            // Show driver balance card
+            if (driverBalanceCard != null) {
+                driverBalanceCard.setVisible(true);
+                driverBalanceCard.setManaged(true);
+
+                // Update balance display
+                if (driverBalanceLabel != null && currentUser != null) {
+                    double balance = currentUser.getWalletBalance();
+                    driverBalanceLabel.setText(String.format("%.2f EGP", balance));
+                }
+            }
+
+            // Drivers should not add funds (they earn money from rides)
+            if (addFundsButton != null) {
+                addFundsButton.setVisible(false);
+                addFundsButton.setManaged(false);
+            }
+            if (addFundsDivider != null) {
+                addFundsDivider.setVisible(false);
+                addFundsDivider.setManaged(false);
+            }
+
+            // Drivers don't report rides as passengers
+            if (reportRideButton != null) {
+                reportRideButton.setVisible(false);
+                reportRideButton.setManaged(false);
+            }
+            if (reportRideDivider != null) {
+                reportRideDivider.setVisible(false);
+                reportRideDivider.setManaged(false);
+            }
+
+            System.out.println("[ProfileSettings] Driver-specific UI applied - Balance shown, Add Funds and Report Ride hidden");
+        } else {
+            // Hide driver balance card for passengers
+            if (driverBalanceCard != null) {
+                driverBalanceCard.setVisible(false);
+                driverBalanceCard.setManaged(false);
+            }
+
+            // Passengers see all options
+            if (addFundsButton != null) {
+                addFundsButton.setVisible(true);
+                addFundsButton.setManaged(true);
+            }
+            if (addFundsDivider != null) {
+                addFundsDivider.setVisible(true);
+                addFundsDivider.setManaged(true);
+            }
+
+            if (reportRideButton != null) {
+                reportRideButton.setVisible(true);
+                reportRideButton.setManaged(true);
+            }
+            if (reportRideDivider != null) {
+                reportRideDivider.setVisible(true);
+                reportRideDivider.setManaged(true);
+            }
+
+            System.out.println("[ProfileSettings] Passenger UI applied - All options visible");
+        }
     }
 
     /**
@@ -64,11 +149,16 @@ public class ProfileSettingsController {
     }
 
     /**
-     * Navigate to Add Funds screen
+     * Navigate to Add Funds screen (Passengers only)
      */
     @FXML
     public void onAddFunds() {
         // Prevent drivers from accessing Add Funds
+        if (isDriver) {
+            System.out.println("[ProfileSettings] Add Funds blocked - user is a driver");
+            return;
+        }
+
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/AddFunds.fxml"));
             Scene scene = new Scene(loader.load(), 390, 750);
@@ -111,11 +201,16 @@ public class ProfileSettingsController {
     }
 
     /**
-     * Navigate to Report Problem screen
+     * Navigate to Report Problem screen (Passengers only)
      */
     @FXML
     public void onReportRide() {
         // Prevent drivers from accessing Report Ride
+        if (isDriver) {
+            System.out.println("[ProfileSettings] Report Ride blocked - user is a driver");
+            return;
+        }
+
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ReportProblem.fxml"));
             Scene scene = new Scene(loader.load(), 390, 750);
