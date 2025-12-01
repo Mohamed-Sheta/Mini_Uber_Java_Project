@@ -1,141 +1,211 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8" />
-    <title>MiniGo Map</title>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v5.3.0/css/ol.css">
-    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v5.3.0/build/ol.js"></script>
-
+    <meta charset="utf-8">
+    <title>Mini Uber Map</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- OpenLayers CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v8.2.0/ol.css">
     <style>
-        html, body {
+        body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
-
         #map {
             width: 100%;
             height: 100%;
         }
-
+        .ol-zoom {
+            top: 10px;
+            right: 10px;
+            left: auto;
+        }
         .ol-attribution {
-            display: none !important;
+            display: none;
         }
     </style>
 </head>
-
 <body>
+    <div id="map"></div>
 
-<div id="map"></div>
+    <!-- OpenLayers JS -->
+    <script src="https://cdn.jsdelivr.net/npm/ol@v8.2.0/dist/ol.js"></script>
 
-<script>
+    <script>
+        // Global map variables
+        var map;
+        var view;
+        var routeLayer;
+        var markersLayer;
+        var currentRoute = null;
+        window.mapReady = false;
 
-    window.mapReady = false;
+        // Initialize the map
+        function initMap() {
+            console.log("Initializing OpenLayers map...");
 
-    const baseLayer = new ol.layer.Tile({
-        source: new ol.source.XYZ({
-            url: "https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-            crossOrigin: "anonymous"
-        })
-    });
-
-    window.map = new ol.Map({
-        target: "map",
-        layers: [baseLayer],
-        controls: ol.control.defaults({ zoom: false }),
-        view: new ol.View({
-            center: ol.proj.fromLonLat([31.25, 30.05]),
-            zoom: 12
-        })
-    });
-
-    window.routeLayer = null;
-    window.markerLayer = null;
-
-    const greenIcon = new ol.style.Icon({
-        src: "https://maps.gstatic.com/mapfiles/ms2/micons/green-dot.png",
-        scale: 1
-    });
-
-    const redIcon = new ol.style.Icon({
-        src: "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png",
-        scale: 1
-    });
-
-    window.drawRoute = function(lat1, lng1, lat2, lng2) {
-
-        if (window.routeLayer) map.removeLayer(window.routeLayer);
-        if (window.markerLayer) map.removeLayer(window.markerLayer);
-
-        const start = new ol.Feature({
-            geometry: new ol.geom.Point(ol.proj.fromLonLat([lng1, lat1]))
-        });
-        start.setStyle(new ol.style.Style({ image: greenIcon }));
-
-        const end = new ol.Feature({
-            geometry: new ol.geom.Point(ol.proj.fromLonLat([lng2, lat2]))
-        });
-        end.setStyle(new ol.style.Style({ image: redIcon }));
-
-        window.markerLayer = new ol.layer.Vector({
-            source: new ol.source.Vector({ features: [start, end] })
-        });
-        map.addLayer(window.markerLayer);
-
-        const url =
-            `https://router.project-osrm.org/route/v1/driving/${lng1},${lat1};${lng2},${lat2}?overview=full&geometries=geojson`;
-
-        fetch(url)
-            .then(r => r.json())
-            .then(json => {
-
-                if (!json.routes || json.routes.length === 0) return;
-
-                const coords = json.routes[0].geometry.coordinates;
-                const olCoords = coords.map(c =>
-                    ol.proj.fromLonLat([c[0], c[1]])
-                );
-
-                window.routeLayer = new ol.layer.Vector({
-                    source: new ol.source.Vector({
-                        features: [
-                            new ol.Feature({
-                                geometry: new ol.geom.LineString(olCoords)
-                            })
-                        ]
-                    }),
-                    style: new ol.style.Style({
-                        stroke: new ol.style.Stroke({
-                            color: "#007bff",
-                            width: 5
-                        })
-                    })
-                });
-
-                map.addLayer(window.routeLayer);
-
-                map.getView().fit(window.routeLayer.getSource().getExtent(), {
-                    padding: [80, 80, 80, 80],
-                    duration: 500
-                });
-
+            // Create view centered on Cairo
+            view = new ol.View({
+                center: ol.proj.fromLonLat([31.2357, 30.0444]), // Cairo coordinates
+                zoom: 12
             });
-    };
 
-    window.clearRoute = function() {
-        if (window.routeLayer) map.removeLayer(window.routeLayer);
-        if (window.markerLayer) map.removeLayer(window.markerLayer);
-        window.routeLayer = null;
-        window.markerLayer = null;
-    };
+            // Create layers
+            routeLayer = new ol.layer.Vector({
+                source: new ol.source.Vector(),
+                style: new ol.style.Style({
+                    stroke: new ol.style.Stroke({
+                        color: '#238636',
+                        width: 4
+                    })
+                })
+            });
 
-    window.mapReady = true;
+            markersLayer = new ol.layer.Vector({
+                source: new ol.source.Vector()
+            });
 
-</script>
+            // Create map with OpenStreetMap (white/light theme)
+            map = new ol.Map({
+                target: 'map',
+                layers: [
+                    new ol.layer.Tile({
+                        source: new ol.source.OSM() // OpenStreetMap - white theme
+                    }),
+                    routeLayer,
+                    markersLayer
+                ],
+                view: view
+            });
 
+            window.mapReady = true;
+            console.log("Map initialized successfully!");
+        }
+
+        // Add a marker to the map
+        function addMarker(lon, lat, label, color) {
+            try {
+                console.log("Adding marker:", label, "at", lon, lat);
+
+                var markerFeature = new ol.Feature({
+                    geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat])),
+                    name: label
+                });
+
+                // Style based on marker type (pickup = green, destination = red)
+                var markerColor = color || '#238636';
+                if (label && label.toLowerCase().includes('destination')) {
+                    markerColor = '#da3633';
+                }
+
+                markerFeature.setStyle(new ol.style.Style({
+                    image: new ol.style.Circle({
+                        radius: 8,
+                        fill: new ol.style.Fill({ color: markerColor }),
+                        stroke: new ol.style.Stroke({
+                            color: '#ffffff',
+                            width: 2
+                        })
+                    }),
+                    text: new ol.style.Text({
+                        text: label,
+                        offsetY: -20,
+                        fill: new ol.style.Fill({ color: '#000000' }),
+                        stroke: new ol.style.Stroke({
+                            color: '#ffffff',
+                            width: 3
+                        }),
+                        font: 'bold 12px sans-serif'
+                    })
+                }));
+
+                markersLayer.getSource().addFeature(markerFeature);
+                return true;
+            } catch (e) {
+                console.error("Error adding marker:", e);
+                return false;
+            }
+        }
+
+        // Draw a route between two points
+        function drawRoute(startLon, startLat, endLon, endLat) {
+            try {
+                console.log("Drawing route from", startLon, startLat, "to", endLon, endLat);
+
+                // Clear existing route
+                clearRoute();
+
+                // Add markers
+                addMarker(startLon, startLat, "Pickup", "#238636");
+                addMarker(endLon, endLat, "Destination", "#da3633");
+
+                // Create simple straight line route (for demo purposes)
+                var routeCoords = [
+                    ol.proj.fromLonLat([startLon, startLat]),
+                    ol.proj.fromLonLat([endLon, endLat])
+                ];
+
+                var routeFeature = new ol.Feature({
+                    geometry: new ol.geom.LineString(routeCoords)
+                });
+
+                routeLayer.getSource().addFeature(routeFeature);
+                currentRoute = routeFeature;
+
+                // Fit view to show the entire route
+                var extent = routeLayer.getSource().getExtent();
+                view.fit(extent, {
+                    padding: [50, 50, 50, 50],
+                    duration: 1000
+                });
+
+                console.log("Route drawn successfully!");
+                return true;
+            } catch (e) {
+                console.error("Error drawing route:", e);
+                return false;
+            }
+        }
+
+        // Clear route and markers
+        function clearRoute() {
+            try {
+                routeLayer.getSource().clear();
+                markersLayer.getSource().clear();
+                currentRoute = null;
+                console.log("Route and markers cleared");
+                return true;
+            } catch (e) {
+                console.error("Error clearing route:", e);
+                return false;
+            }
+        }
+
+        // Center map on specific coordinates
+        function centerMap(lon, lat, zoom) {
+            try {
+                zoom = zoom || 14;
+                view.animate({
+                    center: ol.proj.fromLonLat([lon, lat]),
+                    zoom: zoom,
+                    duration: 1000
+                });
+                return true;
+            } catch (e) {
+                console.error("Error centering map:", e);
+                return false;
+            }
+        }
+
+        // Initialize map when page loads
+        window.addEventListener('load', function() {
+            initMap();
+        });
+    </script>
 </body>
 </html>
+

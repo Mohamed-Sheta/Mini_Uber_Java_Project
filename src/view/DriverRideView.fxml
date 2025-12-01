@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.web.WebView?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.geometry.Insets?>
+
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="controller.DriverRideViewController"
+           prefWidth="390.0" prefHeight="750.0"
+           style="-fx-background-color: #0B0F17;">
+
+    <VBox prefWidth="390.0" prefHeight="750.0" spacing="0.0">
+
+        <!-- Top Bar with Icons -->
+        <HBox spacing="10.0" alignment="CENTER" prefHeight="48.0" style="-fx-background-color: #0B0F17; -fx-padding: 8 12 8 12;">
+            <ImageView fx:id="aboutBtn" fitWidth="28.0" fitHeight="28.0" pickOnBounds="true" preserveRatio="true" style="-fx-cursor: hand;">
+                <image>
+                    <Image url="@/settings_12280787.png"/>
+                </image>
+            </ImageView>
+
+            <Pane HBox.hgrow="ALWAYS"/>
+
+            <ImageView fx:id="profileBtn" fitWidth="32.0" fitHeight="32.0" pickOnBounds="true" preserveRatio="true" style="-fx-cursor: hand;">
+                <image>
+                    <Image url="@/user_17436294.png"/>
+                </image>
+            </ImageView>
+        </HBox>
+
+        <!-- Status Banner -->
+        <VBox alignment="CENTER" spacing="5.0" prefHeight="60.0" style="-fx-background-color: #238636; -fx-padding: 10;">
+            <Label fx:id="statusBannerLabel" text="On the way to passenger" style="-fx-text-fill: #FFFFFF; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+            <Label fx:id="statusSubtitleLabel" text="Heading to pickup location..." style="-fx-text-fill: #CCCCCC; -fx-font-size: 12px;"/>
+        </VBox>
+
+        <!-- Map View -->
+        <WebView fx:id="mapWebView" prefWidth="390.0" prefHeight="400.0" VBox.vgrow="ALWAYS"/>
+
+        <!-- Ride Details Card -->
+        <VBox spacing="15.0" style="-fx-background-color: #1A2333; -fx-background-radius: 20 20 0 0; -fx-padding: 20;">
+            <Label text="Current Ride" style="-fx-text-fill: #E6EDF3; -fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+            <VBox spacing="10.0">
+                <HBox spacing="10.0" alignment="CENTER_LEFT">
+                    <Label text="Pickup:" style="-fx-text-fill: #8B92A8; -fx-font-size: 13px;" prefWidth="80.0"/>
+                    <Label fx:id="pickupLabel" text="Loading..." style="-fx-text-fill: #E6EDF3; -fx-font-size: 13px; -fx-font-weight: bold;"/>
+                </HBox>
+
+                <HBox spacing="10.0" alignment="CENTER_LEFT">
+                    <Label text="Drop-off:" style="-fx-text-fill: #8B92A8; -fx-font-size: 13px;" prefWidth="80.0"/>
+                    <Label fx:id="destinationLabel" text="Loading..." style="-fx-text-fill: #E6EDF3; -fx-font-size: 13px; -fx-font-weight: bold;"/>
+                </HBox>
+
+                <HBox spacing="10.0" alignment="CENTER_LEFT">
+                    <Label text="Distance:" style="-fx-text-fill: #8B92A8; -fx-font-size: 13px;" prefWidth="80.0"/>
+                    <Label fx:id="distanceLabel" text="0 km" style="-fx-text-fill: #E6EDF3; -fx-font-size: 13px; -fx-font-weight: bold;"/>
+                </HBox>
+
+                <HBox spacing="10.0" alignment="CENTER_LEFT">
+                    <Label text="Fare:" style="-fx-text-fill: #8B92A8; -fx-font-size: 13px;" prefWidth="80.0"/>
+                    <Label fx:id="fareLabel" text="$0.00" style="-fx-text-fill: #3FB950; -fx-font-size: 16px; -fx-font-weight: bold;"/>
+                </HBox>
+            </VBox>
+        </VBox>
+    </VBox>
+
+    <!-- Popup Overlay -->
+    <StackPane fx:id="popupOverlay" visible="false" managed="false" style="-fx-background-color: rgba(0, 0, 0, 0.7);">
+        <VBox fx:id="popupContainer" spacing="20.0" alignment="CENTER" prefWidth="320.0" prefHeight="200.0" style="-fx-background-color: #1A2333; -fx-background-radius: 20; -fx-padding: 30;">
+            <Label fx:id="popupTitle" text="Arrival Notice" style="-fx-text-fill: #E6EDF3; -fx-font-size: 18px; -fx-font-weight: bold;"/>
+            <Label fx:id="popupMessage" text="You have arrived" wrapText="true" textAlignment="CENTER" maxWidth="260.0" style="-fx-text-fill: #8B92A8; -fx-font-size: 13px;"/>
+            <Button fx:id="popupButton" text="Continue" prefWidth="180.0" prefHeight="45.0" style="-fx-background-color: #238636; -fx-text-fill: #FFFFFF; -fx-background-radius: 10; -fx-cursor: hand; -fx-font-size: 14px; -fx-font-weight: bold;">
+                <padding>
+                    <Insets top="12.0" right="24.0" bottom="12.0" left="24.0"/>
+                </padding>
+            </Button>
+        </VBox>
+    </StackPane>
+</StackPane>
+

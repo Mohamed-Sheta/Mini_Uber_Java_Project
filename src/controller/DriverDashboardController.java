@@ -50,6 +50,9 @@ public class DriverDashboardController {
     @FXML private Label distanceLabel;
     @FXML private Label fareLabel;
     @FXML private Button acceptRideButton;
+    @FXML private Button rejectRideButton;
+    @FXML private Label waitingMessageLabel;
+    @FXML private Label waitingSubtitleLabel;
 
     private Driver currentDriver;
     private long currentDriverId;
@@ -94,6 +97,9 @@ public class DriverDashboardController {
             noRidesContainer.setVisible(true);
             noRidesContainer.setManaged(true);
 
+            // Set initial offline message
+            showOfflineMessage();
+
             // Setup toggle switch click handler
             if (toggleSwitch != null) {
                 toggleSwitch.setOnMouseClicked(e -> toggleDriverStatus());
@@ -102,6 +108,11 @@ public class DriverDashboardController {
             // Setup accept ride button
             if (acceptRideButton != null) {
                 acceptRideButton.setOnAction(event -> acceptRide());
+            }
+
+            // Setup reject ride button
+            if (rejectRideButton != null) {
+                rejectRideButton.setOnAction(event -> rejectRide());
             }
 
             System.out.println("DriverDashboardController.initialize() completed");
@@ -135,7 +146,19 @@ public class DriverDashboardController {
                 statusLabel.setStyle("-fx-text-fill: #00D26A; -fx-font-weight: 600; -fx-font-size: 13px;");
             }
             System.out.println("[DriverDashboard] Driver status set to ONLINE (active=true)");
-            startPollingForRides();
+
+            // Show waiting message immediately
+            showWaitingForRidesMessage();
+
+            // Start polling for rides after 2 second delay
+            new Thread(() -> {
+                try {
+                    Thread.sleep(2000); // Wait 2 seconds
+                    Platform.runLater(this::startPollingForRides);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }).start();
         } else {
             // Switch to OFF state
             animateToggleToOff();
@@ -145,7 +168,7 @@ public class DriverDashboardController {
             }
             System.out.println("[DriverDashboard] Driver status set to OFFLINE (active=false)");
             stopPollingForRides();
-            hideRideRequest();
+            showOfflineMessage();
         }
     }
 
@@ -302,61 +325,43 @@ public class DriverDashboardController {
 
     /**
      * Load the driver's current active status from database and update toggle UI
+     * ALWAYS sets driver to OFFLINE on login for safety
      */
     private void loadDriverStatusFromDatabase() {
         try {
-            DriverDAO driverDAO = new DriverDAO();
-            List<DriverDAO.DriverRow> drivers = driverDAO.showAll();
+            // ALWAYS set driver to OFFLINE on login
+            System.out.println("[DriverDashboard] Setting driver to OFFLINE on login");
 
-            // Find this driver's row
-            for (DriverDAO.DriverRow row : drivers) {
-                if (row.id == currentDriverId) {
-                    // Set the toggle to match database status
-                    isDriverOnline = row.active;
-
-                    System.out.println("[DriverDashboard] Loaded status from DB: active=" + row.active);
-
-                    // Update UI to match database state (without animation on initial load)
-                    if (isDriverOnline) {
-                        // Set to ON state immediately
-                        if (toggleThumb != null) {
-                            toggleThumb.setTranslateX(28);
-                        }
-                        if (toggleSwitch != null) {
-                            toggleSwitch.setStyle("-fx-background-color: #10B981; -fx-background-radius: 14; -fx-cursor: hand;");
-                        }
-                        if (toggleThumb != null) {
-                            toggleThumb.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12;");
-                        }
-                        if (statusLabel != null) {
-                            statusLabel.setText("Online");
-                            statusLabel.setStyle("-fx-text-fill: #10B981; -fx-font-weight: 600;");
-                        }
-
-                        // Start polling if driver is online
-                        startPollingForRides();
-                    } else {
-                        // Set to OFF state immediately
-                        if (toggleThumb != null) {
-                            toggleThumb.setTranslateX(0);
-                        }
-                        if (toggleSwitch != null) {
-                            toggleSwitch.setStyle("-fx-background-color: #30363D; -fx-background-radius: 14; -fx-cursor: hand;");
-                        }
-                        if (toggleThumb != null) {
-                            toggleThumb.setStyle("-fx-background-color: #8B92A8; -fx-background-radius: 12;");
-                        }
-                        if (statusLabel != null) {
-                            statusLabel.setText("Offline");
-                            statusLabel.setStyle("-fx-text-fill: #8B92A8; -fx-font-weight: 600;");
-                        }
-                    }
-
-                    break;
-                }
+            // Update database to set status = 0 (offline)
+            if (!updateDriverStatusInDatabase(false)) {
+                System.err.println("[DriverDashboard] Failed to set driver to offline");
             }
-        } catch (SQLException e) {
-            System.err.println("[DriverDashboard] Error loading driver status from database: " + e.getMessage());
+
+            // Set local status to offline
+            isDriverOnline = false;
+
+            // Update UI to OFFLINE state (without animation on initial load)
+            if (toggleThumb != null) {
+                toggleThumb.setTranslateX(0);
+            }
+            if (toggleSwitch != null) {
+                toggleSwitch.setStyle("-fx-background-color: #30363D; -fx-background-radius: 14; -fx-cursor: hand;");
+            }
+            if (toggleThumb != null) {
+                toggleThumb.setStyle("-fx-background-color: #8B92A8; -fx-background-radius: 12;");
+            }
+            if (statusLabel != null) {
+                statusLabel.setText("Offline");
+                statusLabel.setStyle("-fx-text-fill: #8B92A8; -fx-font-weight: 600;");
+            }
+
+            // Show offline message
+            showOfflineMessage();
+
+            System.out.println("[DriverDashboard] ✅ Driver status initialized to OFFLINE");
+
+        } catch (Exception e) {
+            System.err.println("[DriverDashboard] Error setting driver to offline: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -432,12 +437,72 @@ public class DriverDashboardController {
                 }
             }
 
+            // If no pending rides exist, create a sample ride request using existing DAO
+            if (pendingRides.isEmpty()) {
+                System.out.println("[DriverDashboard] No pending rides found - creating sample request");
+
+                // Create a sample ride request if we have locations
+                if (locations.size() >= 2) {
+                    try {
+                        // Get a valid passenger_id from database (use first available passenger)
+                        long validPassengerId = 1L; // Default fallback
+                        try (Connection con = DBConnection.getConnection()) {
+                            String query = "SELECT id FROM passengers LIMIT 1";
+                            try (PreparedStatement ps = con.prepareStatement(query);
+                                 ResultSet rs = ps.executeQuery()) {
+                                if (rs.next()) {
+                                    validPassengerId = rs.getLong("id");
+                                    System.out.println("[DriverDashboard] Using passenger ID: " + validPassengerId);
+                                }
+                            }
+                        }
+
+                        // Get two different locations for pickup and destination
+                        LocationDAO.LocationRow origin = locations.get(0);
+                        LocationDAO.LocationRow destination = locations.get(locations.size() > 2 ? locations.size() - 1 : 1);
+
+                        // Calculate sample distance and price
+                        double distance = 15.0 + (Math.random() * 10.0); // 15-25 km
+                        int estimatedTime = (int)(distance * 1.2); // ~1.2 min per km
+                        double estimatedPrice = distance * 5.0; // $5 per km
+
+                        // Insert sample request into database using existing DAO
+                        long requestId = rideRequestDAO.insert(
+                            validPassengerId, // Use valid passenger_id from database
+                            null, // driver_id (null = pending)
+                            origin.id,
+                            destination.id,
+                            Status.Pending,
+                            distance,
+                            estimatedTime,
+                            estimatedPrice,
+                            null, // acceptance_time
+                            false, // driver_arrived
+                            false  // passenger_arrived
+                        );
+
+                        System.out.println("[DriverDashboard] ✅ Sample ride request created with ID: " + requestId);
+
+                        // Reload and check again
+                        allRequests = rideRequestDAO.showAll();
+                        pendingRides.clear();
+                        for (RideRequestDAO.RideRequestRow request : allRequests) {
+                            if (request.status.equals("Pending") && request.driverId == null) {
+                                pendingRides.add(request);
+                            }
+                        }
+                    } catch (SQLException e) {
+                        System.err.println("[DriverDashboard] Error creating sample request: " + e.getMessage());
+                    }
+                }
+            }
+
             if (pendingRides.isEmpty()) {
                 Platform.runLater(this::hideRideRequest);
                 return;
             }
 
-            // Get nearest ride
+            // Get nearest ride (first pending ride)
             currentRideRequest = pendingRides.get(0);
             Platform.runLater(() -> displayRideRequest(currentRideRequest));
 
@@ -486,10 +551,46 @@ public class DriverDashboardController {
         }
     }
 
+    /**
+     * Show offline message when driver is not active
+     */
+    private void showOfflineMessage() {
+        hideRideRequest();
+        if (waitingMessageLabel != null) {
+            waitingMessageLabel.setText("Status: Offline");
+            waitingMessageLabel.setStyle("-fx-font-size: 17px; -fx-font-weight: 700; -fx-text-fill: #8B92A8; -fx-letter-spacing: 0.3px;");
+        }
+        if (waitingSubtitleLabel != null) {
+            waitingSubtitleLabel.setText("Make your status Active to receive ride requests");
+            waitingSubtitleLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #8B92A8; -fx-font-weight: 500; -fx-line-spacing: 2px;");
+        }
+    }
+
+    /**
+     * Show waiting for rides message when driver just went online
+     */
+    private void showWaitingForRidesMessage() {
+        hideRideRequest();
+        if (waitingMessageLabel != null) {
+            waitingMessageLabel.setText("Waiting for Rides...");
+            waitingMessageLabel.setStyle("-fx-font-size: 17px; -fx-font-weight: 700; -fx-text-fill: #E6EDF3; -fx-letter-spacing: 0.3px;");
+        }
+        if (waitingSubtitleLabel != null) {
+            waitingSubtitleLabel.setText("You're online! Ride requests will appear here");
+            waitingSubtitleLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #8B92A8; -fx-font-weight: 500; -fx-line-spacing: 2px;");
+        }
+    }
+
     private void acceptRide() {
-        if (currentRideRequest == null) return;
+        if (currentRideRequest == null) {
+            System.err.println("[DriverDashboard] Cannot accept ride - no current request");
+            return;
+        }
+
+        System.out.println("[DriverDashboard] Driver accepted ride ID: " + currentRideRequest.id);
 
         try {
+            // Update ride status to Accepted in database
             RideRequestDAO rideRequestDAO = new RideRequestDAO();
             rideRequestDAO.update(
                     currentRideRequest.id,
@@ -499,33 +600,78 @@ public class DriverDashboardController {
                     currentRideRequest.estimatedTime,
                     currentRideRequest.estimatedPrice,
                     new Timestamp(System.currentTimeMillis()),
-                    false,
-                    false
+                    false, // driver not yet arrived
+                    false  // passenger not yet arrived
             );
 
+            System.out.println("[DriverDashboard] ✅ Ride status updated to Accepted");
+
+            // Stop polling for new rides
             stopPollingForRides();
+
+            // Hide ride request widget
             hideRideRequest();
-            openDriverMap(currentRideRequest.id);
+
+            // Navigate to DriverRideView
+            openDriverRideView(currentRideRequest.id);
+
         } catch (SQLException e) {
-            System.err.println("Error accepting ride: " + e.getMessage());
+            System.err.println("[DriverDashboard] ❌ Error accepting ride: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    private void openDriverMap(long rideId) {
+    private void rejectRide() {
+        if (currentRideRequest == null) {
+            System.err.println("[DriverDashboard] Cannot reject ride - no current request");
+            return;
+        }
+
+        System.out.println("[DriverDashboard] Driver rejected ride ID: " + currentRideRequest.id);
+
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DriverMap.fxml"));
+            // Delete the request from database using existing DAO
+            RideRequestDAO rideRequestDAO = new RideRequestDAO();
+            rideRequestDAO.delete(currentRideRequest.id);
+
+            System.out.println("[DriverDashboard] ✅ Ride request deleted from database");
+        } catch (SQLException e) {
+            System.err.println("[DriverDashboard] ❌ Error deleting ride request: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        // Hide the ride request widget
+        hideRideRequest();
+
+        // Show waiting message again
+        showWaitingForRidesMessage();
+
+        // Clear current request
+        currentRideRequest = null;
+
+        System.out.println("[DriverDashboard] ✅ Ride request rejected and removed");
+    }
+
+    private void openDriverRideView(long rideId) {
+        try {
+            System.out.println("[DriverDashboard] Opening DriverRideView for ride ID: " + rideId);
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DriverRideView.fxml"));
             javafx.scene.Parent root = loader.load();
 
-            DriverMapController controller = loader.getController();
+            DriverRideViewController controller = loader.getController();
             if (controller != null) {
                 controller.setRideDetails(rideId, currentDriver, currentDriverId);
             }
 
             Stage stage = (Stage) toggleSwitch.getScene().getWindow();
-            stage.setScene(new Scene(root));
+            stage.setScene(new Scene(root, 390, 750));
             stage.show();
+
+            System.out.println("[DriverDashboard] ✅ Successfully opened DriverRideView");
         } catch (Exception e) {
-            System.err.println("Error opening driver map: " + e.getMessage());
+            System.err.println("[DriverDashboard] ❌ Error opening DriverRideView: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

@@ -10,27 +10,29 @@
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="controller.DriverDashboardController"
       prefWidth="390" prefHeight="750"
+      maxHeight="750"
       styleClass="content-container"
       alignment="TOP_CENTER"
-      spacing="12"
-      stylesheets="@/style.css">
+      spacing="8"
+      stylesheets="@/style.css"
+      style="-fx-background-color: #0B0F17;">
 
     <padding>
-        <Insets top="12" bottom="12" left="20" right="20"/>
+        <Insets top="8" bottom="8" left="18" right="18"/>
     </padding>
 
     <!-- Top Navigation Bar -->
     <HBox spacing="10"
           alignment="CENTER"
           styleClass="map-top-bar"
-          prefHeight="48"
-          minHeight="48"
-          maxHeight="48">
+          prefHeight="44"
+          minHeight="44"
+          maxHeight="44">
         <padding>
-            <Insets top="8" bottom="8" left="12" right="12"/>
+            <Insets top="6" bottom="6" left="12" right="12"/>
         </padding>
         <VBox.margin>
-            <Insets bottom="5"/>
+            <Insets bottom="3"/>
         </VBox.margin>
 
         <ImageView fx:id="aboutBtn"
@@ -58,26 +60,33 @@
 
     <!-- Header Section -->
     <HBox alignment="CENTER_LEFT" spacing="10">
-        <Label fx:id="welcomeLabel" text="Welcome Back, Driver" styleClass="title-large"/>
+        <VBox.margin>
+            <Insets top="2" bottom="2"/>
+        </VBox.margin>
+        <Label fx:id="welcomeLabel" text="Welcome Back, Driver"
+               style="-fx-font-size: 18px; -fx-font-weight: 700; -fx-text-fill: #E6EDF3;"/>
     </HBox>
 
     <!-- Driver Mode Toggle -->
-    <VBox styleClass="card-container" spacing="16" alignment="CENTER"
-          style="-fx-background-radius: 24;
-                 -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 10, 0.0, 0, 2);">
+    <VBox styleClass="card-container" spacing="12" alignment="CENTER"
+          style="-fx-background-radius: 20;
+                 -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 8, 0.0, 0, 2);">
         <padding>
-            <Insets top="22" bottom="24" left="24" right="24"/>
+            <Insets top="16" bottom="16" left="20" right="20"/>
         </padding>
+        <VBox.margin>
+            <Insets top="2" bottom="2"/>
+        </VBox.margin>
 
         <!-- Title with improved typography -->
         <Label text="Driver Status"
-               style="-fx-font-size: 16px;
+               style="-fx-font-size: 15px;
                       -fx-font-weight: 600;
                       -fx-text-fill: #E6EDF3;
                       -fx-letter-spacing: 0.3px;"/>
 
         <!-- Modern Toggle Switch with Status Label -->
-        <HBox alignment="CENTER" spacing="18">
+        <HBox alignment="CENTER" spacing="16">
             <!-- Status Text -->
             <Label fx:id="statusLabel" text="Offline"
                    style="-fx-font-size: 13px;
@@ -108,185 +117,213 @@
     </VBox>
 
     <!-- Statistics Cards with Enhanced Visual Effects -->
-    <HBox spacing="18" alignment="CENTER">
+    <HBox spacing="12" alignment="CENTER">
         <VBox.margin>
-            <Insets top="5" bottom="5"/>
+            <Insets top="2" bottom="2"/>
         </VBox.margin>
 
         <!-- Today's Earnings Card with Green Accent -->
-        <VBox styleClass="card-container" spacing="8" alignment="CENTER" HBox.hgrow="ALWAYS"
-              style="-fx-background-radius: 20;
+        <VBox styleClass="card-container" spacing="6" alignment="CENTER" HBox.hgrow="ALWAYS"
+              style="-fx-background-radius: 18;
                      -fx-border-color: linear-gradient(to bottom, rgba(0, 210, 106, 0.3), transparent);
                      -fx-border-width: 2 0 0 0;
                      -fx-effect: dropshadow(gaussian, rgba(0, 210, 106, 0.15), 8, 0.0, 0, 2);">
             <padding>
-                <Insets top="16" bottom="16" left="16" right="16"/>
+                <Insets top="12" bottom="12" left="12" right="12"/>
             </padding>
 
             <!-- Icon with gradient circle -->
-            <StackPane prefWidth="40" prefHeight="40"
+            <StackPane prefWidth="36" prefHeight="36"
                        style="-fx-background-color: linear-gradient(to bottom right, rgba(0, 210, 106, 0.15), rgba(0, 210, 106, 0.05));
-                              -fx-background-radius: 20;">
-                <Label text="💰" style="-fx-font-size: 20px;"/>
+                              -fx-background-radius: 18;">
+                <Label text="💰" style="-fx-font-size: 18px;"/>
             </StackPane>
 
             <Label text="Today's Earnings"
-                   style="-fx-font-size: 11px;
+                   style="-fx-font-size: 10px;
                           -fx-text-fill: #8B92A8;
                           -fx-font-weight: 500;"/>
             <Label fx:id="todayEarningsLabel" text="0.00 EGP"
-                   style="-fx-font-size: 18px;
+                   style="-fx-font-size: 16px;
                           -fx-font-weight: 700;
                           -fx-text-fill: #00D26A;"/>
         </VBox>
 
         <!-- Rides Today Card with Blue Accent -->
-        <VBox styleClass="card-container" spacing="8" alignment="CENTER" HBox.hgrow="ALWAYS"
-              style="-fx-background-radius: 20;
+        <VBox styleClass="card-container" spacing="6" alignment="CENTER" HBox.hgrow="ALWAYS"
+              style="-fx-background-radius: 18;
                      -fx-border-color: linear-gradient(to bottom, rgba(88, 166, 255, 0.3), transparent);
                      -fx-border-width: 2 0 0 0;
                      -fx-effect: dropshadow(gaussian, rgba(88, 166, 255, 0.15), 8, 0.0, 0, 2);">
             <padding>
-                <Insets top="16" bottom="16" left="16" right="16"/>
+                <Insets top="12" bottom="12" left="12" right="12"/>
             </padding>
 
             <!-- Icon with gradient circle -->
-            <StackPane prefWidth="40" prefHeight="40"
+            <StackPane prefWidth="36" prefHeight="36"
                        style="-fx-background-color: linear-gradient(to bottom right, rgba(88, 166, 255, 0.15), rgba(88, 166, 255, 0.05));
-                              -fx-background-radius: 20;">
-                <Label text="🚗" style="-fx-font-size: 20px;"/>
+                              -fx-background-radius: 18;">
+                <Label text="🚗" style="-fx-font-size: 18px;"/>
             </StackPane>
 
             <Label text="Rides Today"
-                   style="-fx-font-size: 11px;
+                   style="-fx-font-size: 10px;
                           -fx-text-fill: #8B92A8;
                           -fx-font-weight: 500;"/>
             <Label fx:id="ridesTodayLabel" text="0"
-                   style="-fx-font-size: 18px;
+                   style="-fx-font-size: 16px;
                           -fx-font-weight: 700;
                           -fx-text-fill: #58A6FF;"/>
         </VBox>
     </HBox>
 
     <!-- Ride Request Widget with Enhanced Design (Hidden by default) -->
-    <VBox fx:id="rideRequestWidget" styleClass="card-container" spacing="16" visible="false" managed="false"
-          style="-fx-background-radius: 24;
-                 -fx-border-color: linear-gradient(to right, rgba(255, 169, 40, 0.4), rgba(255, 200, 80, 0.4));
+    <VBox fx:id="rideRequestWidget" styleClass="card-container" spacing="12" visible="false" managed="false"
+          style="-fx-background-radius: 22;
+                 -fx-border-color: linear-gradient(to right, rgba(0, 210, 106, 0.5), rgba(0, 210, 106, 0.3));
                  -fx-border-width: 2;
-                 -fx-effect: dropshadow(gaussian, rgba(255, 169, 40, 0.25), 12, 0.0, 0, 3);">
+                 -fx-effect: dropshadow(gaussian, rgba(0, 210, 106, 0.3), 12, 0.0, 0, 3);
+                 -fx-opacity: 1.0;">
         <padding>
-            <Insets top="24" bottom="24" left="24" right="24"/>
+            <Insets top="18" bottom="18" left="18" right="18"/>
         </padding>
+        <VBox.margin>
+            <Insets top="3" bottom="3"/>
+        </VBox.margin>
 
         <!-- Header with pulse effect indicator -->
-        <HBox alignment="CENTER" spacing="12">
-            <StackPane prefWidth="40" prefHeight="40"
-                       style="-fx-background-color: linear-gradient(to bottom right, rgba(255, 169, 40, 0.2), rgba(255, 200, 80, 0.1));
-                              -fx-background-radius: 20;">
-                <Label text="🔔" style="-fx-font-size: 20px;"/>
+        <HBox alignment="CENTER" spacing="10">
+            <StackPane prefWidth="36" prefHeight="36"
+                       style="-fx-background-color: linear-gradient(to bottom right, rgba(0, 210, 106, 0.25), rgba(0, 210, 106, 0.1));
+                              -fx-background-radius: 18;">
+                <Label text="🔔" style="-fx-font-size: 18px;"/>
             </StackPane>
             <Label text="New Ride Request!"
-                   style="-fx-font-size: 18px;
+                   style="-fx-font-size: 16px;
                           -fx-font-weight: 700;
-                          -fx-text-fill: #FFA928;"/>
+                          -fx-text-fill: #00D26A;"/>
         </HBox>
 
         <!-- Ride Details with improved spacing -->
-        <VBox spacing="12"
+        <VBox spacing="10"
               style="-fx-background-color: rgba(26, 35, 51, 0.5);
-                     -fx-background-radius: 16;
-                     -fx-padding: 16;">
-            <HBox spacing="12" alignment="CENTER_LEFT">
-                <Label text="📍" style="-fx-font-size: 16px; -fx-min-width: 24;"/>
+                     -fx-background-radius: 14;
+                     -fx-padding: 14;">
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="📍" style="-fx-font-size: 14px; -fx-min-width: 22;"/>
                 <Label text="Pickup:"
-                       style="-fx-font-size: 13px;
+                       style="-fx-font-size: 12px;
                               -fx-text-fill: #8B92A8;
                               -fx-font-weight: 600;
-                              -fx-min-width: 70;"/>
+                              -fx-min-width: 65;"/>
                 <Label fx:id="pickupLabel" text="Loading..."
-                       style="-fx-font-size: 13px;
+                       style="-fx-font-size: 12px;
                               -fx-text-fill: #E6EDF3;
                               -fx-font-weight: 500;"/>
             </HBox>
-            <HBox spacing="12" alignment="CENTER_LEFT">
-                <Label text="🎯" style="-fx-font-size: 16px; -fx-min-width: 24;"/>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="🎯" style="-fx-font-size: 14px; -fx-min-width: 22;"/>
                 <Label text="Drop-off:"
-                       style="-fx-font-size: 13px;
+                       style="-fx-font-size: 12px;
                               -fx-text-fill: #8B92A8;
                               -fx-font-weight: 600;
-                              -fx-min-width: 70;"/>
+                              -fx-min-width: 65;"/>
                 <Label fx:id="destinationLabel" text="Loading..."
-                       style="-fx-font-size: 13px;
+                       style="-fx-font-size: 12px;
                               -fx-text-fill: #E6EDF3;
                               -fx-font-weight: 500;"/>
             </HBox>
-            <HBox spacing="12" alignment="CENTER_LEFT">
-                <Label text="📏" style="-fx-font-size: 16px; -fx-min-width: 24;"/>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="📏" style="-fx-font-size: 14px; -fx-min-width: 22;"/>
                 <Label text="Distance:"
-                       style="-fx-font-size: 13px;
+                       style="-fx-font-size: 12px;
                               -fx-text-fill: #8B92A8;
                               -fx-font-weight: 600;
-                              -fx-min-width: 70;"/>
+                              -fx-min-width: 65;"/>
                 <Label fx:id="distanceLabel" text="0 km"
-                       style="-fx-font-size: 13px;
+                       style="-fx-font-size: 12px;
                               -fx-text-fill: #58A6FF;
                               -fx-font-weight: 600;"/>
             </HBox>
-            <HBox spacing="12" alignment="CENTER_LEFT">
-                <Label text="💵" style="-fx-font-size: 16px; -fx-min-width: 24;"/>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="💵" style="-fx-font-size: 14px; -fx-min-width: 22;"/>
                 <Label text="Fare:"
-                       style="-fx-font-size: 13px;
+                       style="-fx-font-size: 12px;
                               -fx-text-fill: #8B92A8;
                               -fx-font-weight: 600;
-                              -fx-min-width: 70;"/>
+                              -fx-min-width: 65;"/>
                 <Label fx:id="fareLabel" text="0.00 EGP"
-                       style="-fx-font-size: 16px;
+                       style="-fx-font-size: 15px;
                               -fx-text-fill: #00D26A;
                               -fx-font-weight: 700;"/>
             </HBox>
         </VBox>
 
-        <!-- Accept Button with gradient and glow -->
-        <Button fx:id="acceptRideButton" text="Accept Ride" styleClass="button"
-                prefWidth="260" prefHeight="48"
-                style="-fx-background-color: linear-gradient(to right, #00D26A, #00B858);
-                       -fx-background-radius: 24;
-                       -fx-text-fill: white;
-                       -fx-font-size: 15px;
-                       -fx-font-weight: 700;
-                       -fx-cursor: hand;
-                       -fx-effect: dropshadow(gaussian, rgba(0, 210, 106, 0.4), 10, 0.0, 0, 3);">
-            <padding>
-                <Insets top="14" right="28" bottom="14" left="28"/>
-            </padding>
-        </Button>
+        <!-- Accept / Reject Buttons -->
+        <HBox spacing="10" alignment="CENTER">
+            <VBox.margin>
+                <Insets top="6"/>
+            </VBox.margin>
+
+            <Button fx:id="rejectRideButton" text="Reject" styleClass="button"
+                    prefWidth="110" prefHeight="42"
+                    style="-fx-background-color: #30363D;
+                           -fx-background-radius: 20;
+                           -fx-text-fill: #8B92A8;
+                           -fx-font-size: 14px;
+                           -fx-font-weight: 700;
+                           -fx-cursor: hand;
+                           -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 6, 0.0, 0, 2);">
+                <padding>
+                    <Insets top="12" right="24" bottom="12" left="24"/>
+                </padding>
+            </Button>
+
+            <Button fx:id="acceptRideButton" text="Accept" styleClass="button"
+                    prefWidth="110" prefHeight="42"
+                    style="-fx-background-color: linear-gradient(to right, #00D26A, #00B858);
+                           -fx-background-radius: 20;
+                           -fx-text-fill: white;
+                           -fx-font-size: 14px;
+                           -fx-font-weight: 700;
+                           -fx-cursor: hand;
+                           -fx-effect: dropshadow(gaussian, rgba(0, 210, 106, 0.4), 10, 0.0, 0, 3);">
+                <padding>
+                    <Insets top="12" right="24" bottom="12" left="24"/>
+                </padding>
+            </Button>
+        </HBox>
     </VBox>
 
     <!-- No Rides Container with Enhanced Design (Shown by default) -->
-    <VBox fx:id="noRidesContainer" styleClass="card-container" spacing="14" alignment="CENTER" VBox.vgrow="ALWAYS"
-          style="-fx-background-radius: 24;
+    <VBox fx:id="noRidesContainer" styleClass="card-container" spacing="12" alignment="CENTER"
+          prefHeight="260" maxHeight="260"
+          style="-fx-background-radius: 22;
                  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 8, 0.0, 0, 2);">
         <padding>
-            <Insets top="32" bottom="32" left="24" right="24"/>
+            <Insets top="24" bottom="24" left="20" right="20"/>
         </padding>
+        <VBox.margin>
+            <Insets top="3" bottom="3"/>
+        </VBox.margin>
 
         <!-- Icon with gradient background -->
-        <StackPane prefWidth="80" prefHeight="80"
+        <StackPane prefWidth="64" prefHeight="64"
                    style="-fx-background-color: linear-gradient(to bottom right, rgba(88, 166, 255, 0.12), rgba(139, 146, 168, 0.08));
-                          -fx-background-radius: 40;
+                          -fx-background-radius: 32;
                           -fx-effect: dropshadow(gaussian, rgba(88, 166, 255, 0.2), 8, 0.0, 0, 2);">
-            <Label text="🚗" style="-fx-font-size: 40px;"/>
+            <Label text="🚗" style="-fx-font-size: 32px;"/>
         </StackPane>
 
-        <!-- Title with gradient text effect -->
-        <Label text="Waiting for Rides..."
-               style="-fx-font-size: 17px;
+        <!-- Dynamic Title -->
+        <Label fx:id="waitingMessageLabel" text="Status: Offline"
+               style="-fx-font-size: 16px;
                       -fx-font-weight: 700;
                       -fx-text-fill: #E6EDF3;
                       -fx-letter-spacing: 0.3px;"/>
 
-        <!-- Subtitle with better contrast -->
-        <Label text="Turn on your status to start receiving ride requests"
+        <!-- Dynamic Subtitle -->
+        <Label fx:id="waitingSubtitleLabel" text="Make your status active to accept requests"
                wrapText="true"
                textAlignment="CENTER"
                maxWidth="280"
@@ -296,19 +333,19 @@
                       -fx-line-spacing: 2px;"/>
 
         <!-- Decorative dots indicator -->
-        <HBox spacing="8" alignment="CENTER">
+        <HBox spacing="6" alignment="CENTER">
             <padding>
-                <Insets top="8"/>
+                <Insets top="10"/>
             </padding>
-            <StackPane prefWidth="8" prefHeight="8"
+            <StackPane prefWidth="7" prefHeight="7"
                        style="-fx-background-color: rgba(88, 166, 255, 0.3);
-                              -fx-background-radius: 4;"/>
-            <StackPane prefWidth="8" prefHeight="8"
+                              -fx-background-radius: 3.5;"/>
+            <StackPane prefWidth="7" prefHeight="7"
                        style="-fx-background-color: rgba(88, 166, 255, 0.5);
-                              -fx-background-radius: 4;"/>
-            <StackPane prefWidth="8" prefHeight="8"
+                              -fx-background-radius: 3.5;"/>
+            <StackPane prefWidth="7" prefHeight="7"
                        style="-fx-background-color: rgba(88, 166, 255, 0.3);
-                              -fx-background-radius: 4;"/>
+                              -fx-background-radius: 3.5;"/>
         </HBox>
     </VBox>
 
