@@ -31,7 +31,7 @@ public class DriverRideViewController {
 
     @FXML private ImageView aboutBtn;
     @FXML private ImageView profileBtn;
-    @FXML private WebView mapWebView;
+    @FXML private WebView mapView;
     @FXML private Label statusBannerLabel;
     @FXML private Label statusSubtitleLabel;
     @FXML private Label pickupLabel;
@@ -71,15 +71,15 @@ public class DriverRideViewController {
             }
 
             // Initialize WebEngine with enhanced error checking
-            if (mapWebView != null) {
+            if (mapView != null) {
                 System.out.println("[DriverRideView] WebView found, initializing...");
 
                 // Ensure WebView is visible and has proper size
-                mapWebView.setVisible(true);
-                mapWebView.setManaged(true);
+                mapView.setVisible(true);
+                mapView.setManaged(true);
 
                 // Get WebEngine
-                webEngine = mapWebView.getEngine();
+                webEngine = mapView.getEngine();
                 System.out.println("[DriverRideView] WebEngine initialized: " + (webEngine != null));
 
                 // Enable JavaScript (required for map)
@@ -88,7 +88,7 @@ public class DriverRideViewController {
                 // Load map HTML
                 loadMapHtml();
             } else {
-                System.err.println("[DriverRideView] ❌ ERROR: mapWebView is NULL!");
+                System.err.println("[DriverRideView] ❌ ERROR: mapView is NULL!");
             }
 
             // Setup popup overlay opacity
@@ -116,31 +116,22 @@ public class DriverRideViewController {
             System.out.println("[DriverRideView] ========== MAP LOADING START ==========");
             System.out.println("[DriverRideView] Attempting to load /map.html from classpath");
 
-            // Get resource URL with full diagnostics
+            // Get resource URL
             java.net.URL mapUrl = getClass().getResource("/map.html");
 
             if (mapUrl == null) {
                 System.err.println("[DriverRideView] ❌ CRITICAL: map.html NOT FOUND at /map.html");
-                System.err.println("[DriverRideView] Classpath diagnostics:");
-                System.err.println("[DriverRideView] - Class: " + getClass().getName());
-                System.err.println("[DriverRideView] - ClassLoader: " + getClass().getClassLoader());
-
-                // Try alternative paths
-                System.err.println("[DriverRideView] Attempting alternative paths...");
-                java.net.URL altUrl1 = getClass().getResource("map.html");
-                java.net.URL altUrl2 = getClass().getResource("/resources/map.html");
-                System.err.println("[DriverRideView] - 'map.html' (relative): " + altUrl1);
-                System.err.println("[DriverRideView] - '/resources/map.html': " + altUrl2);
-
+                System.err.println("[DriverRideView] Make sure map.html is in the resources root folder");
                 return;
             }
 
             System.out.println("[DriverRideView] ✅ map.html found at: " + mapUrl.toExternalForm());
             System.out.println("[DriverRideView] Loading map into WebEngine...");
 
+            // Load the map using the approach requested by the user
             webEngine.load(mapUrl.toExternalForm());
 
-            // Add document listener to poll window.mapReady - exactly like MapController
+            // Add document listener to check when map is ready
             webEngine.documentProperty().addListener((obs, oldDoc, newDoc) -> {
                 if (newDoc != null) {
                     System.out.println("[DriverRideView] Document loaded, checking window.mapReady...");
@@ -558,14 +549,10 @@ public class DriverRideViewController {
             // Update driver wallet balance (driver gets 92% after 8% company cut)
             double driverEarnings = rideRequest.estimatedPrice * 0.92;
             System.out.println("[DriverRideView] Updating driver wallet: +" + String.format("%.2f", driverEarnings) + " EGP");
-            try (Connection con = DBConnection.getConnection()) {
-                String updateWallet = "UPDATE drivers SET wallet_balance = wallet_balance + ? WHERE id = ?";
-                try (PreparedStatement ps = con.prepareStatement(updateWallet)) {
-                    ps.setDouble(1, driverEarnings);
-                    ps.setLong(2, currentDriverId);
-                    int walletRows = ps.executeUpdate();
-                    System.out.println("[DriverRideView] ✅ Driver wallet updated: " + walletRows + " row(s) affected");
-                }
+            DAO.DriverDAO driverDAO = new DAO.DriverDAO();
+            boolean walletUpdated = driverDAO.updateDriverWalletAfterRide(currentDriverId, driverEarnings);
+            if (!walletUpdated) {
+                System.err.println("[DriverRideView] ⚠️ Failed to update driver wallet");
             }
 
             // Update ride counts for driver
@@ -579,9 +566,29 @@ public class DriverRideViewController {
                 }
             }
 
+            // Set driver back to ONLINE mode (active = true)
+            System.out.println("[DriverRideView] Setting driver back to ONLINE mode...");
+            boolean onlineSuccess = driverDAO.setDriverOnline(currentDriverId);
+            if (onlineSuccess) {
+                System.out.println("[DriverRideView] ✅ Driver set to ONLINE (active=true)");
+            } else {
+                System.err.println("[DriverRideView] ⚠️ Failed to set driver to ONLINE");
+            }
+
+            // Reload driver data from database to get updated wallet and stats
+            System.out.println("[DriverRideView] Reloading driver data from database...");
+            Driver updatedDriver = driverDAO.getByEmail(currentDriver.getEmail());
+            if (updatedDriver != null) {
+                this.currentDriver = updatedDriver;
+                System.out.println("[DriverRideView] ✅ Driver data reloaded: wallet=" +
+                                  String.format("%.2f", updatedDriver.getWalletBalance()));
+            } else {
+                System.err.println("[DriverRideView] ⚠️ Failed to reload driver data");
+            }
+
             System.out.println("[DriverRideView] ===== FINALIZE RIDE COMPLETE =====");
 
-            // Return to dashboard
+            // Return to dashboard with updated driver data
             Platform.runLater(this::returnToDashboard);
 
         } catch (SQLException e) {
@@ -597,20 +604,22 @@ public class DriverRideViewController {
 
     private void returnToDashboard() {
         try {
-            System.out.println("[DriverRideView] Returning to Driver Dashboard...");
+            System.out.println("[DriverRideView] Returning to Driver Dashboard after ride completion...");
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DriverDashboard.fxml"));
             javafx.scene.Parent root = loader.load();
 
             DriverDashboardController controller = loader.getController();
-            controller.setDriver(currentDriver);
+            // Pass the updated driver data with flag indicating we're coming from ride completion
+            // This triggers the 3-second delay before the next ride request
+            controller.setDriver(currentDriver, true); // true = coming from ride completion
 
             Scene scene = new Scene(root, 390, 750);
-            Stage stage = (Stage) mapWebView.getScene().getWindow();
+            Stage stage = (Stage) mapView.getScene().getWindow();
             stage.setScene(scene);
             stage.show();
 
-            System.out.println("[DriverRideView] ✅ Successfully returned to dashboard");
+            System.out.println("[DriverRideView] ✅ Successfully returned to dashboard (with 3-second delay for next ride)");
         } catch (Exception e) {
             System.err.println("[DriverRideView] Error returning to dashboard: " + e.getMessage());
             e.printStackTrace();

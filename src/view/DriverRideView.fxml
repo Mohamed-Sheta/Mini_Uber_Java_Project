@@ -39,7 +39,7 @@
         </VBox>
 
         <!-- Map View -->
-        <WebView fx:id="mapWebView" prefWidth="390.0" prefHeight="400.0" VBox.vgrow="ALWAYS"/>
+        <WebView fx:id="mapView" prefWidth="390.0" prefHeight="400.0" VBox.vgrow="ALWAYS"/>
 
         <!-- Ride Details Card -->
         <VBox spacing="15.0" style="-fx-background-color: #1A2333; -fx-background-radius: 20 20 0 0; -fx-padding: 20;">
@@ -63,7 +63,7 @@
 
                 <HBox spacing="10.0" alignment="CENTER_LEFT">
                     <Label text="Fare:" style="-fx-text-fill: #8B92A8; -fx-font-size: 13px;" prefWidth="80.0"/>
-                    <Label fx:id="fareLabel" text="$0.00" style="-fx-text-fill: #3FB950; -fx-font-size: 16px; -fx-font-weight: bold;"/>
+                    <Label fx:id="fareLabel" text="0.00" style="-fx-text-fill: #3FB950; -fx-font-size: 16px; -fx-font-weight: bold;"/>
                 </HBox>
             </VBox>
         </VBox>
@@ -74,9 +74,19 @@
         <VBox fx:id="popupContainer" spacing="20.0" alignment="CENTER" prefWidth="320.0" prefHeight="200.0" style="-fx-background-color: #1A2333; -fx-background-radius: 20; -fx-padding: 30;">
             <Label fx:id="popupTitle" text="Arrival Notice" style="-fx-text-fill: #E6EDF3; -fx-font-size: 18px; -fx-font-weight: bold;"/>
             <Label fx:id="popupMessage" text="You have arrived" wrapText="true" textAlignment="CENTER" maxWidth="260.0" style="-fx-text-fill: #8B92A8; -fx-font-size: 13px;"/>
-            <Button fx:id="popupButton" text="Continue" prefWidth="180.0" prefHeight="45.0" style="-fx-background-color: #238636; -fx-text-fill: #FFFFFF; -fx-background-radius: 10; -fx-cursor: hand; -fx-font-size: 14px; -fx-font-weight: bold;">
+            <Button fx:id="popupButton" text="Continue" prefWidth="260.0" prefHeight="56.0"
+                    style="-fx-background-color: linear-gradient(to bottom, #2EA043, #238636);
+                           -fx-text-fill: #FFFFFF;
+                           -fx-background-radius: 12;
+                           -fx-cursor: hand;
+                           -fx-font-size: 16px;
+                           -fx-font-weight: bold;
+                           -fx-border-color: #3FB950;
+                           -fx-border-width: 2;
+                           -fx-border-radius: 12;
+                           -fx-effect: dropshadow(gaussian, rgba(46, 160, 67, 0.4), 10, 0.3, 0, 2);">
                 <padding>
-                    <Insets top="12.0" right="24.0" bottom="12.0" left="24.0"/>
+                    <Insets top="14.0" right="28.0" bottom="14.0" left="28.0"/>
                 </padding>
             </Button>
         </VBox>

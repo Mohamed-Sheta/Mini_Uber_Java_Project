@@ -231,4 +231,102 @@ public class DriverDAO {
         }
         return null;
     }
+
+    /**
+     * Set driver to ONLINE status (active = true) after ride completion
+     * @param driverId the driver's ID
+     * @return true if successful, false otherwise
+     */
+    public boolean setDriverOnline(long driverId) {
+        final String sql = "UPDATE drivers SET active = true WHERE id = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, driverId);
+            int rowsUpdated = ps.executeUpdate();
+            if (rowsUpdated > 0) {
+                System.out.println("[DriverDAO] ✅ Driver ID " + driverId + " set to ONLINE (active=true)");
+                return true;
+            } else {
+                System.err.println("[DriverDAO] ❌ Failed to update driver status - no rows affected");
+                return false;
+            }
+        } catch (SQLException e) {
+            System.err.println("[DriverDAO] Error setting driver online: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Update driver's wallet balance after completing a ride
+     * @param driverId the driver's ID
+     * @param fareAmount the ride fare amount to add to wallet
+     * @return true if successful, false otherwise
+     */
+    public boolean updateDriverWalletAfterRide(long driverId, double fareAmount) {
+        final String sql = "UPDATE drivers SET wallet_balance = wallet_balance + ? WHERE id = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setDouble(1, fareAmount);
+            ps.setLong(2, driverId);
+            int rowsUpdated = ps.executeUpdate();
+            if (rowsUpdated > 0) {
+                System.out.println("[DriverDAO] ✅ Driver wallet updated: +" + String.format("%.2f", fareAmount) + " EGP (ID: " + driverId + ")");
+                return true;
+            } else {
+                System.err.println("[DriverDAO] ❌ Failed to update driver wallet - no rows affected");
+                return false;
+            }
+        } catch (SQLException e) {
+            System.err.println("[DriverDAO] Error updating driver wallet: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
+    public boolean updateDriverBalance(long driverId, double newBalance) {
+        final String sql = "UPDATE drivers SET wallet_balance = ? WHERE id = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setDouble(1, newBalance);
+            ps.setLong(2, driverId);
+            int rowsUpdated = ps.executeUpdate();
+            if (rowsUpdated > 0) {
+                System.out.println("[DriverDAO] ✅ Driver balance updated to: " + String.format("%.2f", newBalance) + " EGP (ID: " + driverId + ")");
+                return true;
+            } else {
+                System.err.println("[DriverDAO] ❌ Failed to update driver balance - no rows affected");
+                return false;
+            }
+        } catch (SQLException e) {
+            System.err.println("[DriverDAO] Error updating driver balance: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Get driver's current wallet balance
+     * @param driverId the driver's ID
+     * @return wallet balance, or -1 if error
+     */
+    public double getDriverWalletBalance(long driverId) {
+        final String sql = "SELECT wallet_balance FROM drivers WHERE id = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, driverId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    double balance = rs.getDouble("wallet_balance");
+                    System.out.println("[DriverDAO] Retrieved driver balance: " + String.format("%.2f", balance) + " EGP (ID: " + driverId + ")");
+                    return balance;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("[DriverDAO] Error getting driver wallet balance: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return -1;
+    }
 }

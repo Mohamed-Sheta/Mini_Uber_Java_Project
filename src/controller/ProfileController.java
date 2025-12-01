@@ -629,7 +629,9 @@ public class ProfileController {
                 DriverSettingsController controller = loader.getController();
                 if (currentUser != null) {
                     controller.setUser(currentUser);
-                    System.out.println("User data passed to DriverSettings controller");
+                    // Explicitly refresh balance from database to ensure latest value is shown
+                    controller.refreshBalance();
+                    System.out.println("User data passed to DriverSettings controller with fresh balance");
                 }
 
                 Stage stage = (Stage) settingsButton.getScene().getWindow();

@@ -64,11 +64,13 @@ public abstract class Person {
         int count = 0;
         for (RideHistory h : rideHistory) {
             if (this instanceof Driver) {
-                total += h.getPassengerRating();
-                if (h.getPassengerRating() > 0) count++;
-            } else if (this instanceof Passenger) {
+                // Driver rating: average of ratings passengers gave TO the driver
                 total += h.getDriverRating();
                 if (h.getDriverRating() > 0) count++;
+            } else if (this instanceof Passenger) {
+                // Passenger rating: average of ratings drivers gave TO the passenger
+                total += h.getPassengerRating();
+                if (h.getPassengerRating() > 0) count++;
             }
         }
         return count == 0 ? 0 : (double) total / count;

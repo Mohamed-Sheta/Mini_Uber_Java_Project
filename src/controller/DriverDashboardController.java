@@ -17,6 +17,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.Pane;
 import javafx.animation.TranslateTransition;
+import javafx.animation.PauseTransition;
 import javafx.util.Duration;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -59,6 +60,7 @@ public class DriverDashboardController {
     private boolean isDriverOnline = false;
     private RideRequestDAO.RideRequestRow currentRideRequest;
     private Timer pollTimer;
+    private PauseTransition rideRequestDelayTransition; // 5-second delay before showing ride request
 
     // Location coordinates for passing to map
     private double driverLatitude;
@@ -150,15 +152,16 @@ public class DriverDashboardController {
             // Show waiting message immediately
             showWaitingForRidesMessage();
 
-            // Start polling for rides after 2 second delay
-            new Thread(() -> {
-                try {
-                    Thread.sleep(2000); // Wait 2 seconds
-                    Platform.runLater(this::startPollingForRides);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }).start();
+            // FEATURE 2: 5-second delay BEFORE checking for rides when going online
+            System.out.println("[DriverDashboard] Going ONLINE - will check for rides in 5 seconds...");
+            PauseTransition initialDelay = new PauseTransition(Duration.seconds(5));
+            initialDelay.setOnFinished(event -> {
+                System.out.println("[DriverDashboard] 5-second initial delay complete - starting ride polling now");
+                checkForPendingRidesAndDisplay();
+                // After the first check, start continuous polling every 3 seconds
+                startPollingForRides();
+            });
+            initialDelay.play();
         } else {
             // Switch to OFF state
             animateToggleToOff();
@@ -291,7 +294,17 @@ public class DriverDashboardController {
     }
 
     public void setDriver(Driver driver) {
-        System.out.println("setDriver() called with driver: " + (driver != null ? driver.getName() : "null"));
+        setDriver(driver, false); // Default: not coming from ride completion
+    }
+
+    /**
+     * Set driver with optional flag for ride completion flow
+     * @param driver The driver object
+     * @param comingFromRideCompletion If true, applies 3-second delay before next ride
+     */
+    public void setDriver(Driver driver, boolean comingFromRideCompletion) {
+        System.out.println("setDriver() called with driver: " + (driver != null ? driver.getName() : "null") +
+                          ", comingFromRideCompletion: " + comingFromRideCompletion);
 
         if (driver == null) {
             System.err.println("ERROR: Driver is null");
@@ -313,7 +326,7 @@ public class DriverDashboardController {
                 System.out.println("Driver ID loaded: " + driverId);
 
                 // Load driver's current active status from database
-                loadDriverStatusFromDatabase();
+                loadDriverStatusFromDatabase(comingFromRideCompletion);
             }
         } catch (Exception e) {
             System.err.println("Error loading driver ID: " + e.getMessage());
@@ -325,43 +338,102 @@ public class DriverDashboardController {
 
     /**
      * Load the driver's current active status from database and update toggle UI
-     * ALWAYS sets driver to OFFLINE on login for safety
+     * Loads actual status from database to allow resuming ONLINE mode after ride completion
+     * @param comingFromRideCompletion If true, applies 3-second delay before checking for next ride
      */
-    private void loadDriverStatusFromDatabase() {
+    private void loadDriverStatusFromDatabase(boolean comingFromRideCompletion) {
         try {
-            // ALWAYS set driver to OFFLINE on login
-            System.out.println("[DriverDashboard] Setting driver to OFFLINE on login");
+            System.out.println("[DriverDashboard] Loading driver status from database...");
 
-            // Update database to set status = 0 (offline)
-            if (!updateDriverStatusInDatabase(false)) {
-                System.err.println("[DriverDashboard] Failed to set driver to offline");
+            // Query database for current active status
+            boolean databaseStatus = false;
+            try (Connection con = DBConnection.getConnection()) {
+                String query = "SELECT active FROM drivers WHERE id = ?";
+                try (PreparedStatement ps = con.prepareStatement(query)) {
+                    ps.setLong(1, currentDriverId);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            databaseStatus = rs.getBoolean("active");
+                            System.out.println("[DriverDashboard] Database shows driver active = " + databaseStatus);
+                        }
+                    }
+                }
             }
 
-            // Set local status to offline
-            isDriverOnline = false;
+            // Set local status from database
+            isDriverOnline = databaseStatus;
 
-            // Update UI to OFFLINE state (without animation on initial load)
-            if (toggleThumb != null) {
-                toggleThumb.setTranslateX(0);
-            }
-            if (toggleSwitch != null) {
-                toggleSwitch.setStyle("-fx-background-color: #30363D; -fx-background-radius: 14; -fx-cursor: hand;");
-            }
-            if (toggleThumb != null) {
-                toggleThumb.setStyle("-fx-background-color: #8B92A8; -fx-background-radius: 12;");
-            }
-            if (statusLabel != null) {
-                statusLabel.setText("Offline");
-                statusLabel.setStyle("-fx-text-fill: #8B92A8; -fx-font-weight: 600;");
-            }
+            // Update UI based on loaded status (without animation on initial load)
+            if (isDriverOnline) {
+                // Driver is ONLINE
+                if (toggleThumb != null) {
+                    toggleThumb.setTranslateX(32); // Right position
+                }
+                if (toggleSwitch != null) {
+                    toggleSwitch.setStyle("-fx-background-color: #00D26A; " +
+                                         "-fx-background-radius: 16; " +
+                                         "-fx-cursor: hand; " +
+                                         "-fx-effect: dropshadow(gaussian, rgba(0, 212, 106, 0.3), 6, 0.0, 0, 1);");
+                }
+                if (toggleThumb != null) {
+                    toggleThumb.setStyle("-fx-background-color: #FFFFFF; " +
+                                        "-fx-background-radius: 13; " +
+                                        "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 6, 0.0, 0, 2);");
+                }
+                if (statusLabel != null) {
+                    statusLabel.setText("Online");
+                    statusLabel.setStyle("-fx-text-fill: #00D26A; -fx-font-weight: 600; -fx-font-size: 13px;");
+                }
 
-            // Show offline message
-            showOfflineMessage();
+                // Show waiting message and start polling
+                showWaitingForRidesMessage();
 
-            System.out.println("[DriverDashboard] ✅ Driver status initialized to OFFLINE");
+                if (comingFromRideCompletion) {
+                    // FEATURE 2: 3-second delay after ride completion before next ride
+                    System.out.println("[DriverDashboard] Returning from ride completion - will check for next ride in 3 seconds...");
+                    PauseTransition postRideDelay = new PauseTransition(Duration.seconds(3));
+                    postRideDelay.setOnFinished(event -> {
+                        System.out.println("[DriverDashboard] 3-second post-ride delay complete - checking for next ride now");
+                        checkForPendingRidesAndDisplay();
+                        // After first check, start continuous polling
+                        startPollingForRides();
+                    });
+                    postRideDelay.play();
+                } else {
+                    // Normal load: start polling immediately
+                    startPollingForRides();
+                }
+
+                System.out.println("[DriverDashboard] ✅ Driver status initialized to ONLINE");
+            } else {
+                // Driver is OFFLINE
+                if (toggleThumb != null) {
+                    toggleThumb.setTranslateX(0); // Left position
+                }
+                if (toggleSwitch != null) {
+                    toggleSwitch.setStyle("-fx-background-color: #2E2E2E; " +
+                                         "-fx-background-radius: 16; " +
+                                         "-fx-cursor: hand; " +
+                                         "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 4, 0.0, 0, 1);");
+                }
+                if (toggleThumb != null) {
+                    toggleThumb.setStyle("-fx-background-color: #FFFFFF; " +
+                                        "-fx-background-radius: 13; " +
+                                        "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 6, 0.0, 0, 2);");
+                }
+                if (statusLabel != null) {
+                    statusLabel.setText("Offline");
+                    statusLabel.setStyle("-fx-text-fill: #8B92A8; -fx-font-weight: 600; -fx-font-size: 13px;");
+                }
+
+                // Show offline message
+                showOfflineMessage();
+
+                System.out.println("[DriverDashboard] ✅ Driver status initialized to OFFLINE");
+            }
 
         } catch (Exception e) {
-            System.err.println("[DriverDashboard] Error setting driver to offline: " + e.getMessage());
+            System.err.println("[DriverDashboard] Error loading driver status: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -405,23 +477,39 @@ public class DriverDashboardController {
     }
 
     private void startPollingForRides() {
+        // Stop any existing polling first
+        stopPollingForRides();
+
         pollTimer = new Timer(true);
         pollTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                checkForPendingRides();
+                Platform.runLater(() -> checkForPendingRidesAndDisplay());
             }
-        }, 0, 3000);
+        }, 3000, 3000); // Start after 3 seconds, repeat every 3 seconds
+
+        System.out.println("[DriverDashboard] Continuous polling started (every 3 seconds)");
     }
 
     private void stopPollingForRides() {
         if (pollTimer != null) {
             pollTimer.cancel();
             pollTimer = null;
+            System.out.println("[DriverDashboard] Polling stopped");
+        }
+
+        // Also cancel any pending delay transition
+        if (rideRequestDelayTransition != null) {
+            rideRequestDelayTransition.stop();
+            rideRequestDelayTransition = null;
         }
     }
 
-    private void checkForPendingRides() {
+    /**
+     * Check for pending rides and display immediately (no additional delay)
+     * The delay is applied at the higher level (when going online or after ride completion)
+     */
+    private void checkForPendingRidesAndDisplay() {
         try {
             RideRequestDAO rideRequestDAO = new RideRequestDAO();
             LocationDAO locationDAO = new LocationDAO();
@@ -502,7 +590,7 @@ public class DriverDashboardController {
                 return;
             }
 
-            // Get nearest ride (first pending ride)
+            // Get nearest ride (first pending ride) and display immediately
             currentRideRequest = pendingRides.get(0);
             Platform.runLater(() -> displayRideRequest(currentRideRequest));
 
@@ -510,6 +598,7 @@ public class DriverDashboardController {
             System.err.println("Error checking for rides: " + e.getMessage());
         }
     }
+
 
     private void displayRideRequest(RideRequestDAO.RideRequestRow request) {
         try {

@@ -208,6 +208,7 @@ public class ChangePasswordController {
                 DriverSettingsController controller = loader.getController();
                 if (currentUser != null) {
                     controller.setUser(currentUser);
+                    controller.refreshBalance(); // Ensure latest balance is shown
                 }
 
                 Stage stage = (Stage) backButton.getScene().getWindow();
