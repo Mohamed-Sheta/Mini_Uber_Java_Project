@@ -5,6 +5,7 @@ import DAO.LocationDAO;
 import DAO.RideRequestDAO;
 import Model.Driver;
 import Model.Status;
+import services.Payment;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -454,7 +455,10 @@ public class DriverDashboardController {
                 ps.setLong(1, currentDriverId);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next() && todayEarningsLabel != null) {
-                        todayEarningsLabel.setText(String.format("$%.2f", rs.getDouble("earnings")));
+                        double totalEarnings = rs.getDouble("earnings");
+                        // Apply company commission to calculate net earnings for the driver
+                        double netEarnings = totalEarnings * (1 - Payment.getCompanyCommission());
+                        todayEarningsLabel.setText(String.format("$%.2f", netEarnings));
                     }
                 }
             }

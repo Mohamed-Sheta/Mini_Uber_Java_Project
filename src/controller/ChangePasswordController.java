@@ -1,5 +1,7 @@
 package controller;
 
+import DAO.DriverDAO;
+import Model.Driver;
 import Model.Person;
 import javafx.animation.PauseTransition;
 import javafx.fxml.FXML;
@@ -207,8 +209,28 @@ public class ChangePasswordController {
 
                 DriverSettingsController controller = loader.getController();
                 if (currentUser != null) {
-                    controller.setUser(currentUser);
-                    controller.refreshBalance(); // Ensure latest balance is shown
+                    // ✅ CRITICAL: Fetch fresh driver data from database before opening Settings
+                    // DO NOT pass the old driver object as it may have stale balance
+                    try {
+                        DriverDAO driverDAO = new DriverDAO();
+                        Long driverId = driverDAO.getDriverIdByEmail(currentUser.getEmail());
+                        if (driverId != null) {
+                            Driver freshDriver = driverDAO.getDriverById(driverId);
+                            if (freshDriver != null) {
+                                controller.setUser(freshDriver);
+                                System.out.println("[ChangePassword] ✅ Opened DriverSettings with fresh driver data from database");
+                            } else {
+                                // Fallback: use old object if fetch fails
+                                controller.setUser(currentUser);
+                                controller.refreshBalance();
+                                System.out.println("[ChangePassword] ⚠️ Using old driver object, refreshing balance");
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.err.println("[ChangePassword] Error fetching fresh driver data: " + e.getMessage());
+                        controller.setUser(currentUser);
+                        controller.refreshBalance();
+                    }
                 }
 
                 Stage stage = (Stage) backButton.getScene().getWindow();

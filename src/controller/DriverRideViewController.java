@@ -540,31 +540,78 @@ public class DriverRideViewController {
 
             System.out.println("[DriverRideView] ✅ Ride history inserted, ID: " + historyId);
 
-            // DELETE the ride_request after successfully moving to history (prevents duplicates)
-            System.out.println("[DriverRideView] Deleting ride_request ID: " + rideRequest.id);
-            RideRequestDAO rideRequestDAO = new RideRequestDAO();
-            rideRequestDAO.delete(rideRequest.id);
-            System.out.println("[DriverRideView] ✅ Ride request deleted from ride_requests table");
+            // DON'T DELETE the ride_request - it's referenced by ride_history foreign key
+            // The ride_request stays in the database with status='Completed' for reference
+            // This maintains data integrity and allows historical tracking
+            System.out.println("[DriverRideView] ✅ Ride request kept in database (status=Completed) for historical reference");
 
-            // Update driver wallet balance (driver gets 92% after 8% company cut)
-            double driverEarnings = rideRequest.estimatedPrice * 0.92;
-            System.out.println("[DriverRideView] Updating driver wallet: +" + String.format("%.2f", driverEarnings) + " EGP");
-            DAO.DriverDAO driverDAO = new DAO.DriverDAO();
-            boolean walletUpdated = driverDAO.updateDriverWalletAfterRide(currentDriverId, driverEarnings);
-            if (!walletUpdated) {
-                System.err.println("[DriverRideView] ⚠️ Failed to update driver wallet");
-            }
+            // ===== CRITICAL: UPDATE DRIVER BALANCE (CORRECT FLOW) =====
+            System.out.println("[DriverRideView] ===== UPDATING DRIVER BALANCE =====");
 
-            // Update ride counts for driver
-            System.out.println("[DriverRideView] Incrementing driver rides_count...");
-            try (Connection con = DBConnection.getConnection()) {
-                String updateCount = "UPDATE drivers SET rides_count = rides_count + 1 WHERE id = ?";
-                try (PreparedStatement ps = con.prepareStatement(updateCount)) {
-                    ps.setLong(1, currentDriverId);
-                    int countRows = ps.executeUpdate();
-                    System.out.println("[DriverRideView] ✅ Driver ride count updated: " + countRows + " row(s) affected");
+            // Validate driver ID
+            if (currentDriverId <= 0) {
+                System.err.println("[DriverRideView] ❌ CRITICAL ERROR: Invalid driver ID: " + currentDriverId);
+                System.err.println("[DriverRideView] ❌ Balance update SKIPPED due to invalid driver ID!");
+            } else {
+                System.out.println("[DriverRideView] ✅ Driver ID validated: " + currentDriverId);
+
+                // Driver gets 92% after 8% company cut
+                double rideFare = rideRequest.estimatedPrice;
+                double driverEarnings = rideFare * 0.92;
+
+                System.out.println("[DriverRideView] Ride fare: $" + String.format("%.2f", rideFare));
+                System.out.println("[DriverRideView] Driver earnings (92%%): $" + String.format("%.2f", driverEarnings));
+
+                DAO.DriverDAO driverDAO = new DAO.DriverDAO();
+
+                // Step 1: Fetch current balance from database
+                System.out.println("[DriverRideView] [Step 1] Fetching current balance from database...");
+                double currentBalance = driverDAO.getDriverBalance(currentDriverId);
+
+                if (currentBalance < 0) {
+                    System.err.println("[DriverRideView] ❌ ERROR: Failed to fetch current balance from database!");
+                    System.err.println("[DriverRideView] ❌ getDriverBalance() returned: " + currentBalance);
+                    System.err.println("[DriverRideView] ❌ This indicates a database error. Check connection and table structure.");
+                    currentBalance = 0; // Fallback to 0 if fetch fails
+                } else {
+                    System.out.println("[DriverRideView] ✅ Current balance from DB: $" + String.format("%.2f", currentBalance));
+                }
+
+                // Step 2: Calculate new balance
+                double newBalance = currentBalance + driverEarnings;
+                System.out.println("[DriverRideView] [Step 2] Calculated new balance: $" + String.format("%.2f", newBalance));
+                System.out.println("[DriverRideView]          Formula: $" + String.format("%.2f", currentBalance) +
+                                 " (old) + $" + String.format("%.2f", driverEarnings) + " (earnings) = $" +
+                                 String.format("%.2f", newBalance) + " (new)");
+
+                // Step 3: Update database with new balance
+                System.out.println("[DriverRideView] [Step 3] Updating database with new balance...");
+                boolean balanceUpdated = driverDAO.updateDriverBalance(currentDriverId, newBalance);
+
+                if (balanceUpdated) {
+                    System.out.println("[DriverRideView] ✅✅✅ BALANCE UPDATE SUCCESSFUL! ✅✅✅");
+                    System.out.println("[DriverRideView] ✅ Balance increased from $" +
+                                     String.format("%.2f", currentBalance) + " to $" +
+                                     String.format("%.2f", newBalance));
+                    System.out.println("[DriverRideView] ✅ Database row updated successfully!");
+                } else {
+                    System.err.println("[DriverRideView] ❌❌❌ BALANCE UPDATE FAILED! ❌❌❌");
+                    System.err.println("[DriverRideView] ❌ updateDriverBalance() returned false");
+                    System.err.println("[DriverRideView] ❌ No rows were updated in the database!");
+                    System.err.println("[DriverRideView] ❌ Possible causes:");
+                    System.err.println("[DriverRideView]    1. Driver ID doesn't exist in database");
+                    System.err.println("[DriverRideView]    2. Database connection issue");
+                    System.err.println("[DriverRideView]    3. Insufficient permissions");
+                    System.err.println("[DriverRideView]    4. Table/column name mismatch");
                 }
             }
+            System.out.println("[DriverRideView] ===== BALANCE UPDATE COMPLETE =====");
+
+            // Note: rides_count column removed from database - ride count is calculated from ride_history
+            // No need to update a separate counter field
+
+            // Create DriverDAO instance for subsequent operations
+            DAO.DriverDAO driverDAO = new DAO.DriverDAO();
 
             // Set driver back to ONLINE mode (active = true)
             System.out.println("[DriverRideView] Setting driver back to ONLINE mode...");
@@ -577,13 +624,19 @@ public class DriverRideViewController {
 
             // Reload driver data from database to get updated wallet and stats
             System.out.println("[DriverRideView] Reloading driver data from database...");
-            Driver updatedDriver = driverDAO.getByEmail(currentDriver.getEmail());
+            Driver updatedDriver = driverDAO.getDriverById(currentDriverId);
             if (updatedDriver != null) {
                 this.currentDriver = updatedDriver;
-                System.out.println("[DriverRideView] ✅ Driver data reloaded: wallet=" +
+                System.out.println("[DriverRideView] ✅ Driver data reloaded from DB: wallet=" +
                                   String.format("%.2f", updatedDriver.getWalletBalance()));
             } else {
-                System.err.println("[DriverRideView] ⚠️ Failed to reload driver data");
+                System.err.println("[DriverRideView] ⚠️ Failed to reload driver data, trying by email...");
+                updatedDriver = driverDAO.getByEmail(currentDriver.getEmail());
+                if (updatedDriver != null) {
+                    this.currentDriver = updatedDriver;
+                    System.out.println("[DriverRideView] ✅ Driver data reloaded by email: wallet=" +
+                                      String.format("%.2f", updatedDriver.getWalletBalance()));
+                }
             }
 
             System.out.println("[DriverRideView] ===== FINALIZE RIDE COMPLETE =====");

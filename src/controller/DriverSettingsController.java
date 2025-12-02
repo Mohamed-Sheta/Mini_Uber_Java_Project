@@ -25,7 +25,7 @@ import java.util.Optional;
 public class DriverSettingsController {
 
     @FXML private Button backButton;
-    @FXML private Label balanceLabel;
+    // Note: balanceLabel removed - Account Balance now shown only in Profile screen
     @FXML private Button changePasswordButton;
     @FXML private Button deleteAccountButton;
     @FXML private Button logoutButton;
@@ -43,85 +43,35 @@ public class DriverSettingsController {
     }
 
     /**
-     * Set the current user and update balance display
+     * Set the current user
+     * Note: Balance display removed from Settings - now only in Profile
      */
     public void setUser(Person user) {
         this.currentUser = user;
         this.isDriver = (user instanceof Driver);
 
-        // Reload fresh data from database to get latest wallet balance
+        // Get driver ID for future use
         if (isDriver && user != null) {
             try {
                 DriverDAO driverDAO = new DriverDAO();
-
-                // Get driver ID
                 Long driverId = driverDAO.getDriverIdByEmail(user.getEmail());
                 if (driverId != null) {
                     this.currentDriverId = driverId;
-                }
-
-                // Reload fresh driver data
-                Driver freshDriver = driverDAO.getByEmail(user.getEmail());
-                if (freshDriver != null) {
-                    this.currentUser = freshDriver;
-                    System.out.println("[DriverSettings] Reloaded driver data - wallet: " +
-                                      String.format("%.2f", freshDriver.getWalletBalance()));
+                    System.out.println("[DriverSettings] Driver ID: " + driverId);
                 }
             } catch (Exception e) {
-                System.err.println("[DriverSettings] Error reloading driver data: " + e.getMessage());
+                System.err.println("[DriverSettings] Error loading driver ID: " + e.getMessage());
+                e.printStackTrace();
             }
         }
-
-        // Update balance display
-        updateBalanceDisplay();
     }
 
     /**
-     * Refresh balance from database and update display
-     * Call this method to get the latest balance from database
+     * Legacy method - no longer needed since balance is not displayed in Settings
+     * Kept for backward compatibility
      */
     public void refreshBalance() {
-        if (!isDriver || currentUser == null) {
-            return;
-        }
-
-        try {
-            DriverDAO driverDAO = new DriverDAO();
-
-            // Option 1: Get balance directly by ID (faster)
-            if (currentDriverId > 0) {
-                double freshBalance = driverDAO.getDriverWalletBalance(currentDriverId);
-                if (freshBalance >= 0) {
-                    currentUser.updateWalletBalance(freshBalance);
-                    System.out.println("[DriverSettings] Balance refreshed from DB: " + String.format("%.2f", freshBalance) + " EGP");
-                }
-            } else {
-                // Option 2: Reload entire driver object
-                Driver freshDriver = driverDAO.getByEmail(currentUser.getEmail());
-                if (freshDriver != null) {
-                    this.currentUser = freshDriver;
-                    System.out.println("[DriverSettings] Driver data refreshed - wallet: " +
-                                      String.format("%.2f", freshDriver.getWalletBalance()));
-                }
-            }
-
-            // Update UI
-            updateBalanceDisplay();
-
-        } catch (Exception e) {
-            System.err.println("[DriverSettings] Error refreshing balance: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Update the balance label with current balance
-     */
-    private void updateBalanceDisplay() {
-        if (balanceLabel != null && currentUser != null) {
-            double balance = currentUser.getWalletBalance();
-            balanceLabel.setText(String.format("%.2f EGP", balance));
-            System.out.println("[DriverSettings] Balance label updated: " + String.format("%.2f EGP", balance));
-        }
+        System.out.println("[DriverSettings] refreshBalance() called but not needed - balance is in Profile screen now");
     }
 
     /**

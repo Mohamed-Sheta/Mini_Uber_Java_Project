@@ -21,6 +21,10 @@ public class Payment
         this.options = options;
     }
 
+    public static double getCompanyCommission() {
+        return COMPANY_COMMISSION;
+    }
+
     public static boolean canAfford(Passenger passenger, double amount) {
         double total = passenger.getWalletBalance() + passenger.getCreditBalance();
         return total >= amount;

@@ -200,10 +200,11 @@ public class ProfileController {
         totalRidesLabel.setText(String.valueOf(stats.rides));
 
         if (isDriver) {
-            spentLabelText.setText("Earned");
-            // For drivers, show total earned (with tips and 8% commission deducted)
-            double totalEarned = getTotalEarnedWithTips();
-            totalSpentLabel.setText(String.format("$%.2f", totalEarned));
+            spentLabelText.setText("Account Balance");
+            // For drivers, show wallet balance from database (not earned - that's calculated)
+            double walletBalance = currentUser.getWalletBalance();
+            totalSpentLabel.setText(String.format("%.2f EGP", walletBalance));
+            System.out.println("[Profile] Driver account balance displayed: " + String.format("%.2f", walletBalance) + " EGP");
         } else {
             spentLabelText.setText("Spent");
             totalSpentLabel.setText(String.format("$%.2f", stats.spent));
@@ -628,10 +629,28 @@ public class ProfileController {
 
                 DriverSettingsController controller = loader.getController();
                 if (currentUser != null) {
-                    controller.setUser(currentUser);
-                    // Explicitly refresh balance from database to ensure latest value is shown
-                    controller.refreshBalance();
-                    System.out.println("User data passed to DriverSettings controller with fresh balance");
+                    // ✅ CRITICAL: Fetch fresh driver data from database before opening Settings
+                    // DO NOT pass the old driver object as it may have stale balance
+                    try {
+                        DriverDAO driverDAO = new DriverDAO();
+                        Long driverId = driverDAO.getDriverIdByEmail(currentUser.getEmail());
+                        if (driverId != null) {
+                            Driver freshDriver = driverDAO.getDriverById(driverId);
+                            if (freshDriver != null) {
+                                controller.setUser(freshDriver);
+                                System.out.println("[Profile] ✅ Opened DriverSettings with fresh driver data from database");
+                            } else {
+                                // Fallback: use old object if fetch fails
+                                controller.setUser(currentUser);
+                                controller.refreshBalance();
+                                System.out.println("[Profile] ⚠️ Using old driver object, refreshing balance");
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.err.println("[Profile] Error fetching fresh driver data: " + e.getMessage());
+                        controller.setUser(currentUser);
+                        controller.refreshBalance();
+                    }
                 }
 
                 Stage stage = (Stage) settingsButton.getScene().getWindow();
@@ -791,8 +810,9 @@ public class ProfileController {
         totalRidesLabel.setText(String.valueOf(stats.rides));
 
         if (isDriver) {
-            double totalEarned = getTotalEarnedWithTips();
-            totalSpentLabel.setText(String.format("$%.2f", totalEarned));
+            // Show wallet balance instead of calculated earnings
+            double walletBalance = currentUser.getWalletBalance();
+            totalSpentLabel.setText(String.format("%.2f EGP", walletBalance));
         } else {
             totalSpentLabel.setText(String.format("$%.2f", stats.spent));
         }
