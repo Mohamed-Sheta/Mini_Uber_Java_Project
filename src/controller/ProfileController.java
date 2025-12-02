@@ -1647,14 +1647,15 @@ public class ProfileController {
 
     /**
      * Calculate average rating from ride history
-     * For Drivers: Show average of passenger_rating (ratings received FROM passengers)
-     * For Passengers: Show average of driver_rating (ratings received FROM drivers)
+     * For Drivers: Show average of driver_rating (ratings received FROM passengers)
+     * For Passengers: Show average of passenger_rating (ratings received FROM drivers)
      */
     private double calculateAverageRating() {
         if (userId == -1) return 0.0;
 
-        // FIXED: Drivers should see passenger_rating (ratings they received FROM passengers)
-        String ratingColumn = isDriver ? "passenger_rating" : "driver_rating";
+        // FIXED: Drivers should see driver_rating (ratings they received FROM passengers)
+        // Passengers should see passenger_rating (ratings they received FROM drivers)
+        String ratingColumn = isDriver ? "driver_rating" : "passenger_rating";
         String idColumn = isDriver ? "driver_id" : "passenger_id";
         String sql = "SELECT AVG(" + ratingColumn + ") as avg_rating FROM ride_history WHERE " + idColumn + " = ? AND " + ratingColumn + " > 0";
 
@@ -1676,8 +1677,8 @@ public class ProfileController {
 
     /**
      * Load rating history from database
-     * For Drivers: Show passenger_rating (ratings received FROM passengers)
-     * For Passengers: Show driver_rating (ratings received FROM drivers)
+     * For Drivers: Show driver_rating (ratings received FROM passengers)
+     * For Passengers: Show passenger_rating (ratings received FROM drivers)
      */
     private void loadRatingHistory(VBox container) {
         if (userId == -1) {
@@ -1685,8 +1686,9 @@ public class ProfileController {
             return;
         }
 
-        // FIXED: Drivers should see passenger_rating (ratings they received FROM passengers)
-        String ratingColumn = isDriver ? "passenger_rating" : "driver_rating";
+        // FIXED: Drivers should see driver_rating (ratings they received FROM passengers)
+        // Passengers should see passenger_rating (ratings they received FROM drivers)
+        String ratingColumn = isDriver ? "driver_rating" : "passenger_rating";
         String idColumn = isDriver ? "driver_id" : "passenger_id";
         String sql = "SELECT rh.id, rh." + ratingColumn + " as rating, rh.completed_at, " +
                      "lo.name as origin, ld.name as destination " +

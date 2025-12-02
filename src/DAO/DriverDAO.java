@@ -465,4 +465,25 @@ public class DriverDAO {
         }
         return -1;
     }
+
+    /**
+     * Cross-table validation: Check if email exists in passengers table
+     * Used during driver registration to prevent duplicate accounts across tables
+     * @param email the email to check
+     * @return true if email exists in passengers table, false otherwise
+     */
+    public boolean emailExistsInPassengers(String email) {
+        final String sql = "SELECT id FROM passengers WHERE email=?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next(); // Returns true if email found
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking email in passengers table: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

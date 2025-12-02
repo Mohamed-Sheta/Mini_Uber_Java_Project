@@ -120,9 +120,12 @@ public class RegisterController {
         // Field-level validation
         boolean isValid = true;
 
-        // Validate name
+        // Validate name - must not be empty and must not contain numbers
         if (name.isEmpty()) {
             showFieldError(nameErrorLabel, "Name is required");
+            isValid = false;
+        } else if (name.matches(".*\\d.*")) {
+            showFieldError(nameErrorLabel, "Name must not contain numbers");
             isValid = false;
         }
 
@@ -135,21 +138,21 @@ public class RegisterController {
             isValid = false;
         }
 
-        // Validate email
+        // Validate email with proper regex
         if (email.isEmpty()) {
             showFieldError(emailErrorLabel, "Email is required");
             isValid = false;
-        } else if (!email.contains("@") || !email.contains(".")) {
-            showFieldError(emailErrorLabel, "Invalid email format");
+        } else if (!isValidEmail(email)) {
+            showFieldError(emailErrorLabel, "Invalid email format (e.g. user@example.com)");
             isValid = false;
         }
 
-        // Validate password with reasonable requirements
+        // Validate password with strong requirements
         if (password.isEmpty()) {
             showFieldError(passwordErrorLabel, "Password is required");
             isValid = false;
-        } else if (password.length() < 6) {
-            showFieldError(passwordErrorLabel, "Password must be at least 6 characters");
+        } else if (!isValidPassword(password)) {
+            showFieldError(passwordErrorLabel, "Password must be at least 8 characters with uppercase, lowercase, number, and special character");
             isValid = false;
         }
 
@@ -191,13 +194,19 @@ public class RegisterController {
                 // Create and save passenger
                 PassengerDAO passengerDAO = new PassengerDAO();
 
-                // Check if email already exists
+                // Check if email already exists in passengers table
                 if (passengerDAO.getByEmail(email) != null) {
                     showError("Email already registered. Please login.");
                     return;
                 }
 
-                // Generate SSN (you can improve this logic)
+                // Cross-table validation: Check if email exists in drivers table
+                if (passengerDAO.emailExistsInDrivers(email)) {
+                    showError("Email already used. Please use a different email.");
+                    return;
+                }
+
+                // Generate SSN
                 String ssn = generateSSN(email);
 
                 Passenger passenger = new Passenger(ssn, name, phone, email, password);
@@ -207,9 +216,15 @@ public class RegisterController {
                 // Create and save driver
                 DriverDAO driverDAO = new DriverDAO();
 
-                // Check if email already exists
+                // Check if email already exists in drivers table
                 if (driverDAO.getByEmail(email) != null) {
                     showError("Email already registered. Please login.");
+                    return;
+                }
+
+                // Cross-table validation: Check if email exists in passengers table
+                if (driverDAO.emailExistsInPassengers(email)) {
+                    showError("Email already used. Please use a different email.");
                     return;
                 }
 
@@ -235,6 +250,39 @@ public class RegisterController {
             e.printStackTrace();
             showError("An error occurred during registration.");
         }
+    }
+
+    /**
+     * Validates email format using proper regex.
+     * Accepts standard email formats like user@example.com
+     */
+    private boolean isValidEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return false;
+        }
+        // RFC 5322 compliant email regex (simplified version)
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+        return email.matches(emailRegex);
+    }
+
+    /**
+     * Validates password strength.
+     * Must be at least 8 characters with at least one uppercase, one lowercase, one number, and one special character.
+     */
+    private boolean isValidPassword(String password) {
+        if (password == null || password.length() < 8) {
+            return false;
+        }
+        // Check for at least one uppercase letter
+        boolean hasUppercase = password.matches(".*[A-Z].*");
+        // Check for at least one lowercase letter
+        boolean hasLowercase = password.matches(".*[a-z].*");
+        // Check for at least one digit
+        boolean hasDigit = password.matches(".*\\d.*");
+        // Check for at least one special character
+        boolean hasSpecialChar = password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*");
+
+        return hasUppercase && hasLowercase && hasDigit && hasSpecialChar;
     }
 
     @FXML

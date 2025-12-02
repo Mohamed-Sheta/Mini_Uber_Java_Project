@@ -1272,8 +1272,8 @@ public class MapController {
                     rideRequestId,
                     driverId,
                     passengerId,
-                    passengerRating,  // Rating passenger gave TO driver (driver_rating column)
-                    0,                // Rating driver gave TO passenger (not implemented yet)
+                    0,                // passenger_rating = Driver's rating of passenger (will be set by driver separately)
+                    passengerRating,  // driver_rating = Passenger's rating of driver (set by passenger now)
                     finalTotal,       // Total cost including tips and donation
                     Model.PaymentType.wallet,
                     tipAmount,

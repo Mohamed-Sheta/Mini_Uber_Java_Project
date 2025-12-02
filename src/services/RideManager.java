@@ -301,7 +301,8 @@ public class RideManager {
 
             long rhId = rideHistoryDAO.insert(
                 rideRequestId, driverIdMap.get(driver), passengerIdMap.get(passenger),
-                passenger.getLatestDriverRating(), driver.getLatestPassengerRating(),
+                driver.getLatestPassengerRating(), // passenger_rating = Driver's rating OF passenger
+                passenger.getLatestDriverRating(), // driver_rating = Passenger's rating OF driver
                 paymentProcessor.getAmount(), paymentProcessor.getPaymentMethod(),
                 options != null ? options.getTips() : 0.0,
                 options != null ? options.getDonationAmount() : 0.0,

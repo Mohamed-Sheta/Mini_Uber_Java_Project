@@ -529,8 +529,8 @@ public class DriverRideViewController {
                     rideRequest.id,
                     currentDriverId,
                     passengerId,
-                    passengerRating, // Driver's rating of passenger
-                    0, // Driver rating (passenger will rate driver separately)
+                    passengerRating, // passenger_rating = Driver's rating of passenger (set by driver now)
+                    0, // driver_rating = Passenger's rating of driver (set by passenger later)
                     rideRequest.estimatedPrice,
                     PaymentType.wallet,
                     0.0, // tips (already processed by passenger)

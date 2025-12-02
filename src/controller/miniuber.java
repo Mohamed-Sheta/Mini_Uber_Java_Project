@@ -16,7 +16,9 @@ public class miniuber extends Application { // Fixed naming convention
     public void start(Stage stage) throws IOException {
         try {
             Request.DatabaseInitializer dbInit = new Request.DatabaseInitializer();
-            Map<ProblemType, Integer> problemTypeMap = dbInit.initialize(true); // true = reset DB
+            // FIXED: Changed to false to prevent database reset on every startup
+            // This ensures all data (users, rides, ratings, history) persists across app restarts
+            Map<ProblemType, Integer> problemTypeMap = dbInit.initialize(false); // false = DO NOT reset DB
             MapGraph.CityMapSetup citySetup = new MapGraph.CityMapSetup();
             citySetup.initializeAll();
 

@@ -31,6 +31,29 @@ public class RideHistoryDAO {
         @Override public String toString(){ return "RideHistoryRow{id="+id+", request="+requestId+"}"; }
     }
 
+    /**
+     * Insert a new ride history record.
+     *
+     * CRITICAL - Rating Column Mapping (DO NOT CONFUSE):
+     * - passenger_rating = Driver's rating OF the passenger (driver rates passenger)
+     *   Used to calculate PASSENGER's average rating in their profile.
+     *
+     * - driver_rating = Passenger's rating OF the driver (passenger rates driver)
+     *   Used to calculate DRIVER's average rating in their profile.
+     *
+     * @param requestId The ride request ID
+     * @param driverId The driver's ID
+     * @param passengerId The passenger's ID
+     * @param passengerRating Driver's rating of the passenger (0-5, or null/0 if not rated yet)
+     * @param driverRating Passenger's rating of the driver (0-5, or null/0 if not rated yet)
+     * @param rideCost The total ride cost
+     * @param method Payment method used
+     * @param tips Tip amount given to driver
+     * @param donationAmount Donation amount
+     * @param donationOrganization Name of donation organization
+     * @return The generated ride history ID, or -1 if failed
+     * @throws SQLException if database error occurs
+     */
     public long insert(long requestId, long driverId, long passengerId,
                        Integer passengerRating, Integer driverRating,
                        double rideCost, PaymentType method,
@@ -59,6 +82,24 @@ public class RideHistoryDAO {
         }
     }
 
+    /**
+     * Update an existing ride history record.
+     *
+     * CRITICAL - Rating Column Mapping:
+     * - passenger_rating = Driver's rating OF the passenger
+     * - driver_rating = Passenger's rating OF the driver
+     *
+     * @param id The ride history record ID to update
+     * @param passengerRating Driver's rating of the passenger (0-5, or null to keep existing)
+     * @param driverRating Passenger's rating of the driver (0-5, or null to keep existing)
+     * @param rideCost The total ride cost (or null to keep existing)
+     * @param method Payment method (or null to keep existing)
+     * @param tips Tip amount (or null to keep existing)
+     * @param donationAmount Donation amount (or null to keep existing)
+     * @param donationOrganization Donation organization name (or null to keep existing)
+     * @return Number of rows updated (should be 1 if successful, 0 if not found)
+     * @throws SQLException if database error occurs
+     */
     public int update(long id, Integer passengerRating, Integer driverRating,
                       Double rideCost, PaymentType method, Double tips,
                       Double donationAmount, String donationOrganization) throws SQLException {
