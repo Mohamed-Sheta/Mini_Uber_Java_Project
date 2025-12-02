@@ -5,10 +5,12 @@ import Model.Passenger;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 public class DriverRatingDialogController {
 
+    @FXML private StackPane root;
     @FXML private Label driverNameLabel;
     @FXML private Label star1;
     @FXML private Label star2;
@@ -23,11 +25,33 @@ public class DriverRatingDialogController {
     private Passenger passenger;
     private Runnable onRatingSubmittedCallback;
 
+    @FXML
+    public void initialize() {
+        // Load CSS stylesheet using the correct resource path
+        if (driverNameLabel != null && driverNameLabel.getScene() != null) {
+            String cssPath = getClass().getResource("/driver-dialog.css").toExternalForm();
+            driverNameLabel.getScene().getStylesheets().add(cssPath);
+        }
+    }
+
     public void setDriverInfo(Driver driver, Passenger passenger) {
         this.driver = driver;
         this.passenger = passenger;
         if (driver != null) {
             driverNameLabel.setText(driver.getName());
+        }
+
+        // Try to load CSS here as well in case Scene is available now
+        loadCssIfNeeded();
+    }
+
+    private void loadCssIfNeeded() {
+        if (driverNameLabel != null && driverNameLabel.getScene() != null) {
+            String cssPath = getClass().getResource("/driver-dialog.css").toExternalForm();
+            if (!driverNameLabel.getScene().getStylesheets().contains(cssPath)) {
+                driverNameLabel.getScene().getStylesheets().add(cssPath);
+                System.out.println("[Rating] CSS stylesheet loaded: " + cssPath);
+            }
         }
     }
 

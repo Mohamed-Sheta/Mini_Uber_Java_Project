@@ -8,7 +8,7 @@
            xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="controller.RideCompleteDialogController"
            styleClass="dialog-overlay"
-           stylesheets="@driver-dialog.css">
+           stylesheets="@/driver-dialog.css">
 
     <VBox styleClass="dialog-container" maxWidth="303" maxHeight="260" alignment="CENTER">
         <padding>

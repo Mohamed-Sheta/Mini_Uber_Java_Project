@@ -110,14 +110,18 @@ public class MapController {
 
 
     private void loadLocations() {
-        startCombo.getItems().addAll(
-                new Location("Nasr City", 30.0561, 31.3300),
-                new Location("Maadi", 29.9603, 31.2596),
-                new Location("Giza", 30.0131, 31.2089),
-                new Location("New Cairo", 30.0305, 31.4913)
-        );
+        // Load all predefined locations from LocationDAO
+        // This ensures passengers can select from all 10 locations
+        LocationDAO locationDAO = new LocationDAO();
+        List<Location> predefinedLocations = locationDAO.getPredefinedLocations();
 
-        endCombo.getItems().addAll(startCombo.getItems());
+        startCombo.getItems().clear();
+        startCombo.getItems().addAll(predefinedLocations);
+
+        endCombo.getItems().clear();
+        endCombo.getItems().addAll(predefinedLocations);
+
+        System.out.println("Loaded " + predefinedLocations.size() + " locations for passenger selection");
     }
 
 
@@ -1055,6 +1059,12 @@ public class MapController {
             dialogStage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
             Scene scene = new Scene(dialogRoot);
             scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+
+            // Load CSS stylesheet using the correct resource path
+            String cssPath = getClass().getResource("/driver-dialog.css").toExternalForm();
+            scene.getStylesheets().add(cssPath);
+            System.out.println("[MapController] CSS stylesheet loaded: " + cssPath);
+
             dialogStage.setScene(scene);
 
             // Center dialog within owner window (below profile bar)

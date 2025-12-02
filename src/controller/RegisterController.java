@@ -3,7 +3,9 @@ package controller;
 import DAO.DriverDAO;
 import DAO.PassengerDAO;
 import Model.Driver;
+import Model.Location;
 import Model.Passenger;
+import services.MapGraph;
 import javafx.animation.ScaleTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -11,6 +13,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -78,6 +81,12 @@ public class RegisterController {
     private Label carModelErrorLabel;
 
     @FXML
+    private ComboBox<Location> locationComboBox;
+
+    @FXML
+    private Label locationErrorLabel;
+
+    @FXML
     private Button registerButton;
 
     private String selectedRole;
@@ -91,6 +100,12 @@ public class RegisterController {
             boolean isDriver = role.equals("driver");
             driverFieldsBox.setVisible(isDriver);
             driverFieldsBox.setManaged(isDriver);
+
+            // Populate location dropdown for drivers
+            if (isDriver && locationComboBox != null) {
+                locationComboBox.getItems().clear();
+                locationComboBox.getItems().addAll(MapGraph.getPredefinedLocations());
+            }
         }
     }
 
@@ -179,6 +194,11 @@ public class RegisterController {
                 showFieldError(carModelErrorLabel, "Car model is required");
                 isValid = false;
             }
+
+            if (locationComboBox.getValue() == null) {
+                showFieldError(locationErrorLabel, "Please select your current location");
+                isValid = false;
+            }
         }
 
         if (!isValid) {
@@ -230,12 +250,21 @@ public class RegisterController {
 
                 String licensePlate = licensePlateField.getText().trim();
                 String carModel = carModelField.getText().trim();
+                Location selectedLocation = locationComboBox.getValue();
 
                 // Generate SSN
                 String ssn = generateSSN(email);
 
                 Driver driver = new Driver(ssn, name, phone, email, password, licensePlate, carModel);
-                success = driverDAO.save(driver);
+
+                // Set the driver's current location
+                if (selectedLocation != null) {
+                    driver.setCurrentLocation(selectedLocation);
+                }
+
+                // Save driver with location name
+                String locationName = selectedLocation != null ? selectedLocation.getName() : null;
+                success = driverDAO.insert(driver, locationName) > 0;
             }
 
             if (success) {

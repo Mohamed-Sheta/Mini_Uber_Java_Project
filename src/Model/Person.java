@@ -54,6 +54,7 @@ public abstract class Person {
 
     public void updateWalletBalance(double walletBalance) {this.walletBalance = walletBalance;}
     public void updateCreditBalance(double creditBalance) {this.creditBalance = creditBalance;}
+    public void setCurrentLocation(Location currentLocation) {this.currentLocation = currentLocation;}
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }

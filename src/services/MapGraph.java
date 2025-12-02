@@ -47,40 +47,60 @@ public class MapGraph {
 
             LocationDAO locationDAO = new LocationDAO();
 
-            Location downtown = new Location("Downtown Cairo", 30.0444, 31.2357);
-            Location nasrCity = new Location("Nasr City", 30.0561, 31.3300);
-            Location maadi = new Location("Maadi", 29.9603, 31.2596);
-            Location giza = new Location("Giza", 30.0131, 31.2089);
-            Location newCairo = new Location("New Cairo", 30.0305, 31.4913);
-
-            locations.addAll(Arrays.asList(downtown, nasrCity, maadi, giza, newCairo));
+            // Use the static method to get predefined locations
+            locations = MapGraph.getPredefinedLocations();
 
             for (Location loc : locations) {
                 cityMap.addLocation(loc);
             }
 
             try {
-                for (Location loc : locations) {
-                    long id = locationDAO.insert(loc);
-                    System.out.println("[DB] Insert Location: " + loc.getName() + " -> id=" + id);
+                // First, check which locations already exist in database
+                List<LocationDAO.LocationRow> existingLocations = locationDAO.showAll();
+                Set<String> existingNames = new HashSet<>();
+                for (LocationDAO.LocationRow row : existingLocations) {
+                    existingNames.add(row.name);
                 }
+
+                // Only insert locations that don't already exist
+                int insertedCount = 0;
+                int skippedCount = 0;
+                for (Location loc : locations) {
+                    if (!existingNames.contains(loc.getName())) {
+                        long id = locationDAO.insert(loc);
+                        System.out.println("[DB] Insert Location: " + loc.getName() + " -> id=" + id);
+                        insertedCount++;
+                    } else {
+                        System.out.println("[DB] Skip Location (already exists): " + loc.getName());
+                        skippedCount++;
+                    }
+                }
+                System.out.println("[DB] Location summary: " + insertedCount + " inserted, " + skippedCount + " skipped, " + existingLocations.size() + " total in DB");
             } catch (Exception e) {
                 System.out.println("[DB] Insert locations error: " + e.getMessage());
+                e.printStackTrace();
             }
         }
 
 
         private void initializeEdges() {
-            if (locations.size() < 5) return;
+            if (locations.size() < 10) return;
 
             EdgeDAO edgeDAO = new EdgeDAO();
 
-            Location downtown = locations.get(0);
-            Location nasrCity = locations.get(1);
-            Location maadi = locations.get(2);
-            Location giza = locations.get(3);
-            Location newCairo = locations.get(4);
+            // All 10 locations
+            Location downtown = locations.get(0);           // Downtown Cairo
+            Location nasrCity = locations.get(1);           // Nasr City
+            Location maadi = locations.get(2);              // Maadi
+            Location giza = locations.get(3);               // Giza
+            Location newCairo = locations.get(4);           // New Cairo
+            Location hadaeqAlQubba = locations.get(5);      // Hadaeq Al-Qubba
+            Location elKorba = locations.get(6);            // El Korba
+            Location abbasiya = locations.get(7);           // Abbasiya
+            Location helmeyetElZeitoun = locations.get(8);  // Helmeyet El-Zeitoun
+            Location elObour = locations.get(9);            // El Obour
 
+            // Original edges (keep existing routes)
             cityMap.addEdge(downtown, nasrCity, 6.0);
             cityMap.addEdge(nasrCity, downtown, 6.0);
             cityMap.addEdge(downtown, maadi, 8.0);
@@ -90,17 +110,92 @@ public class MapGraph {
             cityMap.addEdge(nasrCity, newCairo, 10.0);
             cityMap.addEdge(newCairo, nasrCity, 10.0);
 
+            // New edges connecting the 5 new locations to existing network
+            // Hadaeq Al-Qubba connections
+            cityMap.addEdge(downtown, hadaeqAlQubba, 4.0);
+            cityMap.addEdge(hadaeqAlQubba, downtown, 4.0);
+            cityMap.addEdge(hadaeqAlQubba, abbasiya, 2.0);
+            cityMap.addEdge(abbasiya, hadaeqAlQubba, 2.0);
+
+            // El Korba connections
+            cityMap.addEdge(nasrCity, elKorba, 5.0);
+            cityMap.addEdge(elKorba, nasrCity, 5.0);
+            cityMap.addEdge(elKorba, helmeyetElZeitoun, 3.0);
+            cityMap.addEdge(helmeyetElZeitoun, elKorba, 3.0);
+
+            // Abbasiya connections
+            cityMap.addEdge(abbasiya, nasrCity, 4.0);
+            cityMap.addEdge(nasrCity, abbasiya, 4.0);
+            cityMap.addEdge(abbasiya, helmeyetElZeitoun, 3.5);
+            cityMap.addEdge(helmeyetElZeitoun, abbasiya, 3.5);
+
+            // Helmeyet El-Zeitoun connections
+            cityMap.addEdge(helmeyetElZeitoun, nasrCity, 4.5);
+            cityMap.addEdge(nasrCity, helmeyetElZeitoun, 4.5);
+
+            // El Obour connections
+            cityMap.addEdge(newCairo, elObour, 8.0);
+            cityMap.addEdge(elObour, newCairo, 8.0);
+            cityMap.addEdge(nasrCity, elObour, 12.0);
+            cityMap.addEdge(elObour, nasrCity, 12.0);
+
             try {
-                edgeDAO.insert(downtown, nasrCity, 6.0);
-                edgeDAO.insert(nasrCity, downtown, 6.0);
-                edgeDAO.insert(downtown, maadi, 8.0);
-                edgeDAO.insert(maadi, downtown, 8.0);
-                edgeDAO.insert(maadi, giza, 5.0);
-                edgeDAO.insert(giza, maadi, 5.0);
-                edgeDAO.insert(nasrCity, newCairo, 10.0);
-                edgeDAO.insert(newCairo, nasrCity, 10.0);
+                final int[] insertedCount = {0}; // Use array to allow modification from inner class
+
+                // Helper to insert edge and catch duplicate errors
+                class EdgeInserter {
+                    void tryInsert(Location from, Location to, double distance) {
+                        try {
+                            edgeDAO.insert(from, to, distance);
+                            insertedCount[0]++;
+                        } catch (Exception e) {
+                            // Ignore duplicate key errors, count as skipped
+                            if (!e.getMessage().contains("Duplicate")) {
+                                System.out.println("[DB] Edge insert warning (" + from.getName() + " -> " + to.getName() + "): " + e.getMessage());
+                            }
+                        }
+                    }
+                }
+                EdgeInserter inserter = new EdgeInserter();
+
+                // Original edges
+                inserter.tryInsert(downtown, nasrCity, 6.0);
+                inserter.tryInsert(nasrCity, downtown, 6.0);
+                inserter.tryInsert(downtown, maadi, 8.0);
+                inserter.tryInsert(maadi, downtown, 8.0);
+                inserter.tryInsert(maadi, giza, 5.0);
+                inserter.tryInsert(giza, maadi, 5.0);
+                inserter.tryInsert(nasrCity, newCairo, 10.0);
+                inserter.tryInsert(newCairo, nasrCity, 10.0);
+
+                // New edges
+                inserter.tryInsert(downtown, hadaeqAlQubba, 4.0);
+                inserter.tryInsert(hadaeqAlQubba, downtown, 4.0);
+                inserter.tryInsert(hadaeqAlQubba, abbasiya, 2.0);
+                inserter.tryInsert(abbasiya, hadaeqAlQubba, 2.0);
+
+                inserter.tryInsert(nasrCity, elKorba, 5.0);
+                inserter.tryInsert(elKorba, nasrCity, 5.0);
+                inserter.tryInsert(elKorba, helmeyetElZeitoun, 3.0);
+                inserter.tryInsert(helmeyetElZeitoun, elKorba, 3.0);
+
+                inserter.tryInsert(abbasiya, nasrCity, 4.0);
+                inserter.tryInsert(nasrCity, abbasiya, 4.0);
+                inserter.tryInsert(abbasiya, helmeyetElZeitoun, 3.5);
+                inserter.tryInsert(helmeyetElZeitoun, abbasiya, 3.5);
+
+                inserter.tryInsert(helmeyetElZeitoun, nasrCity, 4.5);
+                inserter.tryInsert(nasrCity, helmeyetElZeitoun, 4.5);
+
+                inserter.tryInsert(newCairo, elObour, 8.0);
+                inserter.tryInsert(elObour, newCairo, 8.0);
+                inserter.tryInsert(nasrCity, elObour, 12.0);
+                inserter.tryInsert(elObour, nasrCity, 12.0);
+
+                System.out.println("[DB] Successfully inserted " + insertedCount[0] + " edges");
             } catch (Exception e) {
                 System.out.println("[DB] Insert edges error: " + e.getMessage());
+                e.printStackTrace();
             }
         }
 
@@ -191,6 +286,26 @@ public class MapGraph {
         addLocation(from);
         addLocation(to);
         adjacency_list.get(from).add(new Edge(from, to, distance));
+    }
+
+    public static List<Location> getPredefinedLocations() {
+        List<Location> locations = new ArrayList<>();
+
+        Location downtown = new Location("Downtown Cairo", 30.0444, 31.2357);
+        Location nasrCity = new Location("Nasr City", 30.0561, 31.3300);
+        Location maadi = new Location("Maadi", 29.9603, 31.2596);
+        Location giza = new Location("Giza", 30.0131, 31.2089);
+        Location newCairo = new Location("New Cairo", 30.0305, 31.4913);
+        Location hadaeqAlQubba = new Location("Hadaeq Al-Qubba", 30.0867, 31.3020);
+        Location elKorba = new Location("El Korba", 30.1127, 31.3270);
+        Location abbasiya = new Location("Abbasiya", 30.0670, 31.2759);
+        Location helmeyetElZeitoun = new Location("Helmeyet El-Zeitoun", 30.1134, 31.3187);
+        Location elObour = new Location("El Obour", 30.2289, 31.4553);
+
+        locations.addAll(Arrays.asList(downtown, nasrCity, maadi, giza, newCairo,
+                hadaeqAlQubba, elKorba, abbasiya, helmeyetElZeitoun, elObour));
+
+        return locations;
     }
 
     public List<Location> nodes_of_road(Location start, Location target) {

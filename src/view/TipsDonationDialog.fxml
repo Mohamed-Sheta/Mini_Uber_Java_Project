@@ -8,7 +8,7 @@
            xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="controller.TipsDonationDialogController"
            styleClass="dialog-overlay"
-           stylesheets="@driver-dialog.css">
+           stylesheets="@/driver-dialog.css">
 
     <VBox styleClass="dialog-container" maxWidth="313" maxHeight="285" alignment="CENTER">
         <padding>

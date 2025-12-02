@@ -107,4 +107,21 @@ public class LocationDAO {
 
         return out;
     }
+
+    public List<Location> getPredefinedLocations() {
+        List<Location> locations = new ArrayList<>();
+
+        locations.add(new Location("Downtown Cairo", 30.0444, 31.2357));
+        locations.add(new Location("Nasr City", 30.0561, 31.3300));
+        locations.add(new Location("Maadi", 29.9603, 31.2596));
+        locations.add(new Location("Giza", 30.0131, 31.2089));
+        locations.add(new Location("New Cairo", 30.0305, 31.4913));
+        locations.add(new Location("Hadaeq Al-Qubba", 30.0867, 31.3020));
+        locations.add(new Location("El Korba", 30.1127, 31.3270));
+        locations.add(new Location("Abbasiya", 30.0670, 31.2759));
+        locations.add(new Location("Helmeyet El-Zeitoun", 30.1134, 31.3187));
+        locations.add(new Location("El Obour", 30.2289, 31.4553));
+
+        return locations;
+    }
 }

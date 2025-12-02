@@ -141,6 +141,20 @@
                        managed="false"
                        maxWidth="320"/>
             </VBox>
+
+            <VBox spacing="5" alignment="CENTER_LEFT">
+                <Label text="Current Location" styleClass="field-label"/>
+                <ComboBox fx:id="locationComboBox"
+                          promptText="Select your location"
+                          prefWidth="320"
+                          prefHeight="44"
+                          styleClass="text-field"/>
+                <Label fx:id="locationErrorLabel"
+                       styleClass="label-error"
+                       visible="false"
+                       managed="false"
+                       maxWidth="320"/>
+            </VBox>
         </VBox>
 
         <!-- Register Button -->
