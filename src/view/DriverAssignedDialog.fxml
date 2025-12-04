@@ -9,94 +9,124 @@
            fx:controller="controller.DriverAssignedDialogController"
            styleClass="dialog-overlay"
            stylesheets="@/driver-dialog.css"
+           pickOnBounds="true"
            onMouseClicked="#onOverlayClick">
 
-    <!-- Semi-transparent overlay background -->
-    <VBox styleClass="dialog-container" maxWidth="323" maxHeight="290"
-          onMouseClicked="#onDialogClick">
-        <padding>
-            <Insets top="10" bottom="10" left="18" right="18"/>
-        </padding>
+    <!-- VBox wrapper to stack driver panel and cancel button -->
+    <VBox fx:id="contentWrapper" alignment="CENTER" spacing="15"
+          pickOnBounds="false">
 
-        <!-- Header -->
-        <Label text="Driver Assigned!" styleClass="dialog-title" style="-fx-font-size: 17px;"/>
-        <Label text="Your driver is on the way" styleClass="dialog-subtitle" style="-fx-font-size: 10px;">
-            <VBox.margin>
-                <Insets bottom="6"/>
-            </VBox.margin>
-        </Label>
+        <!-- StackPane to overlay close button on dialog panel -->
+        <StackPane>
 
-        <!-- Driver Icon/Avatar Placeholder -->
-        <HBox alignment="CENTER" styleClass="driver-avatar-container" style="-fx-pref-width: 55; -fx-pref-height: 55; -fx-padding: 7;">
-            <VBox.margin>
-                <Insets bottom="6"/>
-            </VBox.margin>
-            <Label text="🚗" style="-fx-font-size: 30px;"/>
-        </HBox>
+            <!-- Driver Info Panel (can be hidden) -->
+            <VBox fx:id="dialogContainer" styleClass="dialog-container" maxWidth="323" maxHeight="290">
+                <padding>
+                    <Insets top="10" bottom="10" left="18" right="18"/>
+                </padding>
 
-        <!-- Driver Information -->
-        <VBox spacing="5" styleClass="info-container" style="-fx-padding: 7;">
-
-            <!-- Driver Name -->
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="Driver:" styleClass="info-label" minWidth="80"/>
-                <Label fx:id="driverNameLabel" text="John Doe" styleClass="info-value"/>
-            </HBox>
-
-            <!-- Car Model -->
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="Car:" styleClass="info-label" minWidth="80"/>
-                <Label fx:id="carModelLabel" text="Toyota Camry" styleClass="info-value"/>
-            </HBox>
-
-            <!-- License Plate -->
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="Plate:" styleClass="info-label" minWidth="80"/>
-                <Label fx:id="licensePlateLabel" text="ABC 1234" styleClass="info-value"/>
-            </HBox>
-
-            <!-- Phone -->
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="Phone:" styleClass="info-label" minWidth="80"/>
-                <Label fx:id="phoneLabel" text="0123456789" styleClass="info-value"/>
-            </HBox>
-
-            <!-- Separator -->
-            <Region prefHeight="1" styleClass="separator">
+                <!-- Header -->
+                <Label text="Driver Assigned!" styleClass="dialog-title" style="-fx-font-size: 17px;"/>
+            <Label text="Your driver is on the way" styleClass="dialog-subtitle" style="-fx-font-size: 10px;">
                 <VBox.margin>
-                    <Insets top="5" bottom="5"/>
+                    <Insets bottom="6"/>
                 </VBox.margin>
-            </Region>
+            </Label>
 
-            <!-- Estimated Time -->
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="Est. Time:" styleClass="info-label" minWidth="80"/>
-                <Label fx:id="estimatedTimeLabel" text="15 min" styleClass="info-value-highlight"/>
+            <!-- Driver Icon/Avatar Placeholder -->
+            <HBox alignment="CENTER" styleClass="driver-avatar-container" style="-fx-pref-width: 55; -fx-pref-height: 55; -fx-padding: 7;">
+                <VBox.margin>
+                    <Insets bottom="6"/>
+                </VBox.margin>
+                <Label text="🚗" style="-fx-font-size: 30px;"/>
             </HBox>
 
-            <!-- Estimated Price -->
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="Price:" styleClass="info-label" minWidth="80"/>
-                <Label fx:id="estimatedPriceLabel" text="25.00 EGP" styleClass="info-value-highlight"/>
-            </HBox>
+            <!-- Driver Information -->
+            <VBox spacing="5" styleClass="info-container" style="-fx-padding: 7;">
+
+                <!-- Driver Name -->
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Driver:" styleClass="info-label" minWidth="80"/>
+                    <Label fx:id="driverNameLabel" text="John Doe" styleClass="info-value"/>
+                </HBox>
+
+                <!-- Car Model -->
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Car:" styleClass="info-label" minWidth="80"/>
+                    <Label fx:id="carModelLabel" text="Toyota Camry" styleClass="info-value"/>
+                </HBox>
+
+                <!-- License Plate -->
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Plate:" styleClass="info-label" minWidth="80"/>
+                    <Label fx:id="licensePlateLabel" text="ABC 1234" styleClass="info-value"/>
+                </HBox>
+
+                <!-- Phone -->
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Phone:" styleClass="info-label" minWidth="80"/>
+                    <Label fx:id="phoneLabel" text="0123456789" styleClass="info-value"/>
+                </HBox>
+
+                <!-- Separator -->
+                <Region prefHeight="1" styleClass="separator">
+                    <VBox.margin>
+                        <Insets top="5" bottom="5"/>
+                    </VBox.margin>
+                </Region>
+
+                <!-- Estimated Time -->
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Est. Time:" styleClass="info-label" minWidth="80"/>
+                    <Label fx:id="estimatedTimeLabel" text="15 min" styleClass="info-value-highlight"/>
+                </HBox>
+
+                <!-- Estimated Price -->
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Price:" styleClass="info-label" minWidth="80"/>
+                    <Label fx:id="estimatedPriceLabel" text="25.00 EGP" styleClass="info-value-highlight"/>
+                </HBox>
+
+            </VBox>
+
+            <!-- Spacer -->
+            <Region VBox.vgrow="ALWAYS" minHeight="10"/>
 
         </VBox>
 
-        <!-- Spacer -->
-        <Region VBox.vgrow="ALWAYS" minHeight="10"/>
+        <!-- X Close Button - Top Right Corner -->
+        <Button fx:id="closeButton" text="×"
+                styleClass="dialog-button-close"
+                onAction="#onCloseButtonClick"
+                StackPane.alignment="TOP_RIGHT"
+                prefWidth="32" prefHeight="32"
+                style="-fx-font-size: 20px; -fx-font-weight: bold;">
+            <StackPane.margin>
+                <Insets top="5" right="5"/>
+            </StackPane.margin>
+        </Button>
 
-        <!-- Buttons -->
-        <HBox spacing="12" alignment="CENTER">
-            <VBox.margin>
-                <Insets top="5"/>
-            </VBox.margin>
+        </StackPane>
 
-            <Button fx:id="refuseButton" text="Refuse" styleClass="dialog-button-refuse"
-                    prefWidth="120" prefHeight="32" onAction="#onRefuse"/>
+        <!-- Buttons container (outside driver panel - always visible) -->
+        <VBox alignment="CENTER" spacing="12">
 
-            <Button fx:id="okButton" text="Start Ride" styleClass="dialog-button-ok"
-                    prefWidth="120" prefHeight="32" onAction="#onOk" defaultButton="true"/>
-        </HBox>
+            <!-- Initial Buttons (Start Ride / Refuse) -->
+            <HBox fx:id="initialButtonBox" spacing="12" alignment="CENTER" managed="true" visible="true">
+                <Button fx:id="refuseButton" text="Refuse" styleClass="dialog-button-refuse"
+                        prefWidth="120" prefHeight="32" onAction="#onRefuse"/>
+
+                <Button fx:id="okButton" text="Start Ride" styleClass="dialog-button-ok"
+                        prefWidth="120" prefHeight="32" onAction="#onOk" defaultButton="true"/>
+            </HBox>
+
+            <!-- Cancel Button (shown after accepting ride) -->
+            <HBox fx:id="cancelButtonBox" spacing="12" alignment="CENTER" managed="false" visible="false">
+                <Button fx:id="cancelRideButton" text="Cancel Ride" styleClass="dialog-button-cancel"
+                        prefWidth="250" prefHeight="32" onAction="#onCancelRide"/>
+            </HBox>
+
+        </VBox>
 
     </VBox>
 

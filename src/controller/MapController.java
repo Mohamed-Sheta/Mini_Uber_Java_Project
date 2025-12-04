@@ -78,6 +78,10 @@ public class MapController {
     private DriverDAO driverDAO = new DriverDAO();
     private PassengerDAO passengerDAO = new PassengerDAO();
     private boolean rideFinalized = false; // Prevent duplicate finalization
+    private boolean isCancelled = false; // Track if ride has been cancelled
+    private boolean isOnboard = false; // Track if passenger is onboard
+    private DriverAssignedDialogController activeDialogController = null; // Reference to active dialog
+    private Task<Void> activeRideTask = null; // Reference to active ride task
 
 
     @FXML
@@ -585,7 +589,9 @@ public class MapController {
     private void startPassengerRideWorkflow(Location origin, Location destination) {
         Passenger passenger = (Passenger) currentUser;
 
-        // Reset finalization flag for new ride
+        isCancelled = false;
+        isOnboard = false;
+        System.out.println("[WORKFLOW] Starting new ride - flags reset (rideFinalized, isCancelled, isOnboard)");
         rideFinalized = false;
         System.out.println("[WORKFLOW] Starting new ride - rideFinalized flag reset");
 
@@ -911,10 +917,8 @@ public class MapController {
                 DriverAssignedDialogController dialogController = loader.getController();
                 dialogController.setDriverInfo(driver, currentRequest);
 
-                // Set callback for when user clicks OK
-                dialogController.setOnAcceptCallback(() -> {
-                    simulateRideCompletion();
-                });
+                // Store reference to dialog controller
+                activeDialogController = dialogController;
 
                 // Create stage as IN-APP MODAL attached to current window
                 Stage ownerStage = (Stage) rootContainer.getScene().getWindow();
@@ -932,8 +936,19 @@ public class MapController {
                     dialogStage.setY(ownerStage.getY() + 90); // 90px from top - below profile/settings bar
                 });
 
-                // Show dialog
-                dialogStage.showAndWait();
+                // Set callback for when user clicks Accept (Start Ride)
+                dialogController.setOnAcceptCallback(() -> {
+                    simulateRideCompletion(dialogStage);
+                });
+
+                // Set callback for when user clicks Cancel Ride
+                dialogController.setOnCancelCallback(() -> {
+                    handlePassengerCancellation(dialogStage);
+                });
+
+                // Show dialog (non-blocking - will stay open during ride)
+                dialogStage.show();
+
 
             } catch (Exception ex) {
                 System.err.println("Error showing driver dialog: " + ex.getMessage());
@@ -942,8 +957,9 @@ public class MapController {
         });
     }
 
-    private void simulateRideCompletion() {
+    private void simulateRideCompletion(Stage dialogStage) {
         showSuccess("🚗 Driver is on the way...");
+
 
         // Simulate ride in progress
         Task<Void> rideTask = new Task<Void>() {
@@ -951,28 +967,145 @@ public class MapController {
             protected Void call() throws Exception {
                 // Wait 3 seconds to simulate driver arriving
                 Thread.sleep(3000);
+
+                // Check if ride was cancelled
+                if (isCancelled) {
+                    System.out.println("[WORKFLOW] Cannot continue a cancelled ride.");
+                    return null;
+                }
+
+                // Show driver arrived message
+                Platform.runLater(() -> {
+                    if (!isCancelled) {
+                        showSuccess("✓ Driver arrived at pickup point.");
+                    }
+                });
                 rideManager.markDriverArrived();
 
-                // Wait another 3 seconds to simulate reaching destination
+                // Wait another 2 seconds for passenger to board
+                Thread.sleep(2000);
+
+                // Check if ride was cancelled
+                if (isCancelled) {
+                    System.out.println("[WORKFLOW] Cannot continue a cancelled ride.");
+                    return null;
+                }
+
+                // Mark passenger as onboard - disable cancellation from this point
+                isOnboard = true;
+                Platform.runLater(() -> {
+                    if (!isCancelled) {
+                        showSuccess("✓ Passenger onboard.");
+                        // Disable cancel button
+                        if (activeDialogController != null) {
+                            activeDialogController.disableCancelButton();
+                            System.out.println("[WORKFLOW] Cancel button disabled - passenger is onboard");
+                        }
+                    }
+                });
+
+                // Wait 3 seconds to simulate reaching destination
                 Thread.sleep(3000);
+
+                // Check if ride was cancelled
+                if (isCancelled) {
+                    System.out.println("[WORKFLOW] Cannot continue a cancelled ride.");
+                    return null;
+                }
+
                 rideManager.markPassengerArrived();
 
                 // Complete the ride
-                rideManager.completeRide();
+                if (!isCancelled) {
+                    rideManager.completeRide();
+                } else {
+                    System.out.println("[WORKFLOW] Cannot complete a cancelled ride.");
+                    return null;
+                }
 
                 return null;
             }
         };
 
+        // Store reference to active ride task
+        activeRideTask = rideTask;
+
         rideTask.setOnSucceeded(e -> {
-            completeRideWorkflow();
+            // Only proceed if not cancelled
+            if (!isCancelled) {
+                // Close the driver dialog
+                if (dialogStage != null) {
+                    dialogStage.close();
+                }
+                completeRideWorkflow();
+            } else {
+                System.out.println("[WORKFLOW] Ride was cancelled - skipping completion workflow");
+                if (dialogStage != null) {
+                    dialogStage.close();
+                }
+            }
         });
 
         rideTask.setOnFailed(e -> {
             showError("❌ Ride completion failed: " + rideTask.getException().getMessage());
+            if (dialogStage != null) {
+                dialogStage.close();
+            }
         });
 
         new Thread(rideTask).start();
+    }
+
+    private void handlePassengerCancellation(Stage dialogStage) {
+        // Check if passenger is already onboard
+        if (isOnboard) {
+            showError("❌ Cannot cancel after being onboard.");
+            System.out.println("[CANCELLATION] Cannot cancel after being onboard.");
+            return;
+        }
+
+        // Check if already cancelled
+        if (isCancelled) {
+            showError("⚠️ Ride is already cancelled.");
+            System.out.println("[CANCELLATION] Ride is already cancelled.");
+            return;
+        }
+
+        if (currentUser instanceof Passenger && rideManager != null) {
+            Passenger passenger = (Passenger) currentUser;
+
+            // Set cancellation flag FIRST to prevent further actions
+            isCancelled = true;
+            System.out.println("[CANCELLATION] isCancelled flag set to true");
+
+            // Hide the cancel button in the dialog
+            if (activeDialogController != null) {
+                activeDialogController.disableCancelButton();
+                System.out.println("[CANCELLATION] Cancel button hidden in dialog");
+            }
+
+            // Call existing cancellation logic
+            passenger.cancelRide(rideManager);
+
+            // Show cancellation message with penalty
+            showError("❌ Passenger cancelled the trip — penalty applied.");
+
+            System.out.println("[CANCELLATION] Passenger cancelled ride. Penalty of 20 EGP applied.");
+
+            // Close the dialog after a brief delay to show the message
+            if (dialogStage != null) {
+                new Thread(() -> {
+                    try {
+                        Thread.sleep(1500); // Wait 1.5 seconds to show the cancellation message
+                    } catch (InterruptedException e) {
+                        // Ignore
+                    }
+                    Platform.runLater(() -> {
+                        dialogStage.close();
+                    });
+                }).start();
+            }
+        }
     }
 
     private void completeRideWorkflow() {
@@ -1015,6 +1148,12 @@ public class MapController {
                 ex.printStackTrace();
                 showDriverRatingDialog(); // Continue flow even if dialog fails
             }
+        // Guard check: Don't show rating dialog if ride was cancelled
+        if (isCancelled) {
+            System.out.println("[MapController] Cannot show rating dialog for cancelled ride.");
+            return;
+        }
+
         });
     }
 
@@ -1079,11 +1218,17 @@ public class MapController {
             System.out.println("[MapController] Rating dialog closed (showAndWait returned)");
 
             // NOW immediately show Tips/Donation dialog (no Platform.runLater needed)
-            System.out.println("[MapController] Proceeding to Tips/Donation with rating: " + selectedRating[0]);
+        System.out.println("══════════════════════════════════════════════════════");
             showTipsDonationDialog(selectedRating[0]);
-
+        System.out.println("══════════════════════════════════════════════════════");
         } catch (Exception ex) {
             System.err.println("[MapController] Error showing rating dialog: " + ex.getMessage());
+        // Guard check: Don't show tips dialog if ride was cancelled
+        if (isCancelled) {
+            System.out.println("[TipsDialog] Cannot show tips dialog for cancelled ride.");
+            return;
+        }
+
             ex.printStackTrace();
             showTipsDonationDialog(0); // Skip to tips on error
         }
@@ -1192,6 +1337,12 @@ public class MapController {
             // NOW immediately finalize with captured amounts
             System.out.println("[TipsDialog] Proceeding to finalize with tip=" + capturedAmounts[0] + ", donation=" + capturedAmounts[1]);
             finalizeRideCompletion(driverRating, capturedAmounts[0], capturedAmounts[1]);
+
+        // Guard check: Don't finalize if ride was cancelled
+        if (isCancelled) {
+            System.out.println("[FINALIZE] Cannot finalize a cancelled ride.");
+            return;
+        }
 
         } catch (Exception ex) {
             System.err.println("\n❌❌❌ EXCEPTION in showTipsDonationDialog ❌❌❌");

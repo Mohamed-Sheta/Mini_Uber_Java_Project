@@ -107,6 +107,60 @@
     -fx-scale-y: 0.98;
 }
 
+/* Red Cancel Button Style */
+.dialog-button-cancel {
+    -fx-background-color: linear-gradient(to bottom, #E74C3C, #C0392B);
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 12px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(231, 76, 60, 0.4), 10, 0.3, 0, 3);
+    -fx-border-color: rgba(255, 255, 255, 0.2);
+    -fx-border-width: 1;
+    -fx-border-radius: 12px;
+}
+
+.dialog-button-cancel:hover {
+    -fx-background-color: linear-gradient(to bottom, #EC5F52, #E74C3C);
+    -fx-effect: dropshadow(gaussian, rgba(231, 76, 60, 0.6), 12, 0.4, 0, 4);
+    -fx-scale-y: 1.02;
+}
+
+.dialog-button-cancel:pressed {
+    -fx-background-color: #C0392B;
+    -fx-scale-y: 0.98;
+}
+
+/* X Close Button Style */
+.dialog-button-close {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-text-fill: rgba(255, 255, 255, 0.8);
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 50%;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 5, 0.3, 0, 2);
+    -fx-border-color: rgba(255, 255, 255, 0.2);
+    -fx-border-width: 1;
+    -fx-border-radius: 50%;
+    -fx-padding: 0;
+}
+
+.dialog-button-close:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.2);
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 8, 0.4, 0, 3);
+    -fx-scale-x: 1.1;
+    -fx-scale-y: 1.1;
+}
+
+.dialog-button-close:pressed {
+    -fx-background-color: rgba(255, 255, 255, 0.15);
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+}
+
 /* Ride Complete Dialog Styles */
 
 .success-icon {

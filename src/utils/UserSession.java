@@ -8,7 +8,9 @@ import Model.Person;
  * Singleton class to manage user session across the application
  * Stores the currently logged-in user and provides thread-safe access
  */
-public class UserSession {
+public class
+
+UserSession {
 
     private static UserSession instance;
     private Person currentUser;

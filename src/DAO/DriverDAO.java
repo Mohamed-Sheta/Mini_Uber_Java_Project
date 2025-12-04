@@ -15,6 +15,7 @@ public class DriverDAO {
         public final String currentLocation;
         public final String licensePlate, carModel;
         public final boolean active;
+
         public final String password;
 
         public DriverRow(long id, String userSSN, String name, String phone, String email,
