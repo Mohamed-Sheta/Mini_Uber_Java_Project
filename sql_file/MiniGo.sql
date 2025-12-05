@@ -115,6 +115,7 @@ CREATE TABLE ride_history (
                               FOREIGN KEY(passenger_id) REFERENCES passengers(id)
 );
 
+
 -- ======================================================
 -- TABLE: Problem Types
 -- ======================================================

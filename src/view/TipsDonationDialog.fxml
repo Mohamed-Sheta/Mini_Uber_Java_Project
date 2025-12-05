@@ -67,6 +67,14 @@
             <Label fx:id="totalLabel" text="0.00 EGP" styleClass="info-value-highlight" style="-fx-font-size: 13px;"/>
         </HBox>
 
+        <!-- Error Message Label -->
+        <Label fx:id="errorLabel" text="" visible="false"
+               style="-fx-text-fill: #e74c3c; -fx-font-size: 10px; -fx-font-weight: bold;">
+            <VBox.margin>
+                <Insets bottom="5"/>
+            </VBox.margin>
+        </Label>
+
         <!-- Buttons -->
         <HBox spacing="10" alignment="CENTER">
             <Button text="Skip" styleClass="dialog-button-refuse"

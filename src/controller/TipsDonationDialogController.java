@@ -18,6 +18,7 @@ public class TipsDonationDialogController {
     @FXML private TextField tipField;
     @FXML private TextField donationField;
     @FXML private Label totalLabel;
+    @FXML private Label errorLabel;
     @FXML private Button confirmButton;
 
     private double baseCost = 0.0;
@@ -35,12 +36,56 @@ public class TipsDonationDialogController {
         rideCostLabel.setText(String.format("%.2f EGP", rideCost));
         updateTotal();
 
-        // Add listeners to text fields
+        // Add real-time input validation to prevent negative values
         tipField.textProperty().addListener((obs, oldVal, newVal) -> {
+            // Filter out negative signs and invalid characters
+            if (newVal != null && !newVal.isEmpty()) {
+                // Check for negative sign and show error
+                if (newVal.contains("-")) {
+                    showError("❌ Tip cannot be negative!");
+                    tipField.setText(oldVal);
+                    return;
+                }
+
+                // Remove any negative signs
+                String filtered = newVal.replaceAll("-", "");
+                // Only allow digits and decimal point
+                filtered = filtered.replaceAll("[^0-9.]", "");
+                // Prevent multiple decimal points
+                if (filtered.indexOf('.') != filtered.lastIndexOf('.')) {
+                    filtered = oldVal;
+                }
+                if (!filtered.equals(newVal)) {
+                    tipField.setText(filtered);
+                }
+            }
+            clearError();
             updateTotal();
         });
 
         donationField.textProperty().addListener((obs, oldVal, newVal) -> {
+            // Filter out negative signs and invalid characters
+            if (newVal != null && !newVal.isEmpty()) {
+                // Check for negative sign and show error
+                if (newVal.contains("-")) {
+                    showError("❌ Donation cannot be negative!");
+                    donationField.setText(oldVal);
+                    return;
+                }
+
+                // Remove any negative signs
+                String filtered = newVal.replaceAll("-", "");
+                // Only allow digits and decimal point
+                filtered = filtered.replaceAll("[^0-9.]", "");
+                // Prevent multiple decimal points
+                if (filtered.indexOf('.') != filtered.lastIndexOf('.')) {
+                    filtered = oldVal;
+                }
+                if (!filtered.equals(newVal)) {
+                    donationField.setText(filtered);
+                }
+            }
+            clearError();
             updateTotal();
         });
     }
@@ -63,7 +108,12 @@ public class TipsDonationDialogController {
         }
         try {
             double value = Double.parseDouble(text.trim());
-            return value > 0 ? value : 0.0;
+            // Ensure value is non-negative and not infinity/NaN
+            if (value < 0 || Double.isInfinite(value) || Double.isNaN(value)) {
+                return 0.0;
+            }
+            // Round to 2 decimal places to prevent floating point precision issues
+            return Math.round(value * 100.0) / 100.0;
         } catch (NumberFormatException e) {
             return 0.0;
         }
@@ -75,7 +125,12 @@ public class TipsDonationDialogController {
         tipAmount = parseAmount(tipField.getText());
         donationAmount = parseAmount(donationField.getText());
 
+        // Final validation: ensure non-negative values
+        if (tipAmount < 0) tipAmount = 0.0;
+        if (donationAmount < 0) donationAmount = 0.0;
+
         System.out.println("[TipsDonation] Confirm clicked - Tip: " + tipAmount + ", Donation: " + donationAmount);
+        System.out.println("[TipsDonation] Validation passed: Both values are non-negative");
 
         // Trigger callback BEFORE closing dialog
         if (onConfirmCallback != null) {
@@ -124,6 +179,28 @@ public class TipsDonationDialogController {
 
     public double getTotalAmount() {
         return baseCost + tipAmount + donationAmount;
+    }
+
+    /**
+     * Show error message to user
+     */
+    private void showError(String message) {
+        if (errorLabel != null) {
+            errorLabel.setText(message);
+            errorLabel.setStyle("-fx-text-fill: #e74c3c; -fx-font-size: 10px; -fx-font-weight: bold;");
+            errorLabel.setVisible(true);
+        }
+        System.out.println("[TipsDonation] ERROR: " + message);
+    }
+
+    /**
+     * Clear error message
+     */
+    private void clearError() {
+        if (errorLabel != null) {
+            errorLabel.setText("");
+            errorLabel.setVisible(false);
+        }
     }
 }
 

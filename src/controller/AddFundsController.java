@@ -29,8 +29,22 @@ public class AddFundsController {
 
     @FXML
     public void initialize() {
-        // Restrict amount field to numbers and decimal point only
+        // Restrict amount field to numbers and decimal point only, and prevent negative values
         amountField.textProperty().addListener((observable, oldValue, newValue) -> {
+            // Clear any existing error message
+            if (messageLabel != null && newValue.isEmpty()) {
+                messageLabel.setText("");
+                messageLabel.setStyle("");
+            }
+
+            // Check for negative sign
+            if (newValue.contains("-")) {
+                showError("❌ Negative values are not allowed!");
+                amountField.setText(oldValue);
+                return;
+            }
+
+            // Only allow digits and decimal point with max 2 decimal places
             if (!newValue.matches("\\d*(\\.\\d{0,2})?")) {
                 amountField.setText(oldValue);
             }
@@ -66,7 +80,7 @@ public class AddFundsController {
 
         // Validate input is not empty
         if (amountText.isEmpty()) {
-            showError("Please enter a valid amount.");
+            showError("❌ Please enter a valid amount.");
             return;
         }
 
@@ -75,26 +89,32 @@ public class AddFundsController {
         try {
             amount = Double.parseDouble(amountText);
         } catch (NumberFormatException e) {
-            showError("Please enter a valid amount.");
+            showError("❌ Please enter a valid numeric amount.");
             return;
         }
 
-        // Validate amount is positive
+        // Validate amount is not negative
+        if (amount < 0) {
+            showError("❌ Negative amounts are not allowed!");
+            return;
+        }
+
+        // Validate amount is positive (greater than 0)
         if (amount <= 0) {
-            showError("Amount must be greater than 0");
+            showError("❌ Amount must be greater than 0");
             return;
         }
 
         // Validate maximum amount
         if (amount > 10000) {
-            showError("Maximum amount is 10,000 EGP");
+            showError("❌ Maximum amount is 10,000 EGP");
             return;
         }
 
         // Get user ID from database
         long userId = getUserIdFromDatabase();
         if (userId == -1) {
-            showError("User not found in database");
+            showError("❌ User not found in database");
             return;
         }
 
@@ -111,16 +131,16 @@ public class AddFundsController {
                 updateBalanceDisplay();
 
                 // Show success message
-                showSuccess(String.format("Successfully added %.2f EGP to your wallet!", amount));
+                showSuccess(String.format("✅ Successfully added %.2f EGP to your wallet!", amount));
 
                 // Clear the amount field
                 amountField.clear();
             } else {
-                showError("Failed to update balance. Please try again.");
+                showError("❌ Failed to update balance. Please try again.");
             }
 
         } catch (SQLException e) {
-            showError("Database error: " + e.getMessage());
+            showError("❌ Database error: " + e.getMessage());
             e.printStackTrace();
         }
     }

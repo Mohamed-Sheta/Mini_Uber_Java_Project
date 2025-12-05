@@ -27,11 +27,9 @@ import services.*;
 import DAO.*;
 import Model.*;
 import javafx.concurrent.Task;
+
+import java.sql.*;
 import java.util.*;
-import java.sql.SQLException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 
 import java.io.IOException;
 
