@@ -29,6 +29,7 @@ public class SettingsController {
     @FXML private Button addFundsButton;
     @FXML private Button changePasswordButton;
     @FXML private Button reportRideButton;
+    @FXML private Button reportAppButton;
     @FXML private Button deleteAccountButton;
     @FXML private Button logoutButton;
 
@@ -144,6 +145,29 @@ public class SettingsController {
             stage.show();
         } catch (IOException e) {
             System.err.println("Failed to navigate to Report Problem: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Navigate to Report App screen
+     */
+    @FXML
+    public void onReportApp() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ReportApp.fxml"));
+            Scene scene = new Scene(loader.load(), 390, 750);
+
+            ReportAppController controller = loader.getController();
+            if (currentUser != null) {
+                controller.setUser(currentUser);
+            }
+
+            Stage stage = (Stage) reportAppButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            System.err.println("Failed to navigate to Report App: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -303,4 +327,3 @@ public class SettingsController {
         alert.showAndWait();
     }
 }
-

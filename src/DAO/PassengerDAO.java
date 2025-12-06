@@ -216,4 +216,26 @@ public class PassengerDAO {
         }
         return false;
     }
+
+    /**
+     * Get passenger ID by email
+     * @param email the email to search for
+     * @return the passenger ID or -1 if not found
+     */
+    public long getIdByEmail(String email) {
+        final String sql = "SELECT id FROM passengers WHERE email=?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getLong("id");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting passenger ID by email: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return -1L;
+    }
 }

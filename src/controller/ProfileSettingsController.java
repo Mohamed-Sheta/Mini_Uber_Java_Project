@@ -24,6 +24,7 @@ public class ProfileSettingsController {
     @FXML private Button addFundsButton;
     @FXML private Button changePasswordButton;
     @FXML private Button reportRideButton;
+    @FXML private Button reportAppButton;
     @FXML private Button deleteAccountButton;
     @FXML private Button logoutButton;
 
@@ -261,6 +262,36 @@ public class ProfileSettingsController {
     }
 
     /**
+     * Navigate to Report App screen
+     */
+    @FXML
+    public void onReportApp() {
+        try {
+            System.out.println("[ProfileSettings] Opening Report App screen");
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ReportApp.fxml"));
+            Scene scene = new Scene(loader.load(), 390, 750);
+
+            // Pass the current user to the ReportAppController
+            ReportAppController controller = loader.getController();
+            if (currentUser != null) {
+                controller.setUser(currentUser);
+                System.out.println("[ProfileSettings] User passed to ReportApp: " + currentUser.getName());
+            }
+
+            Stage newStage = new Stage();
+            newStage.setTitle("Report App Issue");
+            newStage.setScene(scene);
+            newStage.show();
+
+            System.out.println("[ProfileSettings] Report App screen opened successfully");
+        } catch (IOException e) {
+            System.err.println("Failed to open Report App screen: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Navigate to role selection screen
      */
     private void navigateToRoleSelection() {
@@ -386,4 +417,3 @@ public class ProfileSettingsController {
         alert.showAndWait();
     }
 }
-

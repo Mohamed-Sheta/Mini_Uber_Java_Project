@@ -43,6 +43,15 @@
 
         <Region prefHeight="1" styleClass="divider"/>
 
+        <!-- Report App Button -->
+        <Button fx:id="reportAppButton" text="📱 Report App" styleClass="settings-item-button" onAction="#onReportApp" alignment="CENTER_LEFT">
+            <padding>
+                <Insets top="14" bottom="14" left="20" right="20"/>
+            </padding>
+        </Button>
+
+        <Region prefHeight="1" styleClass="divider"/>
+
         <!-- Delete Account Button -->
         <Button fx:id="deleteAccountButton" text="🗑️ Delete Account" styleClass="settings-item-button-danger" onAction="#onDeleteAccount" alignment="CENTER_LEFT">
             <padding>

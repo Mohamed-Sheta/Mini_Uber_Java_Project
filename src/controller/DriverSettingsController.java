@@ -27,6 +27,7 @@ public class DriverSettingsController {
     @FXML private Button backButton;
     // Note: balanceLabel removed - Account Balance now shown only in Profile screen
     @FXML private Button changePasswordButton;
+    @FXML private Button reportAppButton;
     @FXML private Button deleteAccountButton;
     @FXML private Button logoutButton;
 
@@ -153,6 +154,36 @@ public class DriverSettingsController {
     }
 
     /**
+     * Navigate to Report App screen
+     */
+    @FXML
+    public void onReportApp() {
+        try {
+            System.out.println("[DriverSettings] Opening Report App screen");
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ReportApp.fxml"));
+            Scene scene = new Scene(loader.load(), 390, 750);
+
+            // Pass the current user to the ReportAppController
+            ReportAppController controller = loader.getController();
+            if (currentUser != null) {
+                controller.setUser(currentUser);
+                System.out.println("[DriverSettings] User passed to ReportApp: " + currentUser.getName());
+            }
+
+            Stage newStage = new Stage();
+            newStage.setTitle("Report App Issue");
+            newStage.setScene(scene);
+            newStage.show();
+
+            System.out.println("[DriverSettings] Report App screen opened successfully");
+        } catch (IOException e) {
+            System.err.println("Failed to open Report App screen: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Navigate to role selection screen
      */
     private void navigateToRoleSelection() {
@@ -173,4 +204,3 @@ public class DriverSettingsController {
         }
     }
 }
-

@@ -172,3 +172,16 @@ CREATE TABLE company_transactions (
 );
 
 
+-- ======================================================
+-- TABLE: Reports (App Issue Reports)
+-- ======================================================
+CREATE TABLE reports (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    description VARCHAR(300) NOT NULL,
+    type VARCHAR(30) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_user_id (user_id),
+    INDEX idx_type (type),
+    INDEX idx_created_at (created_at)
+);
