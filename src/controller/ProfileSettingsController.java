@@ -279,10 +279,9 @@ public class ProfileSettingsController {
                 System.out.println("[ProfileSettings] User passed to ReportApp: " + currentUser.getName());
             }
 
-            Stage newStage = new Stage();
-            newStage.setTitle("Report App Issue");
-            newStage.setScene(scene);
-            newStage.show();
+            Stage stage = (Stage) reportAppButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
 
             System.out.println("[ProfileSettings] Report App screen opened successfully");
         } catch (IOException e) {

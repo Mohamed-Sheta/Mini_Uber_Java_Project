@@ -171,10 +171,9 @@ public class DriverSettingsController {
                 System.out.println("[DriverSettings] User passed to ReportApp: " + currentUser.getName());
             }
 
-            Stage newStage = new Stage();
-            newStage.setTitle("Report App Issue");
-            newStage.setScene(scene);
-            newStage.show();
+            Stage stage = (Stage) reportAppButton.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
 
             System.out.println("[DriverSettings] Report App screen opened successfully");
         } catch (IOException e) {

@@ -188,12 +188,24 @@ public class ReportAppController {
     @FXML
     private void onBack() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/Settings.fxml"));
+            // Determine which settings page to navigate to based on user type
+            boolean isDriver = currentUser instanceof Driver;
+            String fxmlPath = isDriver ? "/view/DriverSettings.fxml" : "/view/ProfileSettings.fxml";
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Scene scene = new Scene(loader.load(), 390, 750);
 
-            SettingsController controller = loader.getController();
-            if (currentUser != null) {
-                controller.setUser(currentUser);
+            // Pass the current user to the appropriate settings controller
+            if (isDriver) {
+                DriverSettingsController controller = loader.getController();
+                if (currentUser != null) {
+                    controller.setUser(currentUser);
+                }
+            } else {
+                ProfileSettingsController controller = loader.getController();
+                if (currentUser != null) {
+                    controller.setUser(currentUser);
+                }
             }
 
             Stage stage = (Stage) backButton.getScene().getWindow();

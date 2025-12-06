@@ -1,88 +1,127 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Font?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
 
-<AnchorPane prefHeight="750.0" prefWidth="390.0" style="-fx-background-color: #FFFFFF;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.ReportAppController">
+<VBox xmlns="http://javafx.com/javafx/25"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controller.ReportAppController"
+      prefWidth="390" prefHeight="750"
+      styleClass="content-container"
+      alignment="TOP_CENTER"
+      spacing="0"
+      stylesheets="@/style.css">
 
-    <!-- Header -->
-    <VBox layoutX="0.0" layoutY="0.0" prefHeight="80.0" prefWidth="390.0" style="-fx-background-color: #1E88E5;">
-        <padding>
-            <Insets top="20" bottom="10" left="20" right="20"/>
-        </padding>
+    <padding>
+        <Insets top="12" bottom="16" left="16" right="16"/>
+    </padding>
 
-        <HBox alignment="CENTER_LEFT" spacing="10">
-            <Button fx:id="backButton" onAction="#onBack" text="← Back"
-                    style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 14px; -fx-cursor: hand;"/>
+    <!-- Header with Back Button -->
+    <HBox alignment="CENTER_LEFT" spacing="8">
+        <VBox.margin>
+            <Insets bottom="16"/>
+        </VBox.margin>
+        <Button fx:id="backButton" text="←" styleClass="back-button" onAction="#onBack"/>
+        <Label text="Report App Issue" styleClass="title-large"/>
+    </HBox>
 
-            <Label text="Report App Issue" style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;">
-                <HBox.margin>
-                    <Insets left="40"/>
-                </HBox.margin>
-            </Label>
-        </HBox>
-    </VBox>
-
-    <!-- Form Content -->
-    <ScrollPane layoutX="0.0" layoutY="80.0" prefHeight="670.0" prefWidth="390.0" fitToWidth="true" style="-fx-background-color: transparent;">
-        <VBox spacing="20" style="-fx-background-color: white;">
+    <!-- Report Form Card -->
+    <ScrollPane fitToWidth="true" styleClass="transparent-scroll" VBox.vgrow="ALWAYS">
+        <VBox styleClass="card-container" spacing="18" alignment="TOP_LEFT" maxWidth="350">
             <padding>
-                <Insets top="20" bottom="20" left="20" right="20"/>
+                <Insets top="24" bottom="24" left="24" right="24"/>
             </padding>
 
-            <!-- Instructions -->
-            <Label text="Help us improve the app by reporting issues, suggesting features, or sharing feedback."
-                   wrapText="true" style="-fx-text-fill: #666666; -fx-font-size: 13px;"/>
+            <!-- Icon/Title Section -->
+            <VBox alignment="CENTER" spacing="8">
+                <Label text="📱" style="-fx-font-size: 42px;"/>
+                <Label text="Report App Issue" styleClass="title-medium"/>
+                <Label text="Help us improve the app by reporting issues or suggesting features" styleClass="caption" wrapText="true" textAlignment="CENTER"/>
+            </VBox>
 
-            <Separator/>
-
-            <!-- Report Type -->
+            <!-- Category -->
             <VBox spacing="8">
-                <Label text="Category *" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #333333;"/>
-                <ComboBox fx:id="typeComboBox" promptText="Select report category" prefWidth="350.0"
-                          style="-fx-font-size: 13px;"/>
-                <Label fx:id="typeErrorLabel" textFill="RED" style="-fx-font-size: 12px;" managed="false" visible="false"/>
+                <Label text="Category" styleClass="field-label"/>
+                <ComboBox fx:id="typeComboBox"
+                         promptText="Select report category"
+                         styleClass="combo-box"
+                         prefWidth="300"
+                         maxWidth="300"/>
+                <Label fx:id="typeErrorLabel"
+                       styleClass="error-label"
+                       visible="false"
+                       managed="false"/>
             </VBox>
 
             <!-- Description -->
             <VBox spacing="8">
-                <Label text="Description *" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #333333;"/>
-                <Label text="Maximum 300 characters" style="-fx-text-fill: #999999; -fx-font-size: 11px;"/>
-                <TextArea fx:id="descriptionTextArea" promptText="Describe the issue or suggestion in detail..."
-                          wrapText="true" prefHeight="150.0" prefWidth="350.0"
-                          style="-fx-font-size: 13px; -fx-border-color: #CCCCCC; -fx-border-radius: 4px;"/>
-                <HBox alignment="CENTER_LEFT" spacing="10">
-                    <Label fx:id="charCountLabel" text="0 / 300" style="-fx-text-fill: #999999; -fx-font-size: 11px;"/>
+                <Label text="Description" styleClass="field-label"/>
+                <TextArea fx:id="descriptionTextArea"
+                         promptText="Describe the issue or suggestion in detail..."
+                         styleClass="text-area"
+                         prefWidth="300"
+                         maxWidth="300"
+                         prefHeight="120"
+                         wrapText="true"/>
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                    <Label fx:id="charCountLabel" text="0 / 300" styleClass="caption"/>
                 </HBox>
-                <Label fx:id="descriptionErrorLabel" textFill="RED" style="-fx-font-size: 12px;" managed="false" visible="false"/>
+                <Label fx:id="descriptionErrorLabel"
+                       styleClass="error-label"
+                       visible="false"
+                       managed="false"/>
             </VBox>
 
-            <!-- Success/Error Message -->
-            <Label fx:id="messageLabel" wrapText="true" style="-fx-font-size: 13px;" managed="false" visible="false"/>
+            <!-- Message Label -->
+            <Label fx:id="messageLabel"
+                   styleClass="message-label"
+                   visible="false"
+                   managed="false"
+                   wrapText="true"
+                   maxWidth="300"
+                   textAlignment="CENTER"/>
 
-            <!-- Submit Button -->
-            <Button fx:id="submitButton" onAction="#onSubmit" text="Submit Report" prefWidth="350.0" prefHeight="45.0"
-                    style="-fx-background-color: #1E88E5; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand;">
+            <!-- Buttons Container -->
+            <HBox spacing="12" alignment="CENTER">
                 <VBox.margin>
-                    <Insets top="10"/>
+                    <Insets top="8"/>
                 </VBox.margin>
-            </Button>
 
-            <!-- Clear Button -->
-            <Button fx:id="clearButton" onAction="#onClear" text="Clear Form" prefWidth="350.0" prefHeight="40.0"
-                    style="-fx-background-color: transparent; -fx-text-fill: #666666; -fx-border-color: #CCCCCC; -fx-border-width: 1px; -fx-font-size: 14px; -fx-background-radius: 8px; -fx-cursor: hand;"/>
+                <!-- Submit Button -->
+                <Button fx:id="submitButton"
+                       text="Submit Report"
+                       styleClass="button"
+                       onAction="#onSubmit"
+                       prefWidth="140">
+                    <padding>
+                        <Insets top="12" bottom="12" left="20" right="20"/>
+                    </padding>
+                </Button>
+
+                <!-- Clear Button -->
+                <Button fx:id="clearButton"
+                       text="Clear Form"
+                       styleClass="button-secondary"
+                       onAction="#onClear"
+                       prefWidth="140">
+                    <padding>
+                        <Insets top="12" bottom="12" left="20" right="20"/>
+                    </padding>
+                </Button>
+            </HBox>
 
             <!-- Info Box -->
-            <VBox spacing="5" style="-fx-background-color: #E3F2FD; -fx-padding: 15; -fx-background-radius: 8px;">
-                <Label text="ℹ️ Your feedback matters!" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1976D2;"/>
-                <Label text="We review all reports to improve the app experience."
-                       wrapText="true" style="-fx-font-size: 12px; -fx-text-fill: #1565C0;"/>
+            <VBox spacing="6" alignment="CENTER_LEFT" styleClass="info-card">
+                <VBox.margin>
+                    <Insets top="12"/>
+                </VBox.margin>
+                <Label text="ℹ️ Your feedback matters!" styleClass="subtitle"/>
+                <Label text="We review all reports to improve the app experience." styleClass="caption" wrapText="true"/>
             </VBox>
 
         </VBox>
     </ScrollPane>
 
-</AnchorPane>
+</VBox>
 
