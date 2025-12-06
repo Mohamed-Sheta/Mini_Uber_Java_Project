@@ -157,3 +157,18 @@ CREATE TABLE problem_report_types (
                                       FOREIGN KEY(type_id) REFERENCES problem_types(id)
 );
 
+-- ======================================================
+-- TABLE: Company Transactions
+-- ======================================================
+CREATE TABLE company_transactions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    ride_id BIGINT NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    transaction_type ENUM('COMPLETED', 'CANCELLED_BY_PASSENGER') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_ride_id (ride_id),
+    INDEX idx_transaction_type (transaction_type),
+    INDEX idx_created_at (created_at)
+);
+
+

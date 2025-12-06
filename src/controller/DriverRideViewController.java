@@ -3,6 +3,7 @@ package controller;
 import DAO.LocationDAO;
 import DAO.RideRequestDAO;
 import DAO.RideHistoryDAO;
+import DAO.CompanyTransactionDAO;
 import Model.Driver;
 import Model.Status;
 import Model.PaymentType;
@@ -546,6 +547,23 @@ public class DriverRideViewController {
             // This maintains data integrity and allows historical tracking
             System.out.println("[DriverRideView] ✅ Ride request kept in database (status=Completed) for historical reference");
 
+            // ===== TRACK COMPANY COMMISSION FROM COMPLETED RIDE =====
+            System.out.println("[DriverRideView] ===== RECORDING COMPANY TRANSACTION =====");
+            double rideFare = rideRequest.estimatedPrice;
+            double companyCommission = rideFare * 0.08; // 8% commission
+            System.out.println("[DriverRideView] Ride fare: $" + String.format("%.2f", rideFare));
+            System.out.println("[DriverRideView] Company commission (8%%): $" + String.format("%.2f", companyCommission));
+
+            CompanyTransactionDAO companyTransactionDAO = new CompanyTransactionDAO();
+            long transactionId = companyTransactionDAO.addTransaction(rideRequest.id, companyCommission, "COMPLETED");
+
+            if (transactionId > 0) {
+                System.out.println("[DriverRideView] ✅ Company transaction recorded successfully, ID: " + transactionId);
+            } else {
+                System.err.println("[DriverRideView] ⚠️ Failed to record company transaction");
+            }
+            System.out.println("[DriverRideView] ===== COMPANY TRANSACTION COMPLETE =====");
+
             // ===== CRITICAL: UPDATE DRIVER BALANCE (CORRECT FLOW) =====
             System.out.println("[DriverRideView] ===== UPDATING DRIVER BALANCE =====");
 
@@ -556,8 +574,7 @@ public class DriverRideViewController {
             } else {
                 System.out.println("[DriverRideView] ✅ Driver ID validated: " + currentDriverId);
 
-                // Driver gets 92% after 8% company cut
-                double rideFare = rideRequest.estimatedPrice;
+                // Driver gets 92% after 8% company cut (rideFare already declared above)
                 double driverEarnings = rideFare * 0.92;
 
                 System.out.println("[DriverRideView] Ride fare: $" + String.format("%.2f", rideFare));

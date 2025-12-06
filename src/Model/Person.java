@@ -17,6 +17,7 @@ public abstract class Person {
     private Location currentLocation;
     private List<RideHistory> rideHistory;
 
+    // Constructor - stores password as-is (caller must hash if needed)
     public Person(String userSSN, String name, String phoneNumber, String email,
                   double walletBalance, double creditBalance,
                   Location currentLocation, List<RideHistory> rideHistory, String password) {
@@ -30,12 +31,7 @@ public abstract class Person {
         this.currentLocation = currentLocation;
         this.rideHistory = rideHistory != null ? rideHistory : new ArrayList<>();
         this.accountRating = getAccountRating();
-        // Hash password only if not null or empty
-        if (password != null && !password.isEmpty()) {
-            setPassword(hashPassword(password));
-        } else {
-            setPassword(null);
-        }
+        this.password = password; // Store as-is, no hashing here
     }
 
     public String getUserSSN() { return userSSN; }

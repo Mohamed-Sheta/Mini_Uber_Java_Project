@@ -1082,13 +1082,46 @@ public class MapController {
                 System.out.println("[CANCELLATION] Cancel button hidden in dialog");
             }
 
-            // Call existing cancellation logic
+            // Call existing cancellation logic (includes validation and driver wallet update)
             passenger.cancelRide(rideManager);
+
+            // Persist balance changes to database
+            try {
+                // Get passenger and driver IDs
+                Long passengerId = passengerIdMap.get(passenger);
+                Driver assignedDriver = rideManager.getCurrentDriver();
+
+                if (passengerId != null) {
+                    // Sync passenger wallet to database (penalty deducted)
+                    passengerDAO.update(
+                        passengerId,
+                        passenger,
+                        passenger.getCurrentLocation() != null ? passenger.getCurrentLocation().getName() : null
+                    );
+                    System.out.println("[CANCELLATION] ✅ Passenger wallet synced to DB: " + passenger.getWalletBalance() + " EGP");
+                }
+
+                // Sync driver wallet to database (half penalty added)
+                if (assignedDriver != null) {
+                    Long driverId = driverIdMap.get(assignedDriver);
+                    if (driverId != null) {
+                        driverDAO.update(
+                            driverId,
+                            assignedDriver,
+                            assignedDriver.getCurrentLocation() != null ? assignedDriver.getCurrentLocation().getName() : null
+                        );
+                        System.out.println("[CANCELLATION] ✅ Driver wallet synced to DB: " + assignedDriver.getWalletBalance() + " EGP (received half of penalty)");
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("[CANCELLATION] ❌ Failed to sync balance updates to database: " + e.getMessage());
+                e.printStackTrace();
+            }
 
             // Show cancellation message with penalty
             showError("❌ Passenger cancelled the trip — penalty applied.");
 
-            System.out.println("[CANCELLATION] Passenger cancelled ride. Penalty of 20 EGP applied.");
+            System.out.println("[CANCELLATION] Passenger cancelled ride. Penalty of 20 EGP applied (10 EGP to driver).");
 
             // Close the dialog after a brief delay to show the message
             if (dialogStage != null) {

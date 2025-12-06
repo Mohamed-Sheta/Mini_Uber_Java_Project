@@ -194,16 +194,19 @@ public class DriverDAO {
                     String hashedPassword = rs.getString("password"); // Already hashed in DB
                     String licensePlate = rs.getString("license_plate");
                     String carModel = rs.getString("car_model");
+                    double walletBalance = rs.getDouble("wallet_balance");
+                    double creditBalance = rs.getDouble("credit_balance");
+                    boolean active = rs.getBoolean("active");
 
-                    // Create Driver with empty password first to avoid double hashing
-                    Driver driver = new Driver(userSSN, name, phoneNumber, emailAddr, "", licensePlate, carModel);
-
-                    // Set the already-hashed password directly (bypassing the hash in constructor)
-                    driver.setPassword(hashedPassword);
-
-                    // Set wallet and credit balance
-                    driver.updateWalletBalance(rs.getDouble("wallet_balance"));
-                    driver.updateCreditBalance(rs.getDouble("credit_balance"));
+                    // Use full constructor with shouldHashPassword=false to avoid re-hashing
+                    Driver driver = new Driver(
+                        licensePlate, carModel, active,
+                        userSSN, name, phoneNumber, emailAddr,
+                        walletBalance, creditBalance,
+                        null, // currentLocation
+                        new java.util.ArrayList<>(), // rideHistory
+                        hashedPassword // already hashed password
+                    );
 
                     return driver;
                 }
@@ -261,15 +264,15 @@ public class DriverDAO {
                     double creditBalance = rs.getDouble("credit_balance");
                     boolean active = rs.getBoolean("active");
 
-                    // Create Driver with empty password first to avoid double hashing
-                    Driver driver = new Driver(userSSN, name, phoneNumber, emailAddr, "", licensePlate, carModel);
-
-                    // Set the already-hashed password directly
-                    driver.setPassword(hashedPassword);
-
-                    // Set wallet and credit balance
-                    driver.updateWalletBalance(walletBalance);
-                    driver.updateCreditBalance(creditBalance);
+                    // Use full constructor with shouldHashPassword=false to avoid re-hashing
+                    Driver driver = new Driver(
+                        licensePlate, carModel, active,
+                        userSSN, name, phoneNumber, emailAddr,
+                        walletBalance, creditBalance,
+                        null, // currentLocation
+                        new java.util.ArrayList<>(), // rideHistory
+                        hashedPassword // already hashed password
+                    );
 
                     System.out.println("[DriverDAO] ✅ Fetched fresh driver data by ID: " + driverId +
                                       " (wallet=" + String.format("%.2f", walletBalance) + " EGP)");

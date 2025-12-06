@@ -205,7 +205,8 @@ public class RegisterController {
             return;
         }
 
-        // Don't hash the password here - the Person constructor will handle it
+        // Hash the password once before storing
+        String hashedPassword = Model.Person.hashPassword(password);
 
         try {
             boolean success = false;
@@ -229,7 +230,7 @@ public class RegisterController {
                 // Generate SSN
                 String ssn = generateSSN(email);
 
-                Passenger passenger = new Passenger(ssn, name, phone, email, password);
+                Passenger passenger = new Passenger(ssn, name, phone, email, hashedPassword);
                 success = passengerDAO.save(passenger);
 
             } else if (selectedRole.equals("driver")) {
@@ -255,7 +256,7 @@ public class RegisterController {
                 // Generate SSN
                 String ssn = generateSSN(email);
 
-                Driver driver = new Driver(ssn, name, phone, email, password, licensePlate, carModel);
+                Driver driver = new Driver(ssn, name, phone, email, hashedPassword, licensePlate, carModel);
 
                 // Set the driver's current location
                 if (selectedLocation != null) {

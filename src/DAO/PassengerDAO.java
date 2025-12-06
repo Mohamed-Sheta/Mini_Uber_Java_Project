@@ -169,23 +169,23 @@ public class PassengerDAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    // Create Passenger object - we'll set password separately to avoid double hashing
-                    // Using empty string for password temporarily
                     String userSSN = rs.getString("user_ssn");
                     String name = rs.getString("name");
                     String phoneNumber = rs.getString("phone_number");
                     String emailAddr = rs.getString("email");
                     String hashedPassword = rs.getString("password"); // Already hashed in DB
+                    double walletBalance = rs.getDouble("wallet_balance");
+                    double creditBalance = rs.getDouble("credit_balance");
 
-                    // Create with dummy password first
-                    Passenger passenger = new Passenger(userSSN, name, phoneNumber, emailAddr, "");
+                    // Use full constructor with already-hashed password
+                    Passenger passenger = new Passenger(
+                        userSSN, name, phoneNumber, emailAddr,
+                        walletBalance, creditBalance,
+                        null, // currentLocation
+                        new java.util.ArrayList<>(), // rideHistory
+                        hashedPassword // already hashed password
+                    );
 
-                    // Set the already-hashed password directly (bypassing the hash in constructor)
-                    passenger.setPassword(hashedPassword);
-
-                    // Set wallet and credit balance
-                    passenger.updateWalletBalance(rs.getDouble("wallet_balance"));
-                    passenger.updateCreditBalance(rs.getDouble("credit_balance"));
                     return passenger;
                 }
             }

@@ -127,6 +127,15 @@ public class Main {
         }
     }
     public static void main(String[] args) {
+        // =====================================================================
+        // PASSWORD MIGRATION: Uncomment the lines below to migrate existing
+        // plain-text passwords to SHA-256 hashes (safe to run multiple times)
+        // =====================================================================
+        // migratePasswords();
+        // testMigratedLogin();
+        // return; // Uncomment to only run migration without starting full system
+        // =====================================================================
+
         System.out.println("=== Mini Uber System Egypt (Refactored Version) ===\n");
 
         Request.DatabaseInitializer dbInit = new Request.DatabaseInitializer();

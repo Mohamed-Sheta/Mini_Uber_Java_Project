@@ -1,3 +1,4 @@
+// RideManager - handles ride lifecycle and database persistence
 package services;
 import Model.*;
 import DAO.*;
@@ -29,6 +30,7 @@ public class RideManager {
     // Database handling
     private RideRequestDAO rideRequestDAO;
     private RideHistoryDAO rideHistoryDAO;
+    private CompanyTransactionDAO companyTransactionDAO;
     private long rideRequestId = -1;
     private Map<Passenger, Long> passengerIdMap;
     private Map<Driver, Long> driverIdMap;
@@ -50,6 +52,7 @@ public class RideManager {
 
         this.rideRequestDAO = new RideRequestDAO();
         this.rideHistoryDAO = new RideHistoryDAO();
+        this.companyTransactionDAO = new CompanyTransactionDAO();
     }
 
     public void setDatabaseMaps(Map<Passenger, Long> passengerIdMap, Map<Driver, Long> driverIdMap) {
@@ -232,6 +235,13 @@ public class RideManager {
 
         request.updateStatus(Status.Cancelled);
         System.out.println(" Ride cancelled due to delay.");
+
+        // Track company revenue from delay penalty (only for passenger delays)
+        // Driver delays don't generate company revenue - they just fine the driver
+        if (rideRequestId != -1 && offender.equalsIgnoreCase("passenger")) {
+            companyTransactionDAO.addTransaction(rideRequestId, fineAmount, "CANCELLED_BY_PASSENGER");
+            System.out.println(" Passenger delay penalty tracked as company revenue: " + fineAmount + " EGP");
+        }
     }
 
     // -------------------------------------------------------------------------------------------------------------------
@@ -286,6 +296,10 @@ public class RideManager {
 
         if (rideRequestId != -1 && acceptanceTime != null) {
             updateRideRequestInDB(Status.Completed, acceptanceTime, true, true);
+
+            // Track company commission from completed ride
+            double companyCommission = paymentProcessor.getAmount() * Payment.getCompanyCommission();
+            companyTransactionDAO.addTransaction(rideRequestId, companyCommission, "COMPLETED");
         }
 
         if (rideRequestId != -1 && passengerIdMap != null && driverIdMap != null) {
@@ -386,6 +400,74 @@ public class RideManager {
     
     // -------------------------------------------------------------------------------------------------------------------
 
+    public void updateDriverInDatabase(Driver driver) {
+        if (driver == null || driverIdMap == null) {
+            System.out.println("[DB] Cannot update driver: driver or driverIdMap is null");
+            return;
+        }
+
+        Long driverId = driverIdMap.get(driver);
+        if (driverId == null) {
+            System.out.println("[DB] Cannot update driver: driver not found in driverIdMap");
+            return;
+        }
+
+        try {
+            DriverDAO driverDAO = new DriverDAO();
+            String currentLocationName = driver.getCurrentLocation() != null ?
+                driver.getCurrentLocation().getName() : null;
+            driverDAO.update(driverId, driver, currentLocationName);
+            System.out.println("[DB] Driver wallet balance updated in database (ID=" + driverId + ")");
+        } catch (Exception e) {
+            System.out.println("[DB] Error updating driver: " + e.getMessage());
+        }
+    }
+
+    public void updatePassengerInDatabase(Passenger passenger) {
+        if (passenger == null || passengerIdMap == null) {
+            System.out.println("[DB] Cannot update passenger: passenger or passengerIdMap is null");
+            return;
+        }
+
+        Long passengerId = passengerIdMap.get(passenger);
+        if (passengerId == null) {
+            System.out.println("[DB] Cannot update passenger: passenger not found in passengerIdMap");
+            return;
+        }
+
+        try {
+            PassengerDAO passengerDAO = new PassengerDAO();
+            String currentLocationName = passenger.getCurrentLocation() != null ?
+                passenger.getCurrentLocation().getName() : null;
+            passengerDAO.update(passengerId, passenger, currentLocationName);
+            System.out.println("[DB] Passenger balance updated in database (ID=" + passengerId + ")");
+        } catch (Exception e) {
+            System.out.println("[DB] Error updating passenger: " + e.getMessage());
+        }
+    }
+
+    public void updateRideStatusToCancel() {
+        if (rideRequestId == -1) {
+            System.out.println("[DB] Cannot update ride status: no ride request ID available");
+            return;
+        }
+
+        try {
+            Long driverId = currentDriver != null ? driverIdMap.get(currentDriver) : null;
+            rideRequestDAO.update(
+                rideRequestId, driverId, Status.Cancelled,
+                request.getDistance(), request.getEstimatedTime(), request.getEstimatedPrice(),
+                acceptanceTime != null ? Timestamp.valueOf(acceptanceTime) : null,
+                driverArrivedToPassenger, passengerArrivedToDestination
+            );
+            System.out.println("[DB] Ride request status updated to CANCELLED in database (ID=" + rideRequestId + ")");
+        } catch (Exception e) {
+            System.out.println("[DB] Error updating ride status: " + e.getMessage());
+        }
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------
+
     public Request getRequest() {
         return this.request;
     }
@@ -404,6 +486,10 @@ public class RideManager {
 
     public long getRideRequestId() {
         return rideRequestId;
+    }
+
+    public void trackCompanyCancellationRevenue(long rideId, double companyShare) {
+        companyTransactionDAO.addTransaction(rideId, companyShare, "CANCELLED_BY_PASSENGER");
     }
 }
 

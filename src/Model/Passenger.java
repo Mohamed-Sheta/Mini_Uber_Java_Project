@@ -10,12 +10,12 @@ import java.util.Set;
 public class Passenger extends Person {
     private int latestDriverRating = 0;
 
-    // Full constructor
+    // Full constructor (stores password as-is)
     public Passenger(String userSSN, String name, String phoneNumber, String email, double walletBalance, double creditBalance, Location currentLocation, List<RideHistory> rideHistory, String password) {
         super(userSSN, name, phoneNumber, email, walletBalance, creditBalance, currentLocation, rideHistory, password);
     }
 
-    // Simplified constructor for registration
+    // Simplified constructor for registration (stores password as-is)
     public Passenger(String userSSN, String name, String phoneNumber, String email, String password) {
         super(userSSN, name, phoneNumber, email, 0.0, 0.0, null, new java.util.ArrayList<>(), password);
     }
@@ -126,12 +126,13 @@ public class Passenger extends Person {
         }
 
         final double TOTAL_PENALTY = 20.0;
-        final double DRIVER_SHARE = 10.0;
-        final double COMPANY_SHARE = 10.0;
+        final double DRIVER_SHARE = TOTAL_PENALTY / 2.0;  // Half of penalty goes to driver
+        final double COMPANY_SHARE = TOTAL_PENALTY / 2.0; // Half goes to company
 
         double wallet = this.getWalletBalance();
         double credit = this.getCreditBalance();
 
+        // Deduct penalty from passenger
         if (wallet >= TOTAL_PENALTY) {
             this.updateWalletBalance(wallet - TOTAL_PENALTY);
         } else if (credit >= TOTAL_PENALTY) {
@@ -140,6 +141,7 @@ public class Passenger extends Person {
             this.updateWalletBalance(wallet - TOTAL_PENALTY);
         }
 
+        // Update in-memory status
         request.updateStatus(Status.Cancelled);
         System.out.println(" Ride cancelled successfully. Request ID: " + request.getRequestId());
         System.out.println(" Total cancellation penalty deducted from passenger: " + TOTAL_PENALTY + " EGP");
@@ -149,9 +151,24 @@ public class Passenger extends Person {
             System.out.println("ℹ Notifying driver " + driver.getName() + " about ride cancellation.");
             manager.getPaymentProcessor().addAmountToDriver(driver, DRIVER_SHARE);
             System.out.println( DRIVER_SHARE + " EGP added to driver's wallet from cancellation fee.");
+
+            // Persist driver's updated wallet balance to database
+            manager.updateDriverInDatabase(driver);
         }
 
         System.out.println( COMPANY_SHARE + " EGP goes to the company from cancellation fee.");
+
+        // Persist passenger's updated wallet/credit balance to database
+        manager.updatePassengerInDatabase(this);
+
+        // Update ride_requests status to 'Cancelled' in database
+        manager.updateRideStatusToCancel();
+
+        // Track company share from cancellation in company_transactions table
+        long rideRequestId = manager.getRideRequestId();
+        if (rideRequestId != -1) {
+            manager.trackCompanyCancellationRevenue(rideRequestId, COMPANY_SHARE);
+        }
     }
 
     @Override
