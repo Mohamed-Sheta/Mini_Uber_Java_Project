@@ -132,6 +132,66 @@ public class EmailSender {
     }
 
     /**
+     * Send simple email without attachment (for app reports, notifications, etc.)
+     *
+     * @param recipientEmail Recipient email address
+     * @param subject Email subject
+     * @param htmlBody Email body in HTML format
+     * @return true if email sent successfully, false otherwise
+     */
+    public static boolean sendSimpleEmail(String recipientEmail, String subject, String htmlBody) {
+
+        System.out.println("[EMAIL] Attempting to send email to: " + recipientEmail);
+
+        // Check if email credentials are configured
+        if (SENDER_EMAIL.equals("your-email@gmail.com") || SENDER_PASSWORD.equals("your-app-password-here")) {
+            System.out.println("[EMAIL] ⚠️ Email credentials not configured");
+            return false;
+        }
+
+        // Configure mail properties
+        Properties props = new Properties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.host", SMTP_HOST);
+        props.put("mail.smtp.port", SMTP_PORT);
+        props.put("mail.smtp.ssl.protocols", "TLSv1.2");
+        props.put("mail.smtp.ssl.trust", SMTP_HOST);
+        props.put("mail.smtp.ssl.checkserveridentity", "false");
+
+        // Create authenticator
+        Authenticator auth = new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(SENDER_EMAIL, SENDER_PASSWORD);
+            }
+        };
+
+        try {
+            // Create session
+            Session session = Session.getInstance(props, auth);
+
+            // Create message
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(SENDER_EMAIL, "MiniGO Egypt"));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
+            message.setSubject(subject);
+            message.setContent(htmlBody, "text/html; charset=UTF-8");
+
+            // Send email
+            Transport.send(message);
+
+            System.out.println("[EMAIL] ✅ Email sent successfully to " + recipientEmail);
+            return true;
+
+        } catch (Exception e) {
+            System.err.println("[EMAIL] ❌ Failed to send email: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
      * Generate HTML email body for ride invoice
      */
     public static String generateInvoiceEmailBody(String passengerName, double amount, String invoiceId) {
@@ -188,4 +248,3 @@ public class EmailSender {
             "</html>";
     }
 }
-
