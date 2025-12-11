@@ -99,7 +99,10 @@ public class DriverAssignedDialogController {
         }
 
         if (request != null) {
-            estimatedTimeLabel.setText(request.getEstimatedTime() + " min");
+            // Add +8 seconds to displayed ETA for testing chat (UI display adjustment only)
+            double originalEta = request.getEstimatedTime();
+            double displayEta = originalEta + 0.13; // +8 seconds = 0.13 minutes (rounded)
+            estimatedTimeLabel.setText(String.format("%.2f min", displayEta));
             estimatedPriceLabel.setText(String.format("%.2f EGP", request.getEstimatedPrice()));
         }
     }

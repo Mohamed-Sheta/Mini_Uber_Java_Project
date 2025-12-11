@@ -7,14 +7,14 @@
 <VBox xmlns="http://javafx.com/javafx/25"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="controller.ChatViewController"
-      prefWidth="360" prefHeight="700"
+      prefWidth="360" minHeight="600" maxHeight="900"
       maxWidth="360"
       styleClass="content-container"
       alignment="TOP_CENTER"
       stylesheets="@/style.css">
 
     <padding>
-        <Insets top="8" bottom="8" left="16" right="16"/>
+        <Insets top="8" bottom="8" left="12" right="12"/>
     </padding>
 
     <!-- Header Bar -->
@@ -23,9 +23,6 @@
             <Insets bottom="12"/>
         </VBox.margin>
         <Label text="💬 Chat" styleClass="title-large"/>
-        <Region HBox.hgrow="ALWAYS"/>
-        <Button fx:id="hideChatButton" text="Hide" styleClass="button-secondary"
-                prefHeight="32" minWidth="70" onAction="#onHideChat"/>
     </HBox>
 
     <!-- Main Chat Card -->
@@ -45,8 +42,9 @@
         <ScrollPane fx:id="messagesScrollPane"
                     fitToWidth="true"
                     VBox.vgrow="ALWAYS"
-                    prefHeight="400"
-                    minHeight="300"
+                    prefHeight="350"
+                    minHeight="200"
+                    maxHeight="500"
                     style="-fx-background: #0D1117; -fx-background-color: #0D1117; -fx-border-color: #30363D; -fx-border-width: 1; -fx-border-radius: 12; -fx-background-radius: 12;">
             <VBox fx:id="messagesBox"
                   spacing="10"

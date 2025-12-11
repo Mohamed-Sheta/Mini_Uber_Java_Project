@@ -27,6 +27,8 @@ import services.*;
 import DAO.*;
 import Model.*;
 import javafx.concurrent.Task;
+import utils.UserSession;
+import utils.DBConnection;
 
 import java.sql.*;
 import java.util.*;
@@ -59,6 +61,13 @@ public class MapController {
     @FXML private VBox chatMessagesContainer;
     @FXML private VBox passengerQuickMsgBox;
     @FXML private Button closeChatBtn;
+
+    // New floating chat button and side panel
+    @FXML private StackPane chatButtonContainer;
+    @FXML private Button floatingChatButton;
+    @FXML private VBox chatSidePanel;
+    private ChatViewController chatViewController;
+    private boolean isChatPanelVisible = false;
 
     private WebEngine engine;
     private boolean jsReady = false;
@@ -117,6 +126,12 @@ public class MapController {
         loadLocations();
         setupButtons();
         loadProfileImage();
+
+        // Verify chat components are injected
+        System.out.println("[MapController] Chat components status:");
+        System.out.println("  - chatButtonContainer: " + (chatButtonContainer != null ? "INJECTED" : "NULL"));
+        System.out.println("  - chatSidePanel: " + (chatSidePanel != null ? "INJECTED" : "NULL"));
+        System.out.println("  - floatingChatButton: " + (floatingChatButton != null ? "INJECTED" : "NULL"));
     }
 
 
@@ -155,14 +170,25 @@ public class MapController {
     public void setPassenger(Passenger passenger) {
         this.currentUser = passenger;
         this.isDriver = false;
+
+        // Update UserSession with current passenger to ensure profile image sync works
+        UserSession.getInstance().updateCurrentUser(passenger);
+
         System.out.println("MapView initialized for Passenger: " + passenger.getName());
+        System.out.println("[MapController] Updated UserSession with passenger: " + passenger.getEmail());
+
         loadProfileImage();
     }
 
     public void setDriver(Driver driver) {
         this.currentUser = driver;
         this.isDriver = true;
+
+        // Update UserSession with current driver to ensure profile image sync works
+        UserSession.getInstance().updateCurrentUser(driver);
+
         System.out.println("MapView initialized for Driver: " + driver.getName());
+        System.out.println("[MapController] Updated UserSession with driver: " + driver.getEmail());
 
         // Ensure this driver is active in the system
         ensureDriverIsActive(driver);
@@ -798,9 +824,8 @@ public class MapController {
             System.out.println("[VALIDATION] ✓ Success handler - Assigned driver: " + (assignedDriver != null ? assignedDriver.getName() : "NULL"));
 
             if (assignedDriver != null) {
-                // Show chat panel with system message
-                showChatPanel();
-                showSystemMessage("Driver has been assigned to your ride");
+                // Note: Chat button will be shown only after passenger accepts the ride
+                // (moved to setOnAcceptCallback)
 
                 // AUTO-SEND: Initial pickup message from driver when assigned
                 if (currentRequest != null && currentRequest.getDatabaseId() > 0) {
@@ -809,10 +834,6 @@ public class MapController {
                     System.out.println("[AutoChat] Sent: Driver pickup message");
                 }
 
-                // AUTOMATICALLY OPEN CHAT WINDOW FOR PASSENGER
-                Platform.runLater(() -> {
-                    openChatWindowAutomatically();
-                });
 
                 showDriverInfo(assignedDriver);
             } else {
@@ -1038,6 +1059,11 @@ public class MapController {
 
                 // Set callback for when user clicks Accept (Start Ride)
                 dialogController.setOnAcceptCallback(() -> {
+                    // Show floating chat button when ride is accepted
+                    Platform.runLater(() -> {
+                        openChatWindowAutomatically();
+                    });
+
                     simulateRideCompletion(dialogStage);
                 });
 
@@ -1070,12 +1096,19 @@ public class MapController {
             System.out.println("[AutoChat] Sent: Driver is on the way");
         }
 
+        // Note: Removed automated driver message - driver only responds to passenger messages
+
         // Simulate ride in progress
         Task<Void> rideTask = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
-                // Wait 3 seconds to simulate driver arriving
-                Thread.sleep(3000);
+                // Extended UI simulation: Wait 7.5 seconds for driver approaching (more time for chat)
+                Thread.sleep(7500);
+
+                // Note: Removed automated "almost here" message - driver only responds to passenger
+
+                // Wait another 7.5 seconds to complete the 15 second arrival (extended for chat testing)
+                Thread.sleep(7500);
 
                 // Check if ride was cancelled
                 if (isCancelled) {
@@ -1095,12 +1128,14 @@ public class MapController {
                             utils.ChatStorage.getInstance().addMessage(currentRequest.getDatabaseId(), autoMsg);
                             System.out.println("[AutoChat] Sent: Driver has arrived");
                         }
+
+                        // Note: Removed automated arrival message to chat panel - driver only responds to passenger
                     }
                 });
                 rideManager.markDriverArrived();
 
-                // Wait another 2 seconds for passenger to board
-                Thread.sleep(2000);
+                // Wait 5 seconds for passenger to board (extended for chat testing)
+                Thread.sleep(5000);
 
                 // Check if ride was cancelled
                 if (isCancelled) {
@@ -1121,8 +1156,8 @@ public class MapController {
                     }
                 });
 
-                // Wait 3 seconds to simulate reaching destination
-                Thread.sleep(3000);
+                // Extended UI simulation: Wait 8 seconds to simulate reaching destination (more time for chat)
+                Thread.sleep(8000);
 
                 // Check if ride was cancelled
                 if (isCancelled) {
@@ -1685,37 +1720,45 @@ public class MapController {
 
             System.out.println("[INVOICE] PDF generated: " + invoiceId);
 
-            // Send invoice via email
+            // Send invoice via email IN BACKGROUND THREAD to avoid UI freezing
             String passengerEmail = passenger.getEmail();
             String passengerName = passenger.getName();
 
             System.out.println("[INVOICE] Sending invoice to email: " + passengerEmail);
 
-            // Generate email body
-            String emailSubject = "Your MiniGO Trip Receipt - " + invoiceId;
-            String emailBody = utils.EmailSender.generateInvoiceEmailBody(passengerName, amount, invoiceId);
+            // Move email sending to background thread to prevent white screen glitch
+            new Thread(() -> {
+                try {
+                    // Generate email body
+                    String emailSubject = "Your MiniGO Trip Receipt - " + invoiceId;
+                    String emailBody = utils.EmailSender.generateInvoiceEmailBody(passengerName, amount, invoiceId);
 
-            // Send email with PDF attachment
-            boolean emailSent = utils.EmailSender.sendInvoiceEmail(
-                passengerEmail,
-                passengerName,
-                emailSubject,
-                emailBody,
-                pdfFilePath
-            );
+                    // Send email with PDF attachment (blocking I/O operation)
+                    boolean emailSent = utils.EmailSender.sendInvoiceEmail(
+                        passengerEmail,
+                        passengerName,
+                        emailSubject,
+                        emailBody,
+                        pdfFilePath
+                    );
 
-            if (emailSent) {
-                System.out.println("[INVOICE] ✅ Invoice email sent successfully to " + passengerEmail);
-                // Show success message to user
-                Platform.runLater(() -> {
-                    showSuccess("📧 Invoice sent to " + passengerEmail);
-                });
-            } else {
-                System.err.println("[INVOICE] ❌ Failed to send invoice email (Email credentials not configured)");
-                // Don't show error to user - PDF is already saved locally
-                System.out.println("[INVOICE] ℹ️ PDF invoice saved locally: " + pdfFilePath);
-                System.out.println("[INVOICE] ℹ️ To enable email: Configure Gmail credentials in EmailSender.java");
-            }
+                    if (emailSent) {
+                        System.out.println("[INVOICE] ✅ Invoice email sent successfully to " + passengerEmail);
+                        // Show success message to user on UI thread
+                        Platform.runLater(() -> {
+                            showSuccess("📧 Invoice sent to " + passengerEmail);
+                        });
+                    } else {
+                        System.err.println("[INVOICE] ❌ Failed to send invoice email (Email credentials not configured)");
+                        // Don't show error to user - PDF is already saved locally
+                        System.out.println("[INVOICE] ℹ️ PDF invoice saved locally: " + pdfFilePath);
+                        System.out.println("[INVOICE] ℹ️ To enable email: Configure Gmail credentials in EmailSender.java");
+                    }
+                } catch (Exception ex) {
+                    System.err.println("[INVOICE] Error sending email: " + ex.getMessage());
+                    ex.printStackTrace();
+                }
+            }, "EmailSender-Thread").start();
 
         } catch (Exception ex) {
             System.err.println("[INVOICE] Error generating/sending invoice: " + ex.getMessage());
@@ -1734,26 +1777,77 @@ public class MapController {
     }
 
     /**
-     * Load profile image from UserSession
-     * Called on initialization and when returning from Profile screen
+     * Load profile image directly from database for current user (passenger or driver)
+     * This ensures each user always sees their own latest profile picture
+     * Called on initialization and when user is set
      */
     private void loadProfileImage() {
         try {
-            String imagePath = utils.UserSession.getInstance().getProfileImagePath();
+            System.out.println("[MapController] Loading profile image for user: " +
+                (currentUser != null ? currentUser.getName() + " (" + (isDriver ? "Driver" : "Passenger") + ")" : "null"));
 
-            if (imagePath != null && !imagePath.isEmpty()) {
-                java.io.File imageFile = new java.io.File(imagePath);
-                if (imageFile.exists()) {
-                    javafx.scene.image.Image profileImage = new javafx.scene.image.Image(imageFile.toURI().toString());
-                    if (!profileImage.isError() && profileBtn != null) {
-                        profileBtn.setImage(profileImage);
-                        System.out.println("[MapController] ✅ Profile image loaded: " + imagePath);
-                        return;
+            // Load profile image directly from database for the current user
+            // This guarantees we get the latest image for THIS specific user
+            String imagePath = null;
+            if (currentUser != null) {
+                // Get user ID from database
+                long userId = getUserIdFromDatabase(currentUser.getEmail(), isDriver);
+
+                if (userId > 0) {
+                    // Query database for this user's profile image path
+                    String tableName = isDriver ? "drivers" : "passengers";
+                    String sql = "SELECT profile_image_path FROM " + tableName + " WHERE id = ?";
+
+                    try (Connection con = DBConnection.getConnection();
+                         PreparedStatement ps = con.prepareStatement(sql)) {
+
+                        ps.setLong(1, userId);
+
+                        try (ResultSet rs = ps.executeQuery()) {
+                            if (rs.next()) {
+                                imagePath = rs.getString("profile_image_path");
+                                System.out.println("[MapController] Image path from database for " +
+                                    tableName + " ID " + userId + ": " + imagePath);
+
+                                // Also update UserSession with current user and image path
+                                // This keeps UserSession in sync for when Profile screen needs it
+                                UserSession.getInstance().setProfileImagePath(imagePath);
+                            }
+                        }
+                    } catch (SQLException e) {
+                        System.out.println("[MapController] ℹ️ Could not load image path from database: " + e.getMessage());
                     }
                 }
             }
 
-            // Load default avatar if no custom image
+            // Try to load the profile image with proper sizing
+            if (imagePath != null && !imagePath.isEmpty()) {
+                java.io.File imageFile = new java.io.File(imagePath);
+                if (imageFile.exists()) {
+                    // Load image with proper sizing - preserveRatio is set in FXML
+                    javafx.scene.image.Image profileImage = new javafx.scene.image.Image(
+                        imageFile.toURI().toString(),
+                        32,  // requestedWidth (matches FXML fitWidth)
+                        32,  // requestedHeight (matches FXML fitHeight)
+                        true, // preserveRatio (same as FXML)
+                        true  // smooth (high quality scaling)
+                    );
+
+                    if (!profileImage.isError() && profileBtn != null) {
+                        profileBtn.setImage(profileImage);
+                        System.out.println("[MapController] ✅ Profile image loaded successfully: " + imagePath);
+                        return;
+                    } else {
+                        System.out.println("[MapController] ⚠️ Image loading failed or profileBtn is null");
+                    }
+                } else {
+                    System.out.println("[MapController] ⚠️ Image file not found: " + imagePath);
+                }
+            } else {
+                System.out.println("[MapController] ℹ️ No custom profile image set, using default");
+            }
+
+            // Load default avatar if no custom image or if loading failed
             javafx.scene.image.Image defaultAvatar = new javafx.scene.image.Image(
                 getClass().getResourceAsStream("/user_17436294.png")
             );
@@ -1764,15 +1858,39 @@ public class MapController {
 
         } catch (Exception e) {
             System.err.println("[MapController] Error loading profile image: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    // ==================== CHAT PANEL MANAGEMENT ====================
+    /**
+     * Get user ID from database by email
+     * @param email User's email
+     * @param isDriver True if user is a driver, false if passenger
+     * @return User ID or -1 if not found
+     */
+    private long getUserIdFromDatabase(String email, boolean isDriver) {
+        try {
+            if (isDriver) {
+                DriverDAO driverDAO = new DriverDAO();
+                Long driverId = driverDAO.getDriverIdByEmail(email);
+                return driverId != null ? driverId : -1;
+            } else {
+                PassengerDAO passengerDAO = new PassengerDAO();
+                long passengerId = passengerDAO.getIdByEmail(email);
+                return passengerId;
+            }
+        } catch (Exception e) {
+            System.err.println("[MapController] Error getting user ID: " + e.getMessage());
+            return -1;
+        }
+    }
+
+    // ==================== CHAT PANEL MANAGEMENT (OLD - DEPRECATED) ====================
 
     /**
-     * Show chat panel with slide-in animation
+     * Show chat panel with slide-in animation (OLD METHOD - NOT USED)
      */
-    public void showChatPanel() {
+    private void showChatPanelOld() {
         if (chatPanel != null) {
             chatPanel.setVisible(true);
             chatPanel.setManaged(true);
@@ -2010,83 +2128,208 @@ public class MapController {
     }
 
     /**
-     * Automatically open chat window when ride becomes active
+     * Automatically show floating chat button when ride becomes active
      * Called when driver is assigned to passenger
      */
-    private Stage activeChatStage = null; // Keep reference to chat window
+    private Stage activeChatStage = null; // Keep reference to chat window for backwards compatibility
 
     private void openChatWindowAutomatically() {
-        // Check if chat window is already open
-        if (activeChatStage != null && activeChatStage.isShowing()) {
-            System.out.println("[ChatWindow] Chat window already open, bringing to front");
-            activeChatStage.toFront();
-            return;
-        }
+        // Instead of opening a new window, show the floating chat button
+        if (chatButtonContainer != null && chatSidePanel != null) {
+            Platform.runLater(() -> {
+                // Verify chat panel is ready
+                if (chatSidePanel == null) {
+                    System.err.println("[ChatButton] ❌ Chat side panel is null - cannot show button");
+                    return;
+                }
 
-        try {
-            // Check if there's an active ride
-            if (currentRequest == null) {
-                System.err.println("[ChatWindow] Cannot open - no active ride");
-                return;
-            }
+                // Pre-initialize chat panel silently (don't open it)
+                preinitializeChatPanel();
 
-            System.out.println("[ChatWindow] Auto-opening chat for ride ID: " + currentRequest.getDatabaseId());
+                chatButtonContainer.setVisible(true);
+                chatButtonContainer.setManaged(true);
+                chatButtonContainer.setPickOnBounds(true); // Enable interaction
 
-            // Load ChatView.fxml from view folder
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ChatView.fxml"));
-            javafx.scene.Parent root = loader.load();
-
-            // Get controller and set session
-            ChatViewController chatController = loader.getController();
-            chatController.setChatSession(currentRequest.getDatabaseId(), isDriver);
-
-            // Create new stage for chat - styled like the app
-            Stage chatStage = new Stage();
-            chatStage.setTitle("💬 Ride Chat - MiniGO");
-            chatStage.initModality(javafx.stage.Modality.NONE); // Non-blocking floating window
-            chatStage.initOwner((Stage) rootContainer.getScene().getWindow());
-
-            Scene scene = new Scene(root, 360, 700);
-            chatStage.setScene(scene);
-            chatStage.setResizable(false);
-
-            // Position next to main window (on the right side)
-            Stage ownerStage = (Stage) rootContainer.getScene().getWindow();
-            chatStage.setX(ownerStage.getX() + ownerStage.getWidth() + 10);
-            chatStage.setY(ownerStage.getY());
-
-            // Store reference
-            activeChatStage = chatStage;
-
-            // Clear reference when closed
-            chatStage.setOnHidden(event -> {
-                activeChatStage = null;
-                System.out.println("[ChatWindow] Chat window closed");
+                System.out.println("[ChatButton] ✅ Floating chat button shown");
+                System.out.println("[ChatButton] Chat panel status: " + (chatSidePanel != null ? "READY" : "NULL"));
             });
-
-            chatStage.show();
-
-            System.out.println("[ChatWindow] ✅ Chat window opened automatically");
-
-            // Show success notification
-            Platform.runLater(() -> showSuccess("💬 Chat opened - Stay connected with your " + (isDriver ? "passenger" : "driver")));
-
-        } catch (Exception ex) {
-            System.err.println("[ChatWindow] ❌ Error auto-opening chat: " + ex.getMessage());
-            ex.printStackTrace();
+        } else {
+            System.err.println("[ChatButton] ❌ Cannot show button - chatButtonContainer: " +
+                             (chatButtonContainer != null ? "OK" : "NULL") +
+                             ", chatSidePanel: " + (chatSidePanel != null ? "OK" : "NULL"));
         }
     }
 
     /**
-     * Close the active chat window (called when ride ends)
+     * Toggle chat side panel visibility
+     */
+    @FXML
+    private void onToggleChatPanel() {
+        if (isChatPanelVisible) {
+            hideChatPanel();
+        } else {
+            showChatPanel();
+        }
+    }
+
+    /**
+     * Pre-initialize chat panel without opening it (silent initialization)
+     * This ensures the chat is ready when the user clicks the button
+     */
+    private void preinitializeChatPanel() {
+        try {
+            if (chatSidePanel == null || currentRequest == null) {
+                return; // Cannot pre-initialize, will initialize on first open
+            }
+
+            // Only pre-initialize if not already loaded
+            if (chatViewController == null || chatSidePanel.getChildren().isEmpty()) {
+                System.out.println("[ChatPanel] Pre-initializing chat (silent)...");
+
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ChatView.fxml"));
+                javafx.scene.Parent chatContent = loader.load();
+
+                chatViewController = loader.getController();
+                if (chatViewController != null) {
+                    chatViewController.setChatSession(currentRequest.getDatabaseId(), isDriver);
+
+                    // Set close callback to properly hide the panel with animation
+                    chatViewController.setOnCloseCallback(() -> hideChatPanel());
+
+                    // Add content to panel but keep it hidden
+                    chatSidePanel.getChildren().clear();
+                    chatSidePanel.getChildren().add(chatContent);
+
+                    System.out.println("[ChatPanel] ✅ Chat pre-initialized successfully (hidden)");
+                } else {
+                    System.err.println("[ChatPanel] ⚠️ Failed to pre-initialize chat controller");
+                }
+            }
+        } catch (Exception ex) {
+            System.err.println("[ChatPanel] ⚠️ Pre-initialization failed (will initialize on first open): " + ex.getMessage());
+            // Don't show error to user - this is a silent pre-load
+        }
+    }
+
+    /**
+     * Show chat side panel
+     */
+    private void showChatPanel() {
+        try {
+            System.out.println("[ChatPanel] Attempting to open chat panel...");
+            System.out.println("[ChatPanel] chatSidePanel null? " + (chatSidePanel == null));
+            System.out.println("[ChatPanel] currentRequest null? " + (currentRequest == null));
+
+            if (chatSidePanel == null) {
+                System.err.println("[ChatPanel] ❌ Chat side panel not initialized (FXML injection failed)");
+                showError("❌ Chat system error. Please restart the ride.");
+                return;
+            }
+
+            // Check if there's an active ride
+            if (currentRequest == null) {
+                System.err.println("[ChatPanel] ❌ No active ride request");
+                showError("⚠️ No active ride. Start a ride to use chat.");
+                return;
+            }
+
+            System.out.println("[ChatPanel] Opening chat panel for ride ID: " + currentRequest.getDatabaseId());
+
+            // Load ChatView if not already loaded
+            if (chatViewController == null || chatSidePanel.getChildren().isEmpty()) {
+                System.out.println("[ChatPanel] Loading ChatView.fxml...");
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ChatView.fxml"));
+                javafx.scene.Parent chatContent = loader.load();
+
+                chatViewController = loader.getController();
+                if (chatViewController == null) {
+                    System.err.println("[ChatPanel] ❌ Failed to get ChatViewController from loader");
+                    showError("❌ Failed to load chat interface");
+                    return;
+                }
+
+                chatViewController.setChatSession(currentRequest.getDatabaseId(), isDriver);
+
+                // Set close callback to properly hide the panel with animation
+                chatViewController.setOnCloseCallback(() -> hideChatPanel());
+
+                // Clear and add content to side panel
+                chatSidePanel.getChildren().clear();
+                chatSidePanel.getChildren().add(chatContent);
+
+                System.out.println("[ChatPanel] ✅ Chat content loaded successfully");
+            }
+
+            // Show panel with animation
+            chatSidePanel.setVisible(true);
+            chatSidePanel.setManaged(true);
+            chatSidePanel.setPickOnBounds(true); // Make interactive when visible
+            chatSidePanel.toFront(); // Ensure panel is on top of other UI elements
+
+            // Slide in animation
+            TranslateTransition slideIn = new TranslateTransition(Duration.millis(300), chatSidePanel);
+            slideIn.setFromX(360);
+            slideIn.setToX(0);
+            slideIn.play();
+
+            isChatPanelVisible = true;
+            System.out.println("[ChatPanel] ✅ Chat panel opened successfully");
+
+        } catch (Exception ex) {
+            System.err.println("[ChatPanel] ❌ Error opening chat panel: " + ex.getMessage());
+            ex.printStackTrace();
+            showError("❌ Failed to open chat panel: " + ex.getMessage());
+        }
+    }
+
+    /**
+     * Hide chat side panel
+     */
+    private void hideChatPanel() {
+        if (chatSidePanel == null) return;
+
+        // Slide out animation
+        TranslateTransition slideOut = new TranslateTransition(Duration.millis(300), chatSidePanel);
+        slideOut.setFromX(0);
+        slideOut.setToX(360);
+        slideOut.setOnFinished(e -> {
+            chatSidePanel.setVisible(false);
+            chatSidePanel.setManaged(false);
+            chatSidePanel.setPickOnBounds(false); // Don't block when hidden
+        });
+        slideOut.play();
+
+        isChatPanelVisible = false;
+        System.out.println("[ChatPanel] ✅ Chat panel closed");
+    }
+
+    /**
+     * Close the active chat (called when ride ends)
      */
     private void closeChatWindow() {
-        if (activeChatStage != null && activeChatStage.isShowing()) {
+        // Hide chat panel
+        if (chatSidePanel != null && isChatPanelVisible) {
             Platform.runLater(() -> {
-                activeChatStage.close();
-                activeChatStage = null;
-                System.out.println("[ChatWindow] ✅ Chat window closed automatically (ride ended)");
+                hideChatPanel();
             });
         }
+
+        // Hide floating button
+        if (chatButtonContainer != null) {
+            Platform.runLater(() -> {
+                chatButtonContainer.setVisible(false);
+                chatButtonContainer.setManaged(false);
+                chatButtonContainer.setPickOnBounds(false); // Don't block when hidden
+                System.out.println("[ChatButton] ✅ Chat button hidden (ride ended)");
+            });
+        }
+
+        // Clean up chat controller
+        if (chatViewController != null) {
+            chatViewController.cleanup();
+            chatViewController = null;
+        }
+
+        isChatPanelVisible = false;
     }
 }

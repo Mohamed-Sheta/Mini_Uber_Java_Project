@@ -315,6 +315,10 @@ public class DriverDashboardController {
 
         this.currentDriver = driver;
 
+        // Update UserSession with current driver to ensure profile image sync works
+        UserSession.getInstance().updateCurrentUser(driver);
+        System.out.println("[DriverDashboard] Updated UserSession with driver: " + driver.getEmail());
+
         if (welcomeLabel != null) {
             welcomeLabel.setText("Welcome Back, " + driver.getName());
         }
@@ -865,26 +869,63 @@ public class DriverDashboardController {
     }
 
     /**
-     * Load profile image from UserSession
-     * Called on initialization and when returning from Profile screen
+     * Load profile image directly from database for current driver
+     * This ensures each driver always sees their own latest profile picture
+     * Called when driver is set or dashboard is refreshed
      */
     private void loadProfileImage() {
         try {
-            String imagePath = utils.UserSession.getInstance().getProfileImagePath();
+            System.out.println("[DriverDashboard] Loading profile image for driver: " +
+                (currentDriver != null ? currentDriver.getName() : "null"));
 
+            // Load profile image directly from database for the current driver
+            // This guarantees we get the latest image for THIS specific driver
+            String imagePath = null;
+            if (currentDriver != null && currentDriverId > 0) {
+                // Query database for this driver's profile image path
+                String sql = "SELECT profile_image_path FROM drivers WHERE id = ?";
+
+                try (Connection con = DBConnection.getConnection();
+                     PreparedStatement ps = con.prepareStatement(sql)) {
+
+                    ps.setLong(1, currentDriverId);
+
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            imagePath = rs.getString("profile_image_path");
+                            System.out.println("[DriverDashboard] Image path from database for driver ID " +
+                                currentDriverId + ": " + imagePath);
+
+                            // Also update UserSession with current driver and image path
+                            // This keeps UserSession in sync for when Profile screen needs it
+                            UserSession.getInstance().setProfileImagePath(imagePath);
+                        }
+                    }
+                } catch (SQLException e) {
+                    System.out.println("[DriverDashboard] ℹ️ Could not load image path from database: " + e.getMessage());
+                }
+            }
+
+            // Try to load the profile image
             if (imagePath != null && !imagePath.isEmpty()) {
                 java.io.File imageFile = new java.io.File(imagePath);
                 if (imageFile.exists()) {
                     javafx.scene.image.Image profileImage = new javafx.scene.image.Image(imageFile.toURI().toString());
                     if (!profileImage.isError() && profileBtn != null) {
                         profileBtn.setImage(profileImage);
-                        System.out.println("[DriverDashboard] ✅ Profile image loaded: " + imagePath);
+                        System.out.println("[DriverDashboard] ✅ Profile image loaded successfully: " + imagePath);
                         return;
+                    } else {
+                        System.out.println("[DriverDashboard] ⚠️ Image loading failed or profileBtn is null");
                     }
+                } else {
+                    System.out.println("[DriverDashboard] ⚠️ Image file not found: " + imagePath);
                 }
+            } else {
+                System.out.println("[DriverDashboard] ℹ️ No custom profile image set, using default");
             }
 
-            // Load default avatar if no custom image
+            // Load default avatar if no custom image or if loading failed
             javafx.scene.image.Image defaultAvatar = new javafx.scene.image.Image(
                 getClass().getResourceAsStream("/user_17436294.png")
             );
@@ -895,6 +936,7 @@ public class DriverDashboardController {
 
         } catch (Exception e) {
             System.err.println("[DriverDashboard] Error loading profile image: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

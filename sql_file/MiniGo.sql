@@ -189,5 +189,5 @@ CREATE TABLE reports (
 -- ======================================================
 -- ALTER TABLES: Add Profile Image Path Support
 -- ======================================================
-ALTER TABLE passengers ADD COLUMN IF NOT EXISTS profile_image_path VARCHAR(500) NULL;
-ALTER TABLE drivers ADD COLUMN IF NOT EXISTS profile_image_path VARCHAR(500) NULL;
+ALTER TABLE passengers ADD COLUMN profile_image_path VARCHAR(500) NULL;
+ALTER TABLE drivers ADD COLUMN profile_image_path VARCHAR(500) NULL;

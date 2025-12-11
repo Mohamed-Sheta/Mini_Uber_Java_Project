@@ -101,6 +101,47 @@
 
         </VBox>
 
+        <!-- FLOATING CHAT BUTTON (Right Side, Above Bottom Panel) -->
+        <StackPane fx:id="chatButtonContainer"
+                   visible="false"
+                   managed="false"
+                   pickOnBounds="false"
+                   AnchorPane.bottomAnchor="310"
+                   AnchorPane.rightAnchor="20">
+            <Button fx:id="floatingChatButton"
+                    onAction="#onToggleChatPanel"
+                    prefWidth="48" prefHeight="48"
+                    style="-fx-background-color: transparent;
+                           -fx-background-radius: 0;
+                           -fx-padding: 0;
+                           -fx-cursor: hand;
+                           -fx-border-color: transparent;
+                           -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 8, 0, 0, 2);">
+                <graphic>
+                    <ImageView fitWidth="48" fitHeight="48" preserveRatio="true">
+                        <image>
+                            <Image url="@chat.png"/>
+                        </image>
+                    </ImageView>
+                </graphic>
+            </Button>
+        </StackPane>
+
+        <!-- CHAT SIDE PANEL (Right Side) -->
+        <VBox fx:id="chatSidePanel"
+              visible="false"
+              managed="false"
+              prefWidth="360"
+              pickOnBounds="false"
+              viewOrder="-1.0"
+              styleClass="chat-side-panel"
+              style="-fx-background-color: #161B22; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 15, 0, -5, 0);"
+              AnchorPane.topAnchor="0"
+              AnchorPane.bottomAnchor="0"
+              AnchorPane.rightAnchor="0">
+            <!-- Chat content will be loaded here dynamically -->
+        </VBox>
+
     </AnchorPane>
 
 </StackPane>
