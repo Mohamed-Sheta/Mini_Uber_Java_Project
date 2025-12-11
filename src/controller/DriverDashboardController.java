@@ -118,6 +118,7 @@ public class DriverDashboardController {
                 rejectRideButton.setOnAction(event -> rejectRide());
             }
 
+
             System.out.println("DriverDashboardController.initialize() completed");
         } catch (Exception e) {
             System.err.println("ERROR in initialize(): " + e.getMessage());
@@ -437,6 +438,9 @@ public class DriverDashboardController {
             System.err.println("[DriverDashboard] Error loading driver status: " + e.getMessage());
             e.printStackTrace();
         }
+
+        // Load profile image
+        loadProfileImage();
     }
 
     private void loadTodayStatistics() {
@@ -857,6 +861,40 @@ public class DriverDashboardController {
             stage.show();
         } catch (IOException e) {
             System.err.println("Error logging out: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Load profile image from UserSession
+     * Called on initialization and when returning from Profile screen
+     */
+    private void loadProfileImage() {
+        try {
+            String imagePath = utils.UserSession.getInstance().getProfileImagePath();
+
+            if (imagePath != null && !imagePath.isEmpty()) {
+                java.io.File imageFile = new java.io.File(imagePath);
+                if (imageFile.exists()) {
+                    javafx.scene.image.Image profileImage = new javafx.scene.image.Image(imageFile.toURI().toString());
+                    if (!profileImage.isError() && profileBtn != null) {
+                        profileBtn.setImage(profileImage);
+                        System.out.println("[DriverDashboard] ✅ Profile image loaded: " + imagePath);
+                        return;
+                    }
+                }
+            }
+
+            // Load default avatar if no custom image
+            javafx.scene.image.Image defaultAvatar = new javafx.scene.image.Image(
+                getClass().getResourceAsStream("/user_17436294.png")
+            );
+            if (profileBtn != null && !defaultAvatar.isError()) {
+                profileBtn.setImage(defaultAvatar);
+                System.out.println("[DriverDashboard] Default avatar loaded");
+            }
+
+        } catch (Exception e) {
+            System.err.println("[DriverDashboard] Error loading profile image: " + e.getMessage());
         }
     }
 }

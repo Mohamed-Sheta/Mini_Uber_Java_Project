@@ -49,8 +49,16 @@ public class MapController {
 
     @FXML private ImageView settingsBtn;
     @FXML private ImageView profileBtn;
+    @FXML private Button chatBtn;
 
     @FXML private StackPane rootContainer;
+
+    // Chat panel UI elements
+    @FXML private VBox chatPanel;
+    @FXML private ScrollPane chatScrollPane;
+    @FXML private VBox chatMessagesContainer;
+    @FXML private VBox passengerQuickMsgBox;
+    @FXML private Button closeChatBtn;
 
     private WebEngine engine;
     private boolean jsReady = false;
@@ -108,6 +116,7 @@ public class MapController {
 
         loadLocations();
         setupButtons();
+        loadProfileImage();
     }
 
 
@@ -147,6 +156,7 @@ public class MapController {
         this.currentUser = passenger;
         this.isDriver = false;
         System.out.println("MapView initialized for Passenger: " + passenger.getName());
+        loadProfileImage();
     }
 
     public void setDriver(Driver driver) {
@@ -156,6 +166,8 @@ public class MapController {
 
         // Ensure this driver is active in the system
         ensureDriverIsActive(driver);
+
+        loadProfileImage();
     }
 
     private void ensureDriverIsActive(Driver driver) {
@@ -584,6 +596,35 @@ public class MapController {
 
     // ==================== PASSENGER RIDE WORKFLOW ====================
 
+    /**
+     * Inner class to hold ride validation results
+     */
+    private static class ValidationResult {
+        private final boolean valid;
+        private final String errorMessage;
+
+        public ValidationResult(boolean valid, String errorMessage) {
+            this.valid = valid;
+            this.errorMessage = errorMessage;
+        }
+
+        public static ValidationResult success() {
+            return new ValidationResult(true, null);
+        }
+
+        public static ValidationResult failure(String message) {
+            return new ValidationResult(false, message);
+        }
+
+        public boolean isValid() {
+            return valid;
+        }
+
+        public String getErrorMessage() {
+            return errorMessage;
+        }
+    }
+
     private void startPassengerRideWorkflow(Location origin, Location destination) {
         Passenger passenger = (Passenger) currentUser;
 
@@ -596,118 +637,183 @@ public class MapController {
         showSuccess("🔄 Searching for drivers...");
 
         // Show loading state for 2-4 seconds (longer search delay)
-        Task<Void> requestTask = new Task<Void>() {
+        Task<ValidationResult> requestTask = new Task<ValidationResult>() {
             @Override
-            protected Void call() throws Exception {
-                // Initialize MapGraph if not already done
-                if (mapGraph == null) {
-                    // Build MapGraph in memory - match database locations
-                    mapGraph = new MapGraph();
+            protected ValidationResult call() {
+                try {
+                    // Initialize MapGraph if not already done
+                    if (mapGraph == null) {
+                        // Build MapGraph in memory - match database locations
+                        mapGraph = new MapGraph();
 
-                    // Load locations from database to get correct IDs
-                    LocationDAO locationDAO = new LocationDAO();
-                    java.util.List<LocationDAO.LocationRow> dbLocations = locationDAO.showAll();
+                        // Load locations from database to get correct IDs
+                        LocationDAO locationDAO = new LocationDAO();
+                        java.util.List<LocationDAO.LocationRow> dbLocations = locationDAO.showAll();
 
-                    // Create location map with database IDs
-                    java.util.Map<String, Location> locationMap = new java.util.HashMap<>();
-                    java.util.Map<Integer, Location> locationIdMap = new java.util.HashMap<>();
-                    for (LocationDAO.LocationRow row : dbLocations) {
-                        Location loc = new Location(row.name, row.latitude, row.longitude);
-                        loc.setId(row.id); // Set database ID
-                        locationMap.put(row.name, loc);
-                        locationIdMap.put(row.id, loc);
-                        mapGraph.addLocation(loc);
-                    }
-
-                    // Load edges from database using location IDs
-                    EdgeDAO edgeDAO = new EdgeDAO();
-                    java.util.List<EdgeDAO.EdgeRow> dbEdges = edgeDAO.showAll();
-                    for (EdgeDAO.EdgeRow edge : dbEdges) {
-                        Location from = locationIdMap.get(edge.fromId);
-                        Location to = locationIdMap.get(edge.toId);
-                        if (from != null && to != null) {
-                            mapGraph.addEdge(from, to, edge.distanceKm);
+                        // Create location map with database IDs
+                        java.util.Map<String, Location> locationMap = new java.util.HashMap<>();
+                        java.util.Map<Integer, Location> locationIdMap = new java.util.HashMap<>();
+                        for (LocationDAO.LocationRow row : dbLocations) {
+                            Location loc = new Location(row.name, row.latitude, row.longitude);
+                            loc.setId(row.id); // Set database ID
+                            locationMap.put(row.name, loc);
+                            locationIdMap.put(row.id, loc);
+                            mapGraph.addLocation(loc);
                         }
+
+                        // Load edges from database using location IDs
+                        EdgeDAO edgeDAO = new EdgeDAO();
+                        java.util.List<EdgeDAO.EdgeRow> dbEdges = edgeDAO.showAll();
+                        for (EdgeDAO.EdgeRow edge : dbEdges) {
+                            Location from = locationIdMap.get(edge.fromId);
+                            Location to = locationIdMap.get(edge.toId);
+                            if (from != null && to != null) {
+                                mapGraph.addEdge(from, to, edge.distanceKm);
+                            }
+                        }
+
+                        System.out.println("[VALIDATION] MapGraph initialized from database with " + mapGraph.adjacency_list.size() + " locations");
                     }
 
-                    System.out.println("MapGraph initialized from database with " + mapGraph.adjacency_list.size() + " locations");
+                    // Find matching locations from MapGraph by name (with database IDs)
+                    Location graphOrigin = findLocationInGraphByName(origin.getName());
+                    Location graphDestination = findLocationInGraphByName(destination.getName());
+
+                    // VALIDATION: Check if locations exist in graph
+                    if (graphOrigin == null || graphDestination == null) {
+                        String missingLocs = "";
+                        if (graphOrigin == null) missingLocs += origin.getName();
+                        if (graphDestination == null) {
+                            if (!missingLocs.isEmpty()) missingLocs += " and ";
+                            missingLocs += destination.getName();
+                        }
+                        System.out.println("[VALIDATION] ❌ Locations not found in MapGraph: " + missingLocs);
+                        return ValidationResult.failure("⚠️ Invalid route. Location(s) not available: " + missingLocs);
+                    }
+
+                    System.out.println("[VALIDATION] ✓ Found locations in graph: " + graphOrigin.getName() + " (id=" + graphOrigin.getId() + ") -> " +
+                                     graphDestination.getName() + " (id=" + graphDestination.getId() + ")");
+
+                    // USE EXISTING PASSENGER METHOD: request_ride()
+                    // This validates the request, checks wallet balance, calculates distance/time/price
+                    try {
+                        currentRequest = passenger.request_ride(graphOrigin, graphDestination, mapGraph);
+                    } catch (Exception e) {
+                        // Catch balance/validation exceptions from passenger.request_ride()
+                        String errorMsg = e.getMessage();
+                        if (errorMsg != null && (errorMsg.toLowerCase().contains("balance") ||
+                                               errorMsg.toLowerCase().contains("insufficient") ||
+                                               errorMsg.toLowerCase().contains("funds"))) {
+                            System.out.println("[VALIDATION] ❌ Insufficient balance");
+                            return ValidationResult.failure("💰 Insufficient balance. Please add funds to continue.");
+                        }
+                        System.out.println("[VALIDATION] ❌ Ride request failed: " + errorMsg);
+                        return ValidationResult.failure("⚠️ Unable to create ride request. " + (errorMsg != null ? errorMsg : "Unknown error"));
+                    }
+
+                    // VALIDATION: Check if request was created
+                    if (currentRequest == null) {
+                        System.out.println("[VALIDATION] ❌ Ride request returned null");
+                        return ValidationResult.failure("⚠️ Unable to create ride. Please check your balance and route.");
+                    }
+
+                    System.out.println("\n[VALIDATION] ✓ Ride Request Submitted Successfully!");
+                    System.out.println("Request ID: " + currentRequest.getRequestId());
+                    System.out.println("From: " + graphOrigin.getName() + " (DB ID: " + graphOrigin.getId() + ")");
+                    System.out.println("To: " + graphDestination.getName() + " (DB ID: " + graphDestination.getId() + ")");
+                    System.out.println("Estimated Distance: " + String.format("%.2f", currentRequest.getDistance()) + " km");
+                    System.out.println("Estimated Time: " + currentRequest.getEstimatedTime() + " minutes");
+                    System.out.println("Estimated Price: $" + String.format("%.2f", currentRequest.getEstimatedPrice()));
+                    System.out.println("Status: " + currentRequest.getStatus());
+
+                    // Initialize payment processor with default payment method and no options
+                    paymentProcessor = new Payment(currentRequest.getEstimatedPrice(), PaymentType.wallet, null);
+
+                    // Load ACTIVE drivers from database and ensure at least one is available
+                    loadAvailableDrivers();
+
+                    // If no drivers, activate one automatically
+                    ensureActiveDriversAvailable();
+
+                    System.out.println("Available drivers count: " + availableDrivers.size());
+                    for (Driver d : availableDrivers) {
+                        System.out.println("  - " + d.getName() + " at " + d.getCurrentLocation().getName());
+                    }
+
+                    // Drivers should now be available - create ride manager
+                    rideManager = new RideManager(availableDrivers, currentRequest, mapGraph, paymentProcessor);
+
+                    // Set database maps
+                    loadPassengerAndDriverIds();
+                    rideManager.setDatabaseMaps(passengerIdMap, driverIdMap);
+
+                    // Simulate longer processing time (3.5 seconds for realistic search)
+                    Thread.sleep(3500);
+
+                    // Assign driver using EXISTING METHOD: RideManager.createRide() which calls assignNearestDriver()
+                    // This will: 1) insert to ride_requests with status=Pending, 2) assign driver, 3) update status=Accepted
+                    try {
+                        rideManager.createRide();
+                    } catch (Exception e) {
+                        System.out.println("[VALIDATION] ❌ Driver assignment failed: " + e.getMessage());
+                        return ValidationResult.failure("⚠️ No available drivers found. Please try again later.");
+                    }
+
+                    // Verify driver was assigned
+                    Driver assignedDriver = rideManager.getCurrentDriver();
+                    System.out.println("[VALIDATION] Assigned driver: " + (assignedDriver != null ? assignedDriver.getName() : "NULL"));
+
+                    // VALIDATION: Check if driver was assigned
+                    if (assignedDriver == null) {
+                        System.out.println("[VALIDATION] ❌ Driver assignment returned null");
+                        return ValidationResult.failure("⚠️ No drivers available at the moment. Please try again.");
+                    }
+
+                    return ValidationResult.success();
+
+                } catch (InterruptedException e) {
+                    System.out.println("[VALIDATION] ❌ Task interrupted");
+                    Thread.currentThread().interrupt();
+                    return ValidationResult.failure("⚠️ Request was cancelled.");
+                } catch (Exception e) {
+                    // Catch any unexpected exceptions
+                    System.err.println("[VALIDATION] ❌ Unexpected error: " + e.getMessage());
+                    e.printStackTrace();
+                    return ValidationResult.failure("❌ An unexpected error occurred. Please try again.");
                 }
-
-                // Find matching locations from MapGraph by name (with database IDs)
-                Location graphOrigin = findLocationInGraphByName(origin.getName());
-                Location graphDestination = findLocationInGraphByName(destination.getName());
-
-                if (graphOrigin == null || graphDestination == null) {
-                    throw new Exception("Locations not found in MapGraph: " +
-                        (graphOrigin == null ? origin.getName() : "") +
-                        (graphDestination == null ? " " + destination.getName() : ""));
-                }
-
-                System.out.println("Found locations in graph: " + graphOrigin.getName() + " (id=" + graphOrigin.getId() + ") -> " +
-                                 graphDestination.getName() + " (id=" + graphDestination.getId() + ")");
-
-                // USE EXISTING PASSENGER METHOD: request_ride()
-                // This validates the request, checks wallet balance, calculates distance/time/price
-                currentRequest = passenger.request_ride(graphOrigin, graphDestination, mapGraph);
-
-                if (currentRequest == null) {
-                    throw new Exception("Ride request validation failed. Check your balance or route.");
-                }
-
-                System.out.println("\nRide Request Submitted Successfully!");
-                System.out.println("Request ID: " + currentRequest.getRequestId());
-                System.out.println("From: " + graphOrigin.getName() + " (DB ID: " + graphOrigin.getId() + ")");
-                System.out.println("To: " + graphDestination.getName() + " (DB ID: " + graphDestination.getId() + ")");
-                System.out.println("Estimated Distance: " + String.format("%.2f", currentRequest.getDistance()) + " km");
-                System.out.println("Estimated Time: " + currentRequest.getEstimatedTime() + " minutes");
-                System.out.println("Estimated Price: $" + String.format("%.2f", currentRequest.getEstimatedPrice()));
-                System.out.println("Status: " + currentRequest.getStatus());
-
-                // Initialize payment processor with default payment method and no options
-                paymentProcessor = new Payment(currentRequest.getEstimatedPrice(), PaymentType.wallet, null);
-
-                // Load ACTIVE drivers from database and ensure at least one is available
-                loadAvailableDrivers();
-
-                // If no drivers, activate one automatically
-                ensureActiveDriversAvailable();
-
-                System.out.println("Available drivers count: " + availableDrivers.size());
-                for (Driver d : availableDrivers) {
-                    System.out.println("  - " + d.getName() + " at " + d.getCurrentLocation().getName());
-                }
-
-                // Drivers should now be available - create ride manager
-                rideManager = new RideManager(availableDrivers, currentRequest, mapGraph, paymentProcessor);
-
-                // Set database maps
-                loadPassengerAndDriverIds();
-                rideManager.setDatabaseMaps(passengerIdMap, driverIdMap);
-
-                // Simulate longer processing time (3.5 seconds for realistic search)
-                Thread.sleep(3500);
-
-                // Assign driver using EXISTING METHOD: RideManager.createRide() which calls assignNearestDriver()
-                // This will: 1) insert to ride_requests with status=Pending, 2) assign driver, 3) update status=Accepted
-                rideManager.createRide();
-
-                // Verify driver was assigned
-                Driver assignedDriver = rideManager.getCurrentDriver();
-                System.out.println("Assigned driver: " + (assignedDriver != null ? assignedDriver.getName() : "NULL"));
-
-                if (assignedDriver == null) {
-                    throw new Exception("Driver assignment failed - getCurrentDriver() returned null");
-                }
-
-                return null;
             }
         };
 
         requestTask.setOnSucceeded(e -> {
+            ValidationResult result = requestTask.getValue();
+
+            if (!result.isValid()) {
+                // Show validation error to user
+                showError(result.getErrorMessage());
+                System.out.println("[VALIDATION] Request failed with error: " + result.getErrorMessage());
+                return;
+            }
+
             Driver assignedDriver = rideManager.getCurrentDriver();
-            System.out.println("Success handler - Assigned driver: " + (assignedDriver != null ? assignedDriver.getName() : "NULL"));
+            System.out.println("[VALIDATION] ✓ Success handler - Assigned driver: " + (assignedDriver != null ? assignedDriver.getName() : "NULL"));
 
             if (assignedDriver != null) {
+                // Show chat panel with system message
+                showChatPanel();
+                showSystemMessage("Driver has been assigned to your ride");
+
+                // AUTO-SEND: Initial pickup message from driver when assigned
+                if (currentRequest != null && currentRequest.getDatabaseId() > 0) {
+                    ChatMessage autoMsg = new ChatMessage("🚗 I'm on the way to your pickup location", true);
+                    utils.ChatStorage.getInstance().addMessage(currentRequest.getDatabaseId(), autoMsg);
+                    System.out.println("[AutoChat] Sent: Driver pickup message");
+                }
+
+                // AUTOMATICALLY OPEN CHAT WINDOW FOR PASSENGER
+                Platform.runLater(() -> {
+                    openChatWindowAutomatically();
+                });
+
                 showDriverInfo(assignedDriver);
             } else {
                 showError("❌ Driver assignment failed. Please try again.");
@@ -715,19 +821,9 @@ public class MapController {
         });
 
         requestTask.setOnFailed(e -> {
-            Throwable exception = requestTask.getException();
-            String errorMessage = exception.getMessage();
-
-            // Check if it's a balance issue (from passenger.request_ride())
-            if (errorMessage != null && (errorMessage.toLowerCase().contains("balance") ||
-                                         errorMessage.toLowerCase().contains("insufficient") ||
-                                         errorMessage.toLowerCase().contains("funds"))) {
-                // Show in-app modal for insufficient balance
-                Platform.runLater(() -> showInsufficientBalanceDialog());
-            } else {
-                showError("❌ Failed to process ride request: " + errorMessage);
-            }
-            exception.printStackTrace();
+            // This should rarely happen now since we handle errors in call()
+            System.err.println("[VALIDATION] ❌ Task failed unexpectedly");
+            showError("❌ Failed to process ride request. Please try again.");
         });
 
         new Thread(requestTask).start();
@@ -915,6 +1011,12 @@ public class MapController {
                 DriverAssignedDialogController dialogController = loader.getController();
                 dialogController.setDriverInfo(driver, currentRequest);
 
+                // Set ride ID for chat functionality
+                if (currentRequest != null) {
+                    dialogController.setRideId(currentRequest.getDatabaseId());
+                    System.out.println("[MapController] Chat enabled for ride ID: " + currentRequest.getDatabaseId());
+                }
+
                 // Store reference to dialog controller
                 activeDialogController = dialogController;
 
@@ -947,7 +1049,7 @@ public class MapController {
                 // Show dialog (non-blocking - will stay open during ride)
                 dialogStage.show();
 
-
+      
             } catch (Exception ex) {
                 System.err.println("Error showing driver dialog: " + ex.getMessage());
                 ex.printStackTrace();
@@ -958,6 +1060,15 @@ public class MapController {
     private void simulateRideCompletion(Stage dialogStage) {
         showSuccess("🚗 Driver is on the way...");
 
+        // Send system message to embedded chat
+        showSystemMessage("Driver is on the way to your location");
+
+        // AUTO-SEND: Driver is on the way (to ChatStorage for standalone chat window)
+        if (currentRequest != null && currentRequest.getDatabaseId() > 0) {
+            ChatMessage autoMsg = new ChatMessage("🚗 Driver is on the way to your pickup location", true);
+            utils.ChatStorage.getInstance().addMessage(currentRequest.getDatabaseId(), autoMsg);
+            System.out.println("[AutoChat] Sent: Driver is on the way");
+        }
 
         // Simulate ride in progress
         Task<Void> rideTask = new Task<Void>() {
@@ -976,6 +1087,14 @@ public class MapController {
                 Platform.runLater(() -> {
                     if (!isCancelled) {
                         showSuccess("✓ Driver arrived at pickup point.");
+                        showSystemMessage("Driver has arrived at your location");
+
+                        // AUTO-SEND: Driver has arrived
+                        if (currentRequest != null && currentRequest.getDatabaseId() > 0) {
+                            ChatMessage autoMsg = new ChatMessage("✅ I have arrived at your pickup location", true);
+                            utils.ChatStorage.getInstance().addMessage(currentRequest.getDatabaseId(), autoMsg);
+                            System.out.println("[AutoChat] Sent: Driver has arrived");
+                        }
                     }
                 });
                 rideManager.markDriverArrived();
@@ -1543,6 +1662,9 @@ public class MapController {
 
             System.out.println("[FINALIZE] ========================================\n");
 
+            // Close the chat window automatically when ride is complete
+            closeChatWindow();
+
             // Show final success message
             showSuccess("✅ Ride completed! Thank you for using MiniGO!");
 
@@ -1609,5 +1731,362 @@ public class MapController {
         // Stats are calculated on-demand from ride_history table
         // No caching needed - removed user_stats table dependency
         System.out.println("[STATS] Ride completed - stats will be calculated dynamically from ride_history");
+    }
+
+    /**
+     * Load profile image from UserSession
+     * Called on initialization and when returning from Profile screen
+     */
+    private void loadProfileImage() {
+        try {
+            String imagePath = utils.UserSession.getInstance().getProfileImagePath();
+
+            if (imagePath != null && !imagePath.isEmpty()) {
+                java.io.File imageFile = new java.io.File(imagePath);
+                if (imageFile.exists()) {
+                    javafx.scene.image.Image profileImage = new javafx.scene.image.Image(imageFile.toURI().toString());
+                    if (!profileImage.isError() && profileBtn != null) {
+                        profileBtn.setImage(profileImage);
+                        System.out.println("[MapController] ✅ Profile image loaded: " + imagePath);
+                        return;
+                    }
+                }
+            }
+
+            // Load default avatar if no custom image
+            javafx.scene.image.Image defaultAvatar = new javafx.scene.image.Image(
+                getClass().getResourceAsStream("/user_17436294.png")
+            );
+            if (profileBtn != null && !defaultAvatar.isError()) {
+                profileBtn.setImage(defaultAvatar);
+                System.out.println("[MapController] Default avatar loaded");
+            }
+
+        } catch (Exception e) {
+            System.err.println("[MapController] Error loading profile image: " + e.getMessage());
+        }
+    }
+
+    // ==================== CHAT PANEL MANAGEMENT ====================
+
+    /**
+     * Show chat panel with slide-in animation
+     */
+    public void showChatPanel() {
+        if (chatPanel != null) {
+            chatPanel.setVisible(true);
+            chatPanel.setManaged(true);
+
+            // Slide in animation
+            TranslateTransition slideIn = new TranslateTransition(Duration.millis(300), chatPanel);
+            slideIn.setFromX(320);
+            slideIn.setToX(0);
+            slideIn.setInterpolator(javafx.animation.Interpolator.EASE_OUT);
+            slideIn.play();
+
+            System.out.println("[ChatPanel] Showing chat panel");
+
+            // Start polling for messages if ride is active
+            if (currentRequest != null) {
+                startChatPolling();
+            }
+        }
+    }
+
+    /**
+     * Hide chat panel with slide-out animation
+     */
+    @FXML
+    private void onCloseChatPanel() {
+        if (chatPanel != null) {
+            TranslateTransition slideOut = new TranslateTransition(Duration.millis(300), chatPanel);
+            slideOut.setFromX(0);
+            slideOut.setToX(320);
+            slideOut.setInterpolator(javafx.animation.Interpolator.EASE_IN);
+            slideOut.setOnFinished(e -> {
+                chatPanel.setVisible(false);
+                chatPanel.setManaged(false);
+            });
+            slideOut.play();
+
+            System.out.println("[ChatPanel] Hiding chat panel");
+            stopChatPolling();
+        }
+    }
+
+    /**
+     * Display a chat message in the UI
+     */
+    private void displayChatMessage(Model.ChatMessage message) {
+        if (chatMessagesContainer == null) return;
+
+        Platform.runLater(() -> {
+            // Create message bubble
+            Label msgLabel = new Label(message.getText());
+            msgLabel.setWrapText(true);
+            msgLabel.setMaxWidth(250);
+            msgLabel.setPadding(new Insets(10, 14, 10, 14));
+
+            // Style based on sender
+            if (message.isDriver()) {
+                // Driver message (green, right-aligned)
+                msgLabel.setStyle("-fx-background-color: #238636; -fx-text-fill: white; " +
+                                "-fx-background-radius: 12; -fx-font-size: 13px;");
+            } else {
+                // Passenger message (blue, left-aligned)
+                msgLabel.setStyle("-fx-background-color: #1F6FEB; -fx-text-fill: white; " +
+                                "-fx-background-radius: 12; -fx-font-size: 13px;");
+            }
+
+            // Time label
+            Label timeLabel = new Label(message.getTimestamp());
+            timeLabel.setStyle("-fx-text-fill: #8B92A8; -fx-font-size: 10px;");
+
+            // Container for message
+            VBox msgBox = new VBox(4, msgLabel, timeLabel);
+            msgBox.setAlignment(message.isDriver() ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
+
+            chatMessagesContainer.getChildren().add(msgBox);
+
+            // Auto-scroll to bottom
+            Platform.runLater(() -> {
+                if (chatScrollPane != null) {
+                    chatScrollPane.setVvalue(1.0);
+                }
+            });
+        });
+    }
+
+    /**
+     * Send passenger quick message
+     */
+    @FXML
+    private void onPassengerQuickMsg1() {
+        sendPassengerMessage("Where are you?");
+    }
+
+    @FXML
+    private void onPassengerQuickMsg2() {
+        sendPassengerMessage("How long until you arrive?");
+    }
+
+    @FXML
+    private void onPassengerQuickMsg3() {
+        sendPassengerMessage("I'm waiting at the pickup point.");
+    }
+
+    /**
+     * Send a message from passenger
+     */
+    private void sendPassengerMessage(String text) {
+        if (currentRequest == null) return;
+
+        long rideId = currentRequest.getDatabaseId();
+        Model.ChatMessage message = new Model.ChatMessage(text, false); // false = passenger
+        utils.ChatStorage.getInstance().addMessage(rideId, message);
+        displayChatMessage(message);
+
+        System.out.println("[ChatPanel] Passenger sent: " + text);
+    }
+
+    /**
+     * Poll for new messages from driver
+     */
+    private Timer chatPollingTimer;
+    private int lastChatMessageCount = 0;
+
+    private void startChatPolling() {
+        if (chatPollingTimer != null) {
+            chatPollingTimer.cancel();
+        }
+
+        chatPollingTimer = new Timer(true);
+        chatPollingTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                if (currentRequest == null) return;
+
+                long rideId = currentRequest.getDatabaseId();
+                List<Model.ChatMessage> messages = utils.ChatStorage.getInstance().getMessages(rideId);
+
+                if (messages.size() > lastChatMessageCount) {
+                    // New messages arrived
+                    for (int i = lastChatMessageCount; i < messages.size(); i++) {
+                        displayChatMessage(messages.get(i));
+                    }
+                    lastChatMessageCount = messages.size();
+                }
+            }
+        }, 1000, 1000); // Check every 1 second
+
+        System.out.println("[ChatPanel] Started polling for messages");
+    }
+
+    private void stopChatPolling() {
+        if (chatPollingTimer != null) {
+            chatPollingTimer.cancel();
+            chatPollingTimer = null;
+        }
+        lastChatMessageCount = 0;
+        System.out.println("[ChatPanel] Stopped polling for messages");
+    }
+
+    /**
+     * Show system message in chat
+     */
+    private void showSystemMessage(String text) {
+        if (chatMessagesContainer == null || currentRequest == null) return;
+
+        Platform.runLater(() -> {
+            Label systemLabel = new Label("🔔 " + text);
+            systemLabel.setWrapText(true);
+            systemLabel.setMaxWidth(280);
+            systemLabel.setStyle("-fx-background-color: #2E2E2E; -fx-text-fill: #E6EDF3; " +
+                               "-fx-background-radius: 8; -fx-font-size: 12px; -fx-padding: 8 12; " +
+                               "-fx-font-style: italic;");
+            systemLabel.setAlignment(Pos.CENTER);
+
+            VBox msgBox = new VBox(systemLabel);
+            msgBox.setAlignment(Pos.CENTER);
+
+            chatMessagesContainer.getChildren().add(msgBox);
+
+            // Auto-scroll
+            Platform.runLater(() -> {
+                if (chatScrollPane != null) {
+                    chatScrollPane.setVvalue(1.0);
+                }
+            });
+        });
+    }
+
+    /**
+     * Open standalone chat window
+     */
+    @FXML
+    private void onOpenChat() {
+        try {
+            // Check if there's an active ride
+            if (currentRequest == null) {
+                showError("⚠️ No active ride. Start a ride to use chat.");
+                return;
+            }
+
+            System.out.println("[MapController] Opening chat window for ride ID: " + currentRequest.getDatabaseId());
+
+            // Load ChatView.fxml from view folder
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ChatView.fxml"));
+            javafx.scene.Parent root = loader.load();
+
+            // Get controller and set session
+            ChatViewController chatController = loader.getController();
+            chatController.setChatSession(currentRequest.getDatabaseId(), isDriver);
+
+            // Create new stage for chat
+            Stage chatStage = new Stage();
+            chatStage.setTitle("💬 Ride Chat");
+            chatStage.initModality(javafx.stage.Modality.NONE); // Non-blocking
+            chatStage.initOwner((Stage) rootContainer.getScene().getWindow());
+
+            Scene scene = new Scene(root, 360, 700);
+            chatStage.setScene(scene);
+            chatStage.setResizable(false);
+
+            // Position next to main window
+            Stage ownerStage = (Stage) rootContainer.getScene().getWindow();
+            chatStage.setX(ownerStage.getX() + ownerStage.getWidth() + 10);
+            chatStage.setY(ownerStage.getY());
+
+            chatStage.show();
+
+            System.out.println("[MapController] Chat window opened successfully");
+            showSuccess("💬 Chat opened");
+
+        } catch (Exception ex) {
+            System.err.println("[MapController] Error opening chat: " + ex.getMessage());
+            ex.printStackTrace();
+            showError("❌ Failed to open chat window");
+        }
+    }
+
+    /**
+     * Automatically open chat window when ride becomes active
+     * Called when driver is assigned to passenger
+     */
+    private Stage activeChatStage = null; // Keep reference to chat window
+
+    private void openChatWindowAutomatically() {
+        // Check if chat window is already open
+        if (activeChatStage != null && activeChatStage.isShowing()) {
+            System.out.println("[ChatWindow] Chat window already open, bringing to front");
+            activeChatStage.toFront();
+            return;
+        }
+
+        try {
+            // Check if there's an active ride
+            if (currentRequest == null) {
+                System.err.println("[ChatWindow] Cannot open - no active ride");
+                return;
+            }
+
+            System.out.println("[ChatWindow] Auto-opening chat for ride ID: " + currentRequest.getDatabaseId());
+
+            // Load ChatView.fxml from view folder
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ChatView.fxml"));
+            javafx.scene.Parent root = loader.load();
+
+            // Get controller and set session
+            ChatViewController chatController = loader.getController();
+            chatController.setChatSession(currentRequest.getDatabaseId(), isDriver);
+
+            // Create new stage for chat - styled like the app
+            Stage chatStage = new Stage();
+            chatStage.setTitle("💬 Ride Chat - MiniGO");
+            chatStage.initModality(javafx.stage.Modality.NONE); // Non-blocking floating window
+            chatStage.initOwner((Stage) rootContainer.getScene().getWindow());
+
+            Scene scene = new Scene(root, 360, 700);
+            chatStage.setScene(scene);
+            chatStage.setResizable(false);
+
+            // Position next to main window (on the right side)
+            Stage ownerStage = (Stage) rootContainer.getScene().getWindow();
+            chatStage.setX(ownerStage.getX() + ownerStage.getWidth() + 10);
+            chatStage.setY(ownerStage.getY());
+
+            // Store reference
+            activeChatStage = chatStage;
+
+            // Clear reference when closed
+            chatStage.setOnHidden(event -> {
+                activeChatStage = null;
+                System.out.println("[ChatWindow] Chat window closed");
+            });
+
+            chatStage.show();
+
+            System.out.println("[ChatWindow] ✅ Chat window opened automatically");
+
+            // Show success notification
+            Platform.runLater(() -> showSuccess("💬 Chat opened - Stay connected with your " + (isDriver ? "passenger" : "driver")));
+
+        } catch (Exception ex) {
+            System.err.println("[ChatWindow] ❌ Error auto-opening chat: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+
+    /**
+     * Close the active chat window (called when ride ends)
+     */
+    private void closeChatWindow() {
+        if (activeChatStage != null && activeChatStage.isShowing()) {
+            Platform.runLater(() -> {
+                activeChatStage.close();
+                activeChatStage = null;
+                System.out.println("[ChatWindow] ✅ Chat window closed automatically (ride ended)");
+            });
+        }
     }
 }

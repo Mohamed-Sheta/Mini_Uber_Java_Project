@@ -403,6 +403,13 @@
     -fx-max-height: 90;
 }
 
+.profile-avatar-container:hover {
+    -fx-border-color: #60A5FA;
+    -fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.4), 12, 0, 0, 0);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
 .stat-icon {
     -fx-font-size: 16px;
 }
@@ -445,6 +452,28 @@
 .profile-save-button:hover {
     -fx-background-color: linear-gradient(to bottom, #3FB950, #2EA043);
     -fx-effect: dropshadow(gaussian, rgba(35, 134, 54, 0.4), 10, 0, 0, 2);
+}
+
+.upload-image-button {
+    -fx-background-color: linear-gradient(to bottom, #3B82F6, #2563EB);
+    -fx-background-radius: 6;
+    -fx-text-fill: white;
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
+    -fx-padding: 5 12;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+    -fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.25), 6, 0, 0, 1);
+}
+
+.upload-image-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #60A5FA, #3B82F6);
+    -fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.35), 8, 0, 0, 2);
+}
+
+.upload-image-button:pressed {
+    -fx-background-color: #2563EB;
+    -fx-effect: dropshadow(gaussian, rgba(59, 130, 246, 0.15), 4, 0, 0, 1);
 }
 
 /* Ensure elevated cards have consistent height */

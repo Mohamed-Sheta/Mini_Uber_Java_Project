@@ -13,20 +13,18 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
-import utils.DBConnection;
-
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.util.List;
 import java.util.Timer;
+import java.util.TimerTask;
 import java.util.TimerTask;
 
 public class DriverRideViewController {
@@ -40,6 +38,11 @@ public class DriverRideViewController {
     @FXML private Label destinationLabel;
     @FXML private Label distanceLabel;
     @FXML private Label fareLabel;
+    @FXML private StackPane chatPlaceholder;
+
+    // Chat elements
+    @FXML private ScrollPane chatScrollPane;
+    @FXML private VBox chatMessagesContainer;
 
     // Popup elements
     @FXML private StackPane popupOverlay;
@@ -100,6 +103,13 @@ public class DriverRideViewController {
             if (popupContainer != null) {
                 popupContainer.setOpacity(1.0); // Ensure content is fully visible
             }
+
+
+            // Initialize chat
+            initializeChat();
+
+            // Start polling for passenger messages
+            startChatPolling();
 
             // Setup popup button
             if (popupButton != null) {
@@ -185,6 +195,10 @@ public class DriverRideViewController {
 
     public void setRideDetails(long rideId, Driver driver, long driverId) {
         System.out.println("[DriverRideView] ========== SET RIDE DETAILS ==========");
+
+            // Send automatic "Driver assigned" message
+            sendAutoChatMessage("Driver has been assigned to your ride.");
+
         System.out.println("[DriverRideView] Ride ID: " + rideId);
         System.out.println("[DriverRideView] Driver: " + (driver != null ? driver.getName() : "null"));
         System.out.println("[DriverRideView] Driver ID: " + driverId);
@@ -195,6 +209,10 @@ public class DriverRideViewController {
 
         try {
             loadRideDetails();
+
+            // Load any existing chat history (in case passenger sent messages first)
+            loadChatHistory();
+
             startRidePhases();
         } catch (Exception e) {
             System.err.println("[DriverRideView] ❌ ERROR in setRideDetails: " + e.getMessage());
@@ -344,6 +362,9 @@ public class DriverRideViewController {
 
         currentPhase = 0;
 
+        // Send automatic "on the way" message
+        sendAutoChatMessage("Driver is on the way to your location.");
+
         // Phase 1: On way to pickup (wait 3-5 seconds randomly)
         int delayToPickup = 3000 + (int)(Math.random() * 2000); // 3000-5000ms
         System.out.println("[DriverRideView] Will arrive at pickup in " + (delayToPickup/1000.0) + " seconds");
@@ -352,7 +373,17 @@ public class DriverRideViewController {
         phaseTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                Platform.runLater(() -> showArrivedAtPickupPopup());
+                Platform.runLater(() -> {
+                    // Send automatic message about arrival
+                    sendAutoChatMessage("Arriving in 5 minutes.");
+                    // After a short delay, show arrived popup
+                    new Timer(true).schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            Platform.runLater(() -> showArrivedAtPickupPopup());
+                        }
+                    }, 5000); // 5 seconds later
+                });
             }
         }, delayToPickup);
     }
@@ -361,6 +392,9 @@ public class DriverRideViewController {
         System.out.println("[DriverRideView] Phase 1 complete - Showing arrived at pickup popup");
 
         currentPhase = 1;
+
+        // Send automatic "arrived" message
+        sendAutoChatMessage("I have arrived at your location.");
 
         // Update banner
         statusBannerLabel.setText("Arrived at Pickup");
@@ -567,6 +601,9 @@ public class DriverRideViewController {
             // ===== CRITICAL: UPDATE DRIVER BALANCE (CORRECT FLOW) =====
             System.out.println("[DriverRideView] ===== UPDATING DRIVER BALANCE =====");
 
+            // Create DriverDAO instance
+            DAO.DriverDAO driverDAO = new DAO.DriverDAO();
+
             // Validate driver ID
             if (currentDriverId <= 0) {
                 System.err.println("[DriverRideView] ❌ CRITICAL ERROR: Invalid driver ID: " + currentDriverId);
@@ -580,7 +617,6 @@ public class DriverRideViewController {
                 System.out.println("[DriverRideView] Ride fare: $" + String.format("%.2f", rideFare));
                 System.out.println("[DriverRideView] Driver earnings (92%%): $" + String.format("%.2f", driverEarnings));
 
-                DAO.DriverDAO driverDAO = new DAO.DriverDAO();
 
                 // Step 1: Fetch current balance from database
                 System.out.println("[DriverRideView] [Step 1] Fetching current balance from database...");
@@ -628,8 +664,6 @@ public class DriverRideViewController {
             // Note: rides_count column removed from database - ride count is calculated from ride_history
             // No need to update a separate counter field
 
-            // Create DriverDAO instance for subsequent operations
-            DAO.DriverDAO driverDAO = new DAO.DriverDAO();
 
             // Set driver back to ONLINE mode (active = true)
             System.out.println("[DriverRideView] Setting driver back to ONLINE mode...");
@@ -737,6 +771,123 @@ public class DriverRideViewController {
             System.err.println("[DriverRideView] Failed to load Profile screen: " + ex.getMessage());
             ex.printStackTrace();
         }
+    }
+
+    // ==================== CHAT FUNCTIONALITY ====================
+
+    /**
+     * Initialize chat UI
+     */
+    private void initializeChat() {
+        if (chatMessagesContainer != null) {
+            chatMessagesContainer.getChildren().clear();
+            System.out.println("[DriverRideView] Chat initialized");
+        }
+    }
+
+    /**
+     * Send automatic message to chat
+     */
+    private void sendAutoChatMessage(String message) {
+        if (rideId == 0) return;
+
+        Model.ChatMessage chatMsg = new Model.ChatMessage(message, true); // true = driver
+        utils.ChatStorage.getInstance().addMessage(rideId, chatMsg);
+        displayChatMessage(chatMsg);
+    }
+
+    /**
+     * Display a chat message in the UI
+     */
+    private void displayChatMessage(Model.ChatMessage message) {
+        if (chatMessagesContainer == null) return;
+
+        Platform.runLater(() -> {
+            // Create message bubble
+            javafx.scene.control.Label msgLabel = new javafx.scene.control.Label(message.getText());
+            msgLabel.setWrapText(true);
+            msgLabel.setMaxWidth(250);
+            msgLabel.setPadding(new javafx.geometry.Insets(8, 12, 8, 12));
+
+            // Style based on sender
+            if (message.isDriver()) {
+                // Driver message (green, right-aligned)
+                msgLabel.setStyle("-fx-background-color: #238636; -fx-text-fill: white; " +
+                                "-fx-background-radius: 12; -fx-font-size: 12px;");
+            } else {
+                // Passenger message (dark gray, left-aligned)
+                msgLabel.setStyle("-fx-background-color: #2E2E2E; -fx-text-fill: white; " +
+                                "-fx-background-radius: 12; -fx-font-size: 12px;");
+            }
+
+            // Time label
+            javafx.scene.control.Label timeLabel = new javafx.scene.control.Label(message.getTimestamp());
+            timeLabel.setStyle("-fx-text-fill: #8B92A8; -fx-font-size: 9px;");
+
+            // Container for message
+            javafx.scene.layout.VBox msgBox = new javafx.scene.layout.VBox(4, msgLabel, timeLabel);
+            msgBox.setAlignment(message.isDriver() ? javafx.geometry.Pos.CENTER_RIGHT : javafx.geometry.Pos.CENTER_LEFT);
+
+            chatMessagesContainer.getChildren().add(msgBox);
+
+            // Auto-scroll to bottom
+            if (chatScrollPane != null) {
+                chatScrollPane.setVvalue(1.0);
+            }
+        });
+    }
+
+    /**
+     * Load existing chat messages when view opens
+     */
+    private void loadChatHistory() {
+        if (rideId == 0) return;
+
+        List<Model.ChatMessage> messages = utils.ChatStorage.getInstance().getMessages(rideId);
+        for (Model.ChatMessage msg : messages) {
+            displayChatMessage(msg);
+        }
+    }
+
+    // Quick message buttons for driver
+    @FXML
+    private void onDriverQuickMessage1() {
+        sendAutoChatMessage("I have arrived at your location.");
+    }
+
+    @FXML
+    private void onDriverQuickMessage2() {
+        sendAutoChatMessage("I will reach you in 5 minutes.");
+    }
+
+    @FXML
+    private void onDriverQuickMessage3() {
+        sendAutoChatMessage("I am downstairs.");
+    }
+
+    /**
+     * Poll for new messages from passenger
+     */
+    private Timer chatPollingTimer;
+    private int lastMessageCount = 0;
+
+    private void startChatPolling() {
+        chatPollingTimer = new Timer(true);
+        chatPollingTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                if (rideId == 0) return;
+
+                List<Model.ChatMessage> messages = utils.ChatStorage.getInstance().getMessages(rideId);
+                if (messages.size() > lastMessageCount) {
+                    // New messages arrived
+                    for (int i = lastMessageCount; i < messages.size(); i++) {
+                        displayChatMessage(messages.get(i));
+                    }
+                    lastMessageCount = messages.size();
+                }
+            }
+        }, 1000, 1000); // Check every 1 second
     }
 }
 

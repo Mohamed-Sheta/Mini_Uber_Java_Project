@@ -185,3 +185,9 @@ CREATE TABLE reports (
     INDEX idx_type (type),
     INDEX idx_created_at (created_at)
 );
+
+-- ======================================================
+-- ALTER TABLES: Add Profile Image Path Support
+-- ======================================================
+ALTER TABLE passengers ADD COLUMN IF NOT EXISTS profile_image_path VARCHAR(500) NULL;
+ALTER TABLE drivers ADD COLUMN IF NOT EXISTS profile_image_path VARCHAR(500) NULL;

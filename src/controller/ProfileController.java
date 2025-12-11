@@ -86,6 +86,12 @@ public class ProfileController {
     @FXML
     private VBox ridesCard;
 
+    @FXML
+    private Button uploadImageButton;
+
+    @FXML
+    private javafx.scene.layout.StackPane avatarContainer;
+
 
     private Person currentUser;
     private boolean isDriver = false;
@@ -105,10 +111,6 @@ public class ProfileController {
         }
     }
 
-    /**
-     * Set the current logged-in user (Passenger or Driver)
-     * Call this method from LoginController after successful login
-     */
     public void setUser(Person user) {
         this.currentUser = user;
         this.isDriver = (user instanceof Driver);
@@ -120,10 +122,6 @@ public class ProfileController {
         loadProfileData();
     }
 
-    /**
-     * Refresh profile data from database
-     * Call this after wallet updates, ride completion, or any profile changes
-     */
     public void refreshProfile() {
         if (currentUser == null || userId == -1) {
             return;
@@ -138,9 +136,6 @@ public class ProfileController {
         System.out.println("[Profile] Profile data refreshed successfully");
     }
 
-    /**
-     * Reload user object from database to get latest data
-     */
     private void reloadUserFromDatabase() {
         if (currentUser == null || userId == -1) {
             return;
@@ -180,13 +175,13 @@ public class ProfileController {
         }
     }
 
-    /**
-     * Load profile data from the current user object and database
-     */
     private void loadProfileData() {
         if (currentUser == null) {
             return;
         }
+
+        // Load profile image if exists
+        loadProfileImageFromDatabase();
 
         // Avatar is now loaded from avatar.png, no need to set initials
 
@@ -226,9 +221,6 @@ public class ProfileController {
         }
     }
 
-    /**
-     * Get user ID from database by email
-     */
     private long getUserIdFromDatabase(String email, boolean isDriver) {
         String tableName = isDriver ? "drivers" : "passengers";
         String sql = "SELECT id FROM " + tableName + " WHERE email = ?";
@@ -251,10 +243,6 @@ public class ProfileController {
         return -1;
     }
 
-    /**
-     * Get total number of rides from ride_history
-     * Each ride creates ONE record in ride_history table
-     */
     private int getTotalRides() {
         if (userId == -1) {
             System.out.println("[Profile] getTotalRides: Invalid userId, returning 0");
@@ -285,11 +273,6 @@ public class ProfileController {
         return 0;
     }
 
-    /**
-     * Get total amount spent (for passengers) or earned (for drivers)
-     * For passengers: returns total ride_cost
-     * For drivers: returns ride_cost (this will be used by getTotalEarnedWithTips for full calculation)
-     */
     private double getTotalSpentOrEarned() {
         if (userId == -1) {
             System.out.println("[Profile] getTotalSpentOrEarned: Invalid userId, returning 0.0");
@@ -321,11 +304,6 @@ public class ProfileController {
         return 0.0;
     }
 
-    /**
-     * Get total amount earned by driver including tips
-     * Driver receives 92% of ride_cost (8% goes to company) + 100% of tips
-     * Formula: SUM((ride_cost * 0.92) + tips)
-     */
     private double getTotalEarnedWithTips() {
         if (userId == -1 || !isDriver) {
             System.out.println("[Profile] getTotalEarnedWithTips: Invalid userId or not driver, returning 0.0");
@@ -357,9 +335,6 @@ public class ProfileController {
         return 0.0;
     }
 
-    /**
-     * Handle Save Changes button click
-     */
     @FXML
     public void onSaveChanges() {
         // Add button animation
@@ -2036,6 +2011,281 @@ public class ProfileController {
     }
 
     // ====================================================================
-    // END OF ProfileController
+    // FEATURE: PROFILE IMAGE UPLOAD
+    // ====================================================================
+
+    /**
+     * Handle Avatar Click - Opens file chooser to upload profile image
+     * Called when user clicks on the avatar image
+     */
+    @FXML
+    public void onAvatarClick() {
+        System.out.println("[Profile] Avatar clicked - opening file chooser");
+
+        // Hide previous messages
+        messageLabel.setVisible(false);
+        messageLabel.setManaged(false);
+
+        // Open file chooser to select image
+        openImageFileChooser();
+    }
+
+    /**
+     * Handle Upload Image button click
+     * Opens file chooser, validates image, previews it, and saves it locally
+     */
+    @FXML
+    public void onUploadImage() {
+        // Add button animation
+        playButtonAnimation(uploadImageButton);
+
+        // Hide previous messages
+        messageLabel.setVisible(false);
+        messageLabel.setManaged(false);
+
+        // Open file chooser to select image
+        openImageFileChooser();
+    }
+
+    /**
+     * Open file chooser dialog for image selection
+     * Shared method used by both avatar click and upload button
+     */
+    private void openImageFileChooser() {
+        // Open file chooser
+        javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+        fileChooser.setTitle("Select Profile Image");
+
+        // Set file filters for images only (PNG/JPG as requested)
+        fileChooser.getExtensionFilters().addAll(
+            new javafx.stage.FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg"),
+            new javafx.stage.FileChooser.ExtensionFilter("PNG Images", "*.png"),
+            new javafx.stage.FileChooser.ExtensionFilter("JPEG Images", "*.jpg", "*.jpeg")
+        );
+
+        // Show file chooser dialog - get window from any available UI element
+        javafx.stage.Window window = null;
+        if (avatarImageView != null && avatarImageView.getScene() != null) {
+            window = avatarImageView.getScene().getWindow();
+        } else if (backButton != null && backButton.getScene() != null) {
+            window = backButton.getScene().getWindow();
+        } else if (saveButton != null && saveButton.getScene() != null) {
+            window = saveButton.getScene().getWindow();
+        }
+
+        java.io.File selectedFile = fileChooser.showOpenDialog(window);
+
+        if (selectedFile != null) {
+            // Validate and process the image
+            processProfileImage(selectedFile);
+        } else {
+            System.out.println("[Profile] Image upload cancelled by user");
+        }
+    }
+
+    /**
+     * Process the selected profile image: validate, preview, and save
+     */
+    private void processProfileImage(java.io.File imageFile) {
+        System.out.println("[Profile] Processing image: " + imageFile.getAbsolutePath());
+
+        // Validate file extension (PNG/JPG only as per requirements)
+        String fileName = imageFile.getName().toLowerCase();
+        if (!fileName.endsWith(".png") && !fileName.endsWith(".jpg") && !fileName.endsWith(".jpeg")) {
+            showMessage("Only PNG and JPG images are supported", true);
+            System.err.println("[Profile] Invalid file type: " + fileName);
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        long maxSizeBytes = 5 * 1024 * 1024; // 5MB
+        if (imageFile.length() > maxSizeBytes) {
+            showMessage("Image size must be less than 5MB", true);
+            System.err.println("[Profile] Image too large: " + imageFile.length() + " bytes");
+            return;
+        }
+
+        // Validate file type by trying to load it as an image
+        try {
+            javafx.scene.image.Image testImage = new javafx.scene.image.Image(imageFile.toURI().toString());
+            if (testImage.isError()) {
+                showMessage("Invalid image file", true);
+                System.err.println("[Profile] Invalid image file");
+                return;
+            }
+
+            // Check image dimensions (max 2000x2000)
+            if (testImage.getWidth() > 2000 || testImage.getHeight() > 2000) {
+                showMessage("Image dimensions must be less than 2000x2000 pixels", true);
+                System.err.println("[Profile] Image dimensions too large: " + testImage.getWidth() + "x" + testImage.getHeight());
+                return;
+            }
+
+            // Preview the image immediately
+            previewProfileImage(testImage);
+
+            // Save the image locally
+            boolean saved = saveProfileImageLocally(imageFile);
+
+            if (saved) {
+                showMessage("Profile image updated successfully!", false);
+                System.out.println("[Profile] ✅ Profile image uploaded and saved successfully");
+            } else {
+                showMessage("Failed to save image. Please try again.", true);
+                System.err.println("[Profile] ❌ Failed to save profile image");
+            }
+
+        } catch (Exception e) {
+            showMessage("Error processing image: " + e.getMessage(), true);
+            System.err.println("[Profile] Error processing image: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Preview the selected image in the avatarImageView
+     */
+    private void previewProfileImage(javafx.scene.image.Image image) {
+        if (avatarImageView != null) {
+            avatarImageView.setImage(image);
+            System.out.println("[Profile] Image previewed in avatar view");
+        }
+    }
+
+    /**
+     * Save the profile image locally to resources folder
+     * Filename format: profile_<userId>_<email>.png
+     */
+    private boolean saveProfileImageLocally(java.io.File sourceFile) {
+        if (currentUser == null || userId == -1) {
+            System.err.println("[Profile] Cannot save image: user not logged in");
+            return false;
+        }
+
+        try {
+            // Create profile_images directory if it doesn't exist
+            java.io.File profileImagesDir = new java.io.File("resources/profile_images");
+            if (!profileImagesDir.exists()) {
+                boolean created = profileImagesDir.mkdirs();
+                if (!created) {
+                    System.err.println("[Profile] Failed to create profile_images directory");
+                    return false;
+                }
+                System.out.println("[Profile] Created profile_images directory");
+            }
+
+            // Generate filename: profile_<userId>_<email>.png
+            String emailPart = currentUser.getEmail().replaceAll("[^a-zA-Z0-9]", "_");
+            String fileExtension = getFileExtension(sourceFile.getName());
+            String filename = "profile_" + userId + "_" + emailPart + fileExtension;
+            java.io.File destFile = new java.io.File(profileImagesDir, filename);
+
+            // Copy file using NIO
+            java.nio.file.Files.copy(
+                sourceFile.toPath(),
+                destFile.toPath(),
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING
+            );
+
+            System.out.println("[Profile] ✅ Image saved to: " + destFile.getAbsolutePath());
+
+            // Save image path to database
+            saveProfileImagePathToDatabase(destFile.getAbsolutePath());
+
+            // Save image path to UserSession for global access
+            UserSession.getInstance().setProfileImagePath(destFile.getAbsolutePath());
+
+            return true;
+
+        } catch (Exception e) {
+            System.err.println("[Profile] Error saving image: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Get file extension from filename
+     */
+    private String getFileExtension(String filename) {
+        int lastDot = filename.lastIndexOf('.');
+        if (lastDot > 0 && lastDot < filename.length() - 1) {
+            return filename.substring(lastDot);
+        }
+        return ".png"; // default to .png
+    }
+
+    /**
+     * Save profile image path to database (optional - for future use)
+     * This allows loading the profile image when user logs in
+     */
+    private void saveProfileImagePathToDatabase(String imagePath) {
+        if (userId == -1) {
+            return;
+        }
+
+        String tableName = isDriver ? "drivers" : "passengers";
+        String sql = "UPDATE " + tableName + " SET profile_image_path = ? WHERE id = ?";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, imagePath);
+            ps.setLong(2, userId);
+
+            int rowsAffected = ps.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("[Profile] ✅ Profile image path saved to database");
+            } else {
+                System.err.println("[Profile] ⚠️ No rows updated in database");
+            }
+
+        } catch (SQLException e) {
+            // If column doesn't exist, just log a warning (not critical)
+            System.out.println("[Profile] ℹ️ Could not save image path to database (column may not exist): " + e.getMessage());
+        }
+    }
+
+    /**
+     * Load profile image from database on initialization (optional - for future use)
+     * Call this in loadProfileData() to load saved profile images
+     */
+    private void loadProfileImageFromDatabase() {
+        if (userId == -1) {
+            return;
+        }
+
+        String tableName = isDriver ? "drivers" : "passengers";
+        String sql = "SELECT profile_image_path FROM " + tableName + " WHERE id = ?";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setLong(1, userId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    String imagePath = rs.getString("profile_image_path");
+                    if (imagePath != null && !imagePath.isEmpty()) {
+                        java.io.File imageFile = new java.io.File(imagePath);
+                        if (imageFile.exists()) {
+                            javafx.scene.image.Image profileImage = new javafx.scene.image.Image(imageFile.toURI().toString());
+                            if (!profileImage.isError()) {
+                                avatarImageView.setImage(profileImage);
+                                // Save to UserSession for global access
+                                UserSession.getInstance().setProfileImagePath(imagePath);
+                                System.out.println("[Profile] ✅ Loaded profile image from database: " + imagePath);
+                            }
+                        }
+                    }
+                }
+            }
+
+        } catch (SQLException e) {
+            // If column doesn't exist, just use default avatar (not critical)
+            System.out.println("[Profile] ℹ️ Could not load image path from database (column may not exist): " + e.getMessage());
+        }
+    }
+
 }
 

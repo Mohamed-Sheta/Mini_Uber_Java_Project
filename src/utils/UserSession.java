@@ -16,12 +16,14 @@ UserSession {
     private Person currentUser;
     private boolean isDriver;
     private long userId;
+    private String profileImagePath;
 
     // Private constructor to prevent instantiation
     private UserSession() {
         this.currentUser = null;
         this.isDriver = false;
         this.userId = -1;
+        this.profileImagePath = null;
     }
 
     /**
@@ -154,6 +156,24 @@ UserSession {
         this.currentUser = null;
         this.isDriver = false;
         this.userId = -1;
+        this.profileImagePath = null;
+    }
+
+    /**
+     * Get the current profile image path
+     * @return Profile image path or null if not set
+     */
+    public String getProfileImagePath() {
+        return profileImagePath;
+    }
+
+    /**
+     * Set the profile image path
+     * @param imagePath The path to the profile image
+     */
+    public void setProfileImagePath(String imagePath) {
+        this.profileImagePath = imagePath;
+        System.out.println("[UserSession] Profile image path updated: " + imagePath);
     }
 
     /**
@@ -199,9 +219,7 @@ UserSession {
         return currentUser != null && userId > 0;
     }
 
-    /**
-     * Print session info for debugging
-     */
+
     public void printSessionInfo() {
         System.out.println("=== UserSession Info ===");
         System.out.println("Logged In: " + isLoggedIn());

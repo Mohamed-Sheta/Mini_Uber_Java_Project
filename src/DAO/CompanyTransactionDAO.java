@@ -4,7 +4,8 @@ import utils.DBConnection;
 
 import java.sql.*;
 
-public class CompanyTransactionDAO {
+public class
+CompanyTransactionDAO {
 
     /**
      * Add a new transaction to track company revenue

@@ -147,6 +147,10 @@ public class RideManager {
                 null, false, false
             );
             System.out.println("[DB] ride_requests inserted (Pending) id=" + rideRequestId);
+
+            // CRITICAL: Set the database ID back to the Request object for chat functionality
+            request.setDbId(rideRequestId);
+            System.out.println("[DB] Request object updated with database ID: " + rideRequestId);
         } catch (Exception e) {
             System.out.println("[DB] Insert ride_request error: " + e.getMessage());
         }
