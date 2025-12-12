@@ -1751,8 +1751,22 @@ public class MapController {
             updateUserStatsAfterRide(passengerId, driverId, finalTotal, rideCost + tipAmount);
             System.out.println("[FINALIZE] ✅ Ride counts and spent/earned updated for passenger and driver");
 
-            // STEP 6: Generate PDF invoice using existing method
-            System.out.println("[FINALIZE] Step 6: Generating PDF invoice...");
+            // STEP 6: Update passenger's current_location to destination
+            System.out.println("[FINALIZE] Step 6: Updating passenger current_location to destination...");
+            try {
+                if (currentRequest != null && currentRequest.getDestination() != null) {
+                    PassengerDAO passengerDAO = new PassengerDAO();
+                    String destinationName = currentRequest.getDestination().getName();
+                    passengerDAO.updateCurrentLocation(passengerId, destinationName);
+                    System.out.println("[FINALIZE] ✅ Passenger current_location updated to destination: " + destinationName);
+                }
+            } catch (Exception e) {
+                System.err.println("[FINALIZE] ❌ Failed to update passenger current_location: " + e.getMessage());
+                e.printStackTrace();
+            }
+
+            // STEP 7: Generate PDF invoice using existing method
+            System.out.println("[FINALIZE] Step 7: Generating PDF invoice...");
             try {
                 generateInvoice(finalTotal);
                 System.out.println("[FINALIZE] ✅ PDF invoice generated successfully");
@@ -1852,36 +1866,25 @@ public class MapController {
             System.out.println("[MapController] Loading profile image for user: " +
                 (currentUser != null ? currentUser.getName() + " (" + (isDriver ? "Driver" : "Passenger") + ")" : "null"));
 
-            // Load profile image directly from database for the current user
-            // This guarantees we get the latest image for THIS specific user
+            // Load profile image using ProfilePhotoDAO
             String imagePath = null;
             if (currentUser != null) {
                 // Get user ID from database
                 long userId = getUserIdFromDatabase(currentUser.getEmail(), isDriver);
 
                 if (userId > 0) {
-                    // Query database for this user's profile image path
-                    String tableName = isDriver ? "drivers" : "passengers";
-                    String sql = "SELECT profile_image_path FROM " + tableName + " WHERE id = ?";
+                    // Use ProfilePhotoDAO to get profile image path
+                    String userType = isDriver ? "driver" : "passenger";
+                    DAO.ProfilePhotoDAO photoDAO = new DAO.ProfilePhotoDAO();
+                    imagePath = photoDAO.getProfileImagePath(userId, userType);
 
-                    try (Connection con = DBConnection.getConnection();
-                         PreparedStatement ps = con.prepareStatement(sql)) {
+                    System.out.println("[MapController] Image path from database for " +
+                        userType + " ID " + userId + ": " + imagePath);
 
-                        ps.setLong(1, userId);
-
-                        try (ResultSet rs = ps.executeQuery()) {
-                            if (rs.next()) {
-                                imagePath = rs.getString("profile_image_path");
-                                System.out.println("[MapController] Image path from database for " +
-                                    tableName + " ID " + userId + ": " + imagePath);
-
-                                // Also update UserSession with current user and image path
-                                // This keeps UserSession in sync for when Profile screen needs it
-                                UserSession.getInstance().setProfileImagePath(imagePath);
-                            }
-                        }
-                    } catch (SQLException e) {
-                        System.out.println("[MapController] ℹ️ Could not load image path from database: " + e.getMessage());
+                    // Also update UserSession with current user and image path
+                    // This keeps UserSession in sync for when Profile screen needs it
+                    if (imagePath != null) {
+                        UserSession.getInstance().setProfileImagePath(imagePath);
                     }
                 }
             }

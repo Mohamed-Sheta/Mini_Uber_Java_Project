@@ -902,7 +902,7 @@ public class DriverDashboardController {
     }
 
     /**
-     * Load profile image directly from database for current driver
+     * Load profile image using ProfilePhotoDAO for current driver
      * This ensures each driver always sees their own latest profile picture
      * Called when driver is set or dashboard is refreshed
      */
@@ -911,31 +911,20 @@ public class DriverDashboardController {
             System.out.println("[DriverDashboard] Loading profile image for driver: " +
                 (currentDriver != null ? currentDriver.getName() : "null"));
 
-            // Load profile image directly from database for the current driver
-            // This guarantees we get the latest image for THIS specific driver
+            // Load profile image using ProfilePhotoDAO
             String imagePath = null;
             if (currentDriver != null && currentDriverId > 0) {
-                // Query database for this driver's profile image path
-                String sql = "SELECT profile_image_path FROM drivers WHERE id = ?";
+                // Use ProfilePhotoDAO to get profile image path
+                DAO.ProfilePhotoDAO photoDAO = new DAO.ProfilePhotoDAO();
+                imagePath = photoDAO.getProfileImagePath(currentDriverId, "driver");
 
-                try (Connection con = DBConnection.getConnection();
-                     PreparedStatement ps = con.prepareStatement(sql)) {
+                System.out.println("[DriverDashboard] Image path from database for driver ID " +
+                    currentDriverId + ": " + imagePath);
 
-                    ps.setLong(1, currentDriverId);
-
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) {
-                            imagePath = rs.getString("profile_image_path");
-                            System.out.println("[DriverDashboard] Image path from database for driver ID " +
-                                currentDriverId + ": " + imagePath);
-
-                            // Also update UserSession with current driver and image path
-                            // This keeps UserSession in sync for when Profile screen needs it
-                            UserSession.getInstance().setProfileImagePath(imagePath);
-                        }
-                    }
-                } catch (SQLException e) {
-                    System.out.println("[DriverDashboard] ℹ️ Could not load image path from database: " + e.getMessage());
+                // Also update UserSession with current driver and image path
+                // This keeps UserSession in sync for when Profile screen needs it
+                if (imagePath != null) {
+                    UserSession.getInstance().setProfileImagePath(imagePath);
                 }
             }
 

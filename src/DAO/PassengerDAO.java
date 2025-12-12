@@ -290,6 +290,42 @@ public class PassengerDAO {
     }
 
     /**
+     * Update only the passenger's current_location
+     * Used when passenger requests a ride (set to pickup location) or completes a ride (set to destination)
+     * @param passengerId the passenger ID
+     * @param locationName the location name (or null to clear)
+     * @return true if successful, false otherwise
+     */
+    public boolean updateCurrentLocation(long passengerId, String locationName) {
+        final String sql = "UPDATE passengers SET current_location = ? WHERE id = ?";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            if (locationName == null) {
+                ps.setNull(1, Types.VARCHAR);
+            } else {
+                ps.setString(1, locationName);
+            }
+            ps.setLong(2, passengerId);
+
+            int rowsAffected = ps.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("[PassengerDAO] ✅ Updated current_location for passenger ID " + passengerId + " to: " + locationName);
+                return true;
+            } else {
+                System.err.println("[PassengerDAO] ⚠️ No passenger found with ID: " + passengerId);
+                return false;
+            }
+
+        } catch (SQLException e) {
+            System.err.println("[PassengerDAO] ❌ Error updating current_location: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
      * Record a tip or donation transaction
      * @param passengerId the passenger ID
      * @param amount the transaction amount (will be stored as negative)
@@ -308,4 +344,3 @@ public class PassengerDAO {
         return true;
     }
 }
-

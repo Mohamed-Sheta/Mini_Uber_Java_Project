@@ -151,6 +151,15 @@ public class RideManager {
             // CRITICAL: Set the database ID back to the Request object for chat functionality
             request.setDbId(rideRequestId);
             System.out.println("[DB] Request object updated with database ID: " + rideRequestId);
+
+            // Update passenger's current_location to the pickup location
+            Long passengerId = passengerIdMap.get(request.getPassenger());
+            if (passengerId != null && request.getOrigin() != null) {
+                PassengerDAO passengerDAO = new PassengerDAO();
+                String pickupLocationName = request.getOrigin().getName();
+                passengerDAO.updateCurrentLocation(passengerId, pickupLocationName);
+                System.out.println("[DB] ✅ Passenger current_location set to pickup: " + pickupLocationName);
+            }
         } catch (Exception e) {
             System.out.println("[DB] Insert ride_request error: " + e.getMessage());
         }

@@ -187,7 +187,17 @@ CREATE TABLE reports (
 );
 
 -- ======================================================
--- ALTER TABLES: Add Profile Image Path Support
+-- TABLE: Profile Photos
 -- ======================================================
-ALTER TABLE passengers ADD COLUMN profile_image_path VARCHAR(500) NULL;
-ALTER TABLE drivers ADD COLUMN profile_image_path VARCHAR(500) NULL;
+-- Separate table to store profile images for both passengers and drivers
+-- This avoids storing NULL values in the main user tables
+CREATE TABLE profile_photos (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    user_type ENUM('passenger', 'driver') NOT NULL,
+    profile_image_path VARCHAR(500) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_user_profile (user_id, user_type),
+    INDEX idx_user_lookup (user_id, user_type)
+);

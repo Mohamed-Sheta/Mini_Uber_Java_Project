@@ -106,12 +106,15 @@ public class RegisterController {
         // Field-level validation
         boolean isValid = true;
 
-        // Validate name - must not be empty and must not contain numbers
+        // Validate name - must be at least 6 characters, contain only alphabetic characters and spaces, no numbers
         if (name.isEmpty()) {
             showFieldError(nameErrorLabel, "Name is required");
             isValid = false;
-        } else if (name.matches(".*\\d.*")) {
-            showFieldError(nameErrorLabel, "Name must not contain numbers");
+        } else if (name.length() < 6) {
+            showFieldError(nameErrorLabel, "Name must be at least 6 characters long");
+            isValid = false;
+        } else if (!name.matches("^[a-zA-Z\\s]+$")) {
+            showFieldError(nameErrorLabel, "Name must contain only letters and spaces (no numbers)");
             isValid = false;
         }
 

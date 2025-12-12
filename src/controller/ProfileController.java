@@ -2216,7 +2216,7 @@ public class ProfileController {
     }
 
     /**
-     * Save profile image path to database (optional - for future use)
+     * Save profile image path to database using ProfilePhotoDAO
      * This allows loading the profile image when user logs in
      */
     private void saveProfileImagePathToDatabase(String imagePath) {
@@ -2224,30 +2224,19 @@ public class ProfileController {
             return;
         }
 
-        String tableName = isDriver ? "drivers" : "passengers";
-        String sql = "UPDATE " + tableName + " SET profile_image_path = ? WHERE id = ?";
+        String userType = isDriver ? "driver" : "passenger";
+        DAO.ProfilePhotoDAO photoDAO = new DAO.ProfilePhotoDAO();
 
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setString(1, imagePath);
-            ps.setLong(2, userId);
-
-            int rowsAffected = ps.executeUpdate();
-            if (rowsAffected > 0) {
-                System.out.println("[Profile] ✅ Profile image path saved to database");
-            } else {
-                System.err.println("[Profile] ⚠️ No rows updated in database");
-            }
-
-        } catch (SQLException e) {
-            // If column doesn't exist, just log a warning (not critical)
-            System.out.println("[Profile] ℹ️ Could not save image path to database (column may not exist): " + e.getMessage());
+        boolean success = photoDAO.saveProfileImagePath(userId, userType, imagePath);
+        if (success) {
+            System.out.println("[Profile] ✅ Profile image path saved to database");
+        } else {
+            System.err.println("[Profile] ⚠️ Failed to save profile image path");
         }
     }
 
     /**
-     * Load profile image from database on initialization (optional - for future use)
+     * Load profile image from database using ProfilePhotoDAO
      * Call this in loadProfileData() to load saved profile images
      */
     private void loadProfileImageFromDatabase() {
@@ -2255,37 +2244,25 @@ public class ProfileController {
             return;
         }
 
-        String tableName = isDriver ? "drivers" : "passengers";
-        String sql = "SELECT profile_image_path FROM " + tableName + " WHERE id = ?";
+        String userType = isDriver ? "driver" : "passenger";
+        DAO.ProfilePhotoDAO photoDAO = new DAO.ProfilePhotoDAO();
 
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        String imagePath = photoDAO.getProfileImagePath(userId, userType);
 
-            ps.setLong(1, userId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    String imagePath = rs.getString("profile_image_path");
-                    if (imagePath != null && !imagePath.isEmpty()) {
-                        java.io.File imageFile = new java.io.File(imagePath);
-                        if (imageFile.exists()) {
-                            javafx.scene.image.Image profileImage = new javafx.scene.image.Image(imageFile.toURI().toString());
-                            if (!profileImage.isError()) {
-                                avatarImageView.setImage(profileImage);
-                                // Save to UserSession for global access
-                                UserSession.getInstance().setProfileImagePath(imagePath);
-                                System.out.println("[Profile] ✅ Loaded profile image from database: " + imagePath);
-                            }
-                        }
-                    }
+        if (imagePath != null && !imagePath.isEmpty()) {
+            java.io.File imageFile = new java.io.File(imagePath);
+            if (imageFile.exists()) {
+                javafx.scene.image.Image profileImage = new javafx.scene.image.Image(imageFile.toURI().toString());
+                if (!profileImage.isError()) {
+                    avatarImageView.setImage(profileImage);
+                    // Save to UserSession for global access
+                    UserSession.getInstance().setProfileImagePath(imagePath);
+                    System.out.println("[Profile] ✅ Loaded profile image from database: " + imagePath);
                 }
             }
-
-        } catch (SQLException e) {
-            // If column doesn't exist, just use default avatar (not critical)
-            System.out.println("[Profile] ℹ️ Could not load image path from database (column may not exist): " + e.getMessage());
         }
     }
+
 
 }
 
