@@ -26,7 +26,7 @@ public class Payment
     }
 
     public static boolean canAfford(Passenger passenger, double amount) {
-        double total = passenger.getWalletBalance() + passenger.getCreditBalance();
+        double total = passenger.getWalletBalance() ;
         return total >= amount;
     }
 
@@ -46,14 +46,6 @@ public class Payment
                     return false;
                 }
 
-            case "credit":
-                if (passenger.getCreditBalance() >= amount) {
-                    passenger.updateCreditBalance(passenger.getCreditBalance() - amount);
-                    return true;
-                } else {
-                    System.out.println(" Credit balance insufficient.");
-                    return false;
-                }
 
             case "auto":
                 if (passenger.getWalletBalance() >= amount) {
@@ -61,7 +53,6 @@ public class Payment
                 } else {
                     double remaining = amount - passenger.getWalletBalance();
                     passenger.updateWalletBalance(0);
-                    passenger.updateCreditBalance(passenger.getCreditBalance() - remaining);
                 }
                 return true;
 

@@ -208,7 +208,6 @@ public class DriverDashboardController {
                 currentDriver.getPhoneNumber(),
                 currentDriver.getEmail(),
                 currentDriver.getWalletBalance(),
-                currentDriver.getCreditBalance(),
                 currentDriver.getCurrentLocation(),
                 currentDriver.getRideHistory(),
                 currentDriver.getPassword()

@@ -11,7 +11,6 @@ public abstract class Person {
     private String phoneNumber;
     private String email;
     private double walletBalance;
-    private double creditBalance;
     private double accountRating;
     private String password;
     private Location currentLocation;
@@ -19,7 +18,7 @@ public abstract class Person {
 
     // Constructor - stores password as-is (caller must hash if needed)
     public Person(String userSSN, String name, String phoneNumber, String email,
-                  double walletBalance, double creditBalance,
+                  double walletBalance,
                   Location currentLocation, List<RideHistory> rideHistory, String password) {
 
         this.userSSN = userSSN;
@@ -27,7 +26,6 @@ public abstract class Person {
         this.phoneNumber = phoneNumber;
         this.email = email;
         this.walletBalance = walletBalance;
-        this.creditBalance = creditBalance;
         this.currentLocation = currentLocation;
         this.rideHistory = rideHistory != null ? rideHistory : new ArrayList<>();
         this.accountRating = getAccountRating();
@@ -39,7 +37,6 @@ public abstract class Person {
     public String getPhoneNumber() { return phoneNumber; }
     public String getEmail() { return email; }
     public double getWalletBalance() { return walletBalance; }
-    public double getCreditBalance() { return creditBalance; }
     public Location getCurrentLocation() {return currentLocation;}
     public List<RideHistory> getRideHistory() {return rideHistory;}
     
@@ -49,7 +46,6 @@ public abstract class Person {
     }
 
     public void updateWalletBalance(double walletBalance) {this.walletBalance = walletBalance;}
-    public void updateCreditBalance(double creditBalance) {this.creditBalance = creditBalance;}
     public void setCurrentLocation(Location currentLocation) {this.currentLocation = currentLocation;}
 
     public String getPassword() { return password; }

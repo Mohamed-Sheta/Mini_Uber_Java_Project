@@ -11,7 +11,7 @@ public class DriverDAO {
     public static class DriverRow {
         public final long id;
         public final String userSSN, name, phone, email;
-        public final double wallet, credit;
+        public final double wallet;
         public final String currentLocation;
         public final String licensePlate, carModel;
         public final boolean active;
@@ -19,11 +19,11 @@ public class DriverDAO {
         public final String password;
 
         public DriverRow(long id, String userSSN, String name, String phone, String email,
-                         double wallet, double credit, String currentLocation,
+                         double wallet, String currentLocation,
                          String licensePlate, String carModel, boolean active, String password) {
 
             this.id=id; this.userSSN=userSSN; this.name=name; this.phone=phone; this.email=email;
-            this.wallet=wallet; this.credit=credit; this.currentLocation=currentLocation;
+            this.wallet=wallet; this.currentLocation=currentLocation;
             this.licensePlate=licensePlate; this.carModel=carModel; this.active=active;
             this.password=password;
         }
@@ -41,14 +41,14 @@ public class DriverDAO {
             throw new IllegalArgumentException("Driver phone must be exactly 11 digits.");
         if (d.getEmail() == null || !d.getEmail().contains("@"))
             throw new IllegalArgumentException("Driver email must be valid.");
-        if (d.getWalletBalance() < 0 || d.getCreditBalance() < 0)
+        if (d.getWalletBalance() < 0)
             throw new IllegalArgumentException("Driver balances cannot be negative.");
         if (d.getLicensePlate() == null || d.getLicensePlate().trim().isEmpty())
             throw new IllegalArgumentException("License plate cannot be empty.");
         if (d.getCarModel() == null || d.getCarModel().trim().isEmpty())
             throw new IllegalArgumentException("Car model cannot be empty.");
-        final String sql = "INSERT INTO drivers(user_ssn,name,phone_number,email,wallet_balance,credit_balance,current_location,license_plate,car_model,active,password) " +
-                "VALUES (?,?,?,?,?,?,?,?,?,?,?)";
+        final String sql = "INSERT INTO drivers(user_ssn,name,phone_number,email,wallet_balance,current_location,license_plate,car_model,active,password) " +
+                "VALUES (?,?,?,?,?,?,?,?,?,?)";
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -57,22 +57,21 @@ public class DriverDAO {
             ps.setString(3, d.getPhoneNumber());
             ps.setString(4, d.getEmail());
             ps.setDouble(5, d.getWalletBalance());
-            ps.setDouble(6, d.getCreditBalance());
 
             if (currentLocationName == null)
-                ps.setNull(7, Types.VARCHAR);
+                ps.setNull(6, Types.VARCHAR);
             else
-                ps.setString(7, currentLocationName);
+                ps.setString(6, currentLocationName);
 
-            ps.setString(8, d.getLicensePlate());
-            ps.setString(9, d.getCarModel());
-            ps.setBoolean(10, d.isActive());
+            ps.setString(7, d.getLicensePlate());
+            ps.setString(8, d.getCarModel());
+            ps.setBoolean(9, d.isActive());
 
             // Password should already be hashed by the controller or model
             if (d.getPassword() != null && !d.getPassword().isEmpty()) {
-                ps.setString(11, d.getPassword());
+                ps.setString(10, d.getPassword());
             } else {
-                ps.setNull(11, Types.VARCHAR);
+                ps.setNull(10, Types.VARCHAR);
             }
 
             ps.executeUpdate();
@@ -90,9 +89,9 @@ public class DriverDAO {
             throw new IllegalArgumentException("Driver phone must be exactly 11 digits.");
         if (d.getEmail() == null || !d.getEmail().contains("@"))
             throw new IllegalArgumentException("Driver email must be valid.");
-        if (d.getWalletBalance() < 0 || d.getCreditBalance() < 0)
+        if (d.getWalletBalance() < 0)
             throw new IllegalArgumentException("Driver balances cannot be negative.");
-        final String sql = "UPDATE drivers SET user_ssn=?, name=?, phone_number=?, email=?, wallet_balance=?, credit_balance=?, current_location=?, license_plate=?, car_model=?, active=?, password=? WHERE id=?";
+        final String sql = "UPDATE drivers SET user_ssn=?, name=?, phone_number=?, email=?, wallet_balance=?, current_location=?, license_plate=?, car_model=?, active=?, password=? WHERE id=?";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -102,25 +101,24 @@ public class DriverDAO {
             ps.setString(3, d.getPhoneNumber());
             ps.setString(4, d.getEmail());
             ps.setDouble(5, d.getWalletBalance());
-            ps.setDouble(6, d.getCreditBalance());
 
             if (currentLocationName == null)
-                ps.setNull(7, Types.VARCHAR);
+                ps.setNull(6, Types.VARCHAR);
             else
-                ps.setString(7, currentLocationName);
+                ps.setString(6, currentLocationName);
 
-            ps.setString(8, d.getLicensePlate());
-            ps.setString(9, d.getCarModel());
-            ps.setBoolean(10, d.isActive());
+            ps.setString(7, d.getLicensePlate());
+            ps.setString(8, d.getCarModel());
+            ps.setBoolean(9, d.isActive());
 
             // Password should already be hashed by the controller or model
             if (d.getPassword() != null && !d.getPassword().isEmpty()) {
-                ps.setString(11, d.getPassword());
+                ps.setString(10, d.getPassword());
             } else {
-                ps.setNull(11, Types.VARCHAR);
+                ps.setNull(10, Types.VARCHAR);
             }
 
-            ps.setLong(12, id);
+            ps.setLong(11, id);
 
             return ps.executeUpdate();
         }
@@ -136,7 +134,7 @@ public class DriverDAO {
     }
 
     public List<DriverRow> showAll() throws SQLException {
-        final String sql = "SELECT id,user_ssn,name,phone_number,email,wallet_balance,credit_balance,current_location,license_plate,car_model,active,password FROM drivers ORDER BY id";
+        final String sql = "SELECT id,user_ssn,name,phone_number,email,wallet_balance,current_location,license_plate,car_model,active,password FROM drivers ORDER BY id";
         List<DriverRow> out = new ArrayList<>();
 
         try (Connection con = DBConnection.getConnection();
@@ -151,7 +149,6 @@ public class DriverDAO {
                         rs.getString("phone_number"),
                         rs.getString("email"),
                         rs.getDouble("wallet_balance"),
-                        rs.getDouble("credit_balance"),
                         rs.getString("current_location"),
                         rs.getString("license_plate"),
                         rs.getString("car_model"),
@@ -177,7 +174,7 @@ public class DriverDAO {
 
     // Get driver by email for login
     public Driver getByEmail(String email) {
-        final String sql = "SELECT id,user_ssn,name,phone_number,email,wallet_balance,credit_balance,current_location,license_plate,car_model,active,password " +
+        final String sql = "SELECT id,user_ssn,name,phone_number,email,wallet_balance,current_location,license_plate,car_model,active,password " +
                 "FROM drivers WHERE email=?";
 
         try (Connection con = DBConnection.getConnection();
@@ -195,14 +192,13 @@ public class DriverDAO {
                     String licensePlate = rs.getString("license_plate");
                     String carModel = rs.getString("car_model");
                     double walletBalance = rs.getDouble("wallet_balance");
-                    double creditBalance = rs.getDouble("credit_balance");
                     boolean active = rs.getBoolean("active");
 
                     // Use full constructor with shouldHashPassword=false to avoid re-hashing
                     Driver driver = new Driver(
                         licensePlate, carModel, active,
                         userSSN, name, phoneNumber, emailAddr,
-                        walletBalance, creditBalance,
+                        walletBalance,
                         null, // currentLocation
                         new java.util.ArrayList<>(), // rideHistory
                         hashedPassword // already hashed password
@@ -236,14 +232,9 @@ public class DriverDAO {
         return null;
     }
 
-    /**
-     * Get driver by ID - Always fetches fresh data from database
-     * Use this method to get updated driver data after balance changes
-     * @param driverId the driver's ID
-     * @return Driver object with latest data from database, or null if not found
-     */
+
     public Driver getDriverById(long driverId) {
-        final String sql = "SELECT id,user_ssn,name,phone_number,email,wallet_balance,credit_balance,current_location,license_plate,car_model,active,password " +
+        final String sql = "SELECT id,user_ssn,name,phone_number,email,wallet_balance,current_location,license_plate,car_model,active,password " +
                 "FROM drivers WHERE id=?";
 
         try (Connection con = DBConnection.getConnection();
@@ -261,14 +252,13 @@ public class DriverDAO {
                     String licensePlate = rs.getString("license_plate");
                     String carModel = rs.getString("car_model");
                     double walletBalance = rs.getDouble("wallet_balance");
-                    double creditBalance = rs.getDouble("credit_balance");
                     boolean active = rs.getBoolean("active");
 
                     // Use full constructor with shouldHashPassword=false to avoid re-hashing
                     Driver driver = new Driver(
                         licensePlate, carModel, active,
                         userSSN, name, phoneNumber, emailAddr,
-                        walletBalance, creditBalance,
+                        walletBalance,
                         null, // currentLocation
                         new java.util.ArrayList<>(), // rideHistory
                         hashedPassword // already hashed password
@@ -287,11 +277,6 @@ public class DriverDAO {
         return null;
     }
 
-    /**
-     * Set driver to ONLINE status (active = true) after ride completion
-     * @param driverId the driver's ID
-     * @return true if successful, false otherwise
-     */
     public boolean setDriverOnline(long driverId) {
         final String sql = "UPDATE drivers SET active = true WHERE id = ?";
         try (Connection con = DBConnection.getConnection();
@@ -312,12 +297,6 @@ public class DriverDAO {
         }
     }
 
-    /**
-     * Update driver's wallet balance after completing a ride
-     * @param driverId the driver's ID
-     * @param fareAmount the ride fare amount to add to wallet
-     * @return true if successful, false otherwise
-     */
     public boolean updateDriverWalletAfterRide(long driverId, double fareAmount) {
         final String sql = "UPDATE drivers SET wallet_balance = wallet_balance + ? WHERE id = ?";
         try (Connection con = DBConnection.getConnection();
@@ -339,13 +318,6 @@ public class DriverDAO {
         }
     }
 
-
-    /**
-     * Get driver's current wallet balance from database
-     * ALWAYS queries the database for the latest value
-     * @param driverId the driver's ID
-     * @return current wallet balance, or -1 if error, or 0 if not found
-     */
     public double getDriverBalance(long driverId) {
         System.out.println("[DriverDAO.getDriverBalance] Called with driver ID: " + driverId);
         final String sql = "SELECT wallet_balance FROM drivers WHERE id = ?";
@@ -379,13 +351,6 @@ public class DriverDAO {
         }
     }
 
-    /**
-     * Update driver's balance to a specific value
-     * Use this after calculating the new balance (currentBalance + fare)
-     * @param driverId the driver's ID
-     * @param newBalance the new balance value to set
-     * @return true if successful, false otherwise
-     */
     public boolean updateDriverBalance(long driverId, double newBalance) {
         System.out.println("[DriverDAO.updateDriverBalance] Called with driver ID: " + driverId + ", new balance: $" + String.format("%.2f", newBalance));
         final String sql = "UPDATE drivers SET wallet_balance = ? WHERE id = ?";

@@ -11,14 +11,14 @@ public class PassengerDAO {
     public static class PassengerRow {
         public final long id;
         public final String userSSN, name, phone, email;
-        public final double wallet, credit;
+        public final double wallet;
         public final String currentLocation;
         public final String password;
 
         public PassengerRow(long id, String userSSN, String name, String phone, String email,
-                            double wallet, double credit, String currentLocation, String password) {
+                            double wallet, String currentLocation, String password) {
             this.id=id; this.userSSN=userSSN; this.name=name; this.phone=phone; this.email=email;
-            this.wallet=wallet; this.credit=credit; this.currentLocation=currentLocation;
+            this.wallet=wallet; this.currentLocation=currentLocation;
             this.password=password;
         }
 
@@ -34,10 +34,10 @@ public class PassengerDAO {
             throw new IllegalArgumentException("Phone number must be exactly 11 digits.");
         if (p.getEmail() == null || !p.getEmail().contains("@"))
             throw new IllegalArgumentException("Email must be valid.");
-        if (p.getWalletBalance() < 0 || p.getCreditBalance() < 0)
+        if (p.getWalletBalance() < 0)
             throw new IllegalArgumentException("Balances cannot be negative.");
-        final String sql = "INSERT INTO passengers(user_ssn,name,phone_number,email,wallet_balance,credit_balance,current_location,password) " +
-                "VALUES (?,?,?,?,?,?,?,?)";
+        final String sql = "INSERT INTO passengers(user_ssn,name,phone_number,email,wallet_balance,current_location,password) " +
+                "VALUES (?,?,?,?,?,?,?)";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -47,18 +47,17 @@ public class PassengerDAO {
             ps.setString(3, p.getPhoneNumber());
             ps.setString(4, p.getEmail());
             ps.setDouble(5, p.getWalletBalance());
-            ps.setDouble(6, p.getCreditBalance());
 
             if (currentLocationName == null)
-                ps.setNull(7, Types.VARCHAR);
+                ps.setNull(6, Types.VARCHAR);
             else
-                ps.setString(7, currentLocationName);
+                ps.setString(6, currentLocationName);
 
             // Password should already be hashed by the controller or model
             if (p.getPassword() != null && !p.getPassword().isEmpty()) {
-                ps.setString(8, p.getPassword());
+                ps.setString(7, p.getPassword());
             } else {
-                ps.setNull(8, Types.VARCHAR);
+                ps.setNull(7, Types.VARCHAR);
             }
 
             ps.executeUpdate();
@@ -76,10 +75,10 @@ public class PassengerDAO {
             throw new IllegalArgumentException("Phone number must be exactly 11 digits.");
         if (p.getEmail() == null || !p.getEmail().contains("@"))
             throw new IllegalArgumentException("Email must be valid.");
-        if (p.getWalletBalance() < 0 || p.getCreditBalance() < 0)
+        if (p.getWalletBalance() < 0)
             throw new IllegalArgumentException("Balances cannot be negative.");
         final String sql = "UPDATE passengers SET user_ssn=?, name=?, phone_number=?, email=?, " +
-                "wallet_balance=?, credit_balance=?, current_location=?, password=? WHERE id=?";
+                "wallet_balance=?, current_location=?, password=? WHERE id=?";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -89,21 +88,20 @@ public class PassengerDAO {
             ps.setString(3, p.getPhoneNumber());
             ps.setString(4, p.getEmail());
             ps.setDouble(5, p.getWalletBalance());
-            ps.setDouble(6, p.getCreditBalance());
 
             if (currentLocationName == null)
-                ps.setNull(7, Types.VARCHAR);
+                ps.setNull(6, Types.VARCHAR);
             else
-                ps.setString(7, currentLocationName);
+                ps.setString(6, currentLocationName);
 
             // Password should already be hashed by the controller or model
             if (p.getPassword() != null && !p.getPassword().isEmpty()) {
-                ps.setString(8, p.getPassword());
+                ps.setString(7, p.getPassword());
             } else {
-                ps.setNull(8, Types.VARCHAR);
+                ps.setNull(7, Types.VARCHAR);
             }
 
-            ps.setLong(9, id);
+            ps.setLong(8, id);
 
             return ps.executeUpdate();
         }
@@ -119,7 +117,7 @@ public class PassengerDAO {
     }
 
     public List<PassengerRow> showAll() throws SQLException {
-        final String sql = "SELECT id,user_ssn,name,phone_number,email,wallet_balance,credit_balance,current_location,password " +
+        final String sql = "SELECT id,user_ssn,name,phone_number,email,wallet_balance,current_location,password " +
                 "FROM passengers ORDER BY id";
 
         List<PassengerRow> out = new ArrayList<>();
@@ -136,7 +134,6 @@ public class PassengerDAO {
                         rs.getString("phone_number"),
                         rs.getString("email"),
                         rs.getDouble("wallet_balance"),
-                        rs.getDouble("credit_balance"),
                         rs.getString("current_location"),
                         rs.getString("password")
                 ));
@@ -159,7 +156,7 @@ public class PassengerDAO {
 
     // Get passenger by email for login
     public Passenger getByEmail(String email) {
-        final String sql = "SELECT id,user_ssn,name,phone_number,email,wallet_balance,credit_balance,current_location,password " +
+        final String sql = "SELECT id,user_ssn,name,phone_number,email,wallet_balance,current_location,password " +
                 "FROM passengers WHERE email=?";
 
         try (Connection con = DBConnection.getConnection();
@@ -175,12 +172,11 @@ public class PassengerDAO {
                     String emailAddr = rs.getString("email");
                     String hashedPassword = rs.getString("password"); // Already hashed in DB
                     double walletBalance = rs.getDouble("wallet_balance");
-                    double creditBalance = rs.getDouble("credit_balance");
 
                     // Use full constructor with already-hashed password
                     Passenger passenger = new Passenger(
                         userSSN, name, phoneNumber, emailAddr,
-                        walletBalance, creditBalance,
+                        walletBalance,
                         null, // currentLocation
                         new java.util.ArrayList<>(), // rideHistory
                         hashedPassword // already hashed password
@@ -196,12 +192,6 @@ public class PassengerDAO {
         return null;
     }
 
-    /**
-     * Cross-table validation: Check if email exists in drivers table
-     * Used during passenger registration to prevent duplicate accounts across tables
-     * @param email the email to check
-     * @return true if email exists in drivers table, false otherwise
-     */
     public boolean emailExistsInDrivers(String email) {
         final String sql = "SELECT id FROM drivers WHERE email=?";
         try (Connection con = DBConnection.getConnection();
@@ -217,11 +207,6 @@ public class PassengerDAO {
         return false;
     }
 
-    /**
-     * Get passenger ID by email
-     * @param email the email to search for
-     * @return the passenger ID or -1 if not found
-     */
     public long getIdByEmail(String email) {
         final String sql = "SELECT id FROM passengers WHERE email=?";
         try (Connection con = DBConnection.getConnection();

@@ -37,7 +37,6 @@ CREATE TABLE passengers (
                             email VARCHAR(160) NOT NULL,
                             password VARCHAR(255) NOT NULL,
                             wallet_balance DECIMAL(12,2) NOT NULL DEFAULT 0,
-                            credit_balance DECIMAL(12,2) NOT NULL DEFAULT 0,
 
     -- Store location by STRING (place name)
                             current_location VARCHAR(160) NULL,
@@ -58,7 +57,6 @@ CREATE TABLE drivers (
                          email VARCHAR(160) NOT NULL,
                          password VARCHAR(255) NOT NULL,
                          wallet_balance DECIMAL(12,2) NOT NULL DEFAULT 0,
-                         credit_balance DECIMAL(12,2) NOT NULL DEFAULT 0,
 
     -- Store location by STRING (place name)
                          current_location VARCHAR(160) NULL,

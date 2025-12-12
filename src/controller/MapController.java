@@ -876,7 +876,7 @@ public class MapController {
                     Driver driver = new Driver(
                         row.licensePlate, row.carModel, row.active,
                         row.userSSN, row.name, row.phone, row.email,
-                        row.wallet, row.credit,
+                        row.wallet,
                         driverLocation,  // Use EXACT Location from MapGraph
                         new ArrayList<>(), row.password
                     );
@@ -936,7 +936,6 @@ public class MapController {
                         firstDriver.phone,
                         firstDriver.email,
                         firstDriver.wallet,
-                        firstDriver.credit,
                         driverLocation,  // Use exact Location object from MapGraph
                         new ArrayList<>(),
                         firstDriver.password

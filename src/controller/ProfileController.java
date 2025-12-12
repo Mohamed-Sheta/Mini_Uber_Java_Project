@@ -12,7 +12,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
@@ -150,7 +149,6 @@ public class ProfileController {
                         // Update current user object with latest data
                         Driver driver = (Driver) currentUser;
                         driver.updateWalletBalance(row.wallet);
-                        driver.updateCreditBalance(row.credit);
                         System.out.println("[Profile] Driver data reloaded: wallet=" + row.wallet);
                         break;
                     }
@@ -163,7 +161,6 @@ public class ProfileController {
                         // Update current user object with latest data
                         Passenger passenger = (Passenger) currentUser;
                         passenger.updateWalletBalance(row.wallet);
-                        passenger.updateCreditBalance(row.credit);
                         System.out.println("[Profile] Passenger data reloaded: wallet=" + row.wallet);
                         break;
                     }
@@ -425,7 +422,6 @@ public class ProfileController {
 
         // Preserve existing balances
         updatedPassenger.updateWalletBalance(passenger.getWalletBalance());
-        updatedPassenger.updateCreditBalance(passenger.getCreditBalance());
 
         // Get location name as string
         String locationName = (passenger.getCurrentLocation() != null) ?
@@ -455,7 +451,6 @@ public class ProfileController {
                 phone,
                 driver.getEmail(),
                 driver.getWalletBalance(),
-                driver.getCreditBalance(),
                 driver.getCurrentLocation(),
                 driver.getRideHistory(),
                 driver.getPassword() // Keep existing hashed password
@@ -490,7 +485,6 @@ public class ProfileController {
                 phone,
                 oldDriver.getEmail(),
                 oldDriver.getWalletBalance(),
-                oldDriver.getCreditBalance(),
                 oldDriver.getCurrentLocation(),
                 oldDriver.getRideHistory(),
                 oldDriver.getPassword()
@@ -509,7 +503,6 @@ public class ProfileController {
 
             // Preserve balances
             ((Passenger) currentUser).updateWalletBalance(oldPassenger.getWalletBalance());
-            ((Passenger) currentUser).updateCreditBalance(oldPassenger.getCreditBalance());
         }
 
         // Refresh all UI fields with new data

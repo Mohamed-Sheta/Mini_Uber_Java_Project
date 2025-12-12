@@ -216,19 +216,19 @@ public class MapGraph {
 
             Driver d1 = new Driver("CAR001", "Toyota Corolla", true, "SSN100",
                     "marwan wael", "01010001000", "marwan@gmail.com",
-                    100.0, 50.0, downtown, empty, hashedPassword);
+                    100.0, downtown, empty, hashedPassword);
 
             Driver d2 = new Driver("CAR002", "Hyundai Verna", true, "SSN101",
                     "c ali", "01010001001", "islam@gmail.com",
-                    120.0, 60.0, nasrCity, empty, hashedPassword);
+                    120.0, nasrCity, empty, hashedPassword);
 
             Driver d3 = new Driver("CAR003", "Kia Cerato", false, "SSN102",
                     "amin ahmed", "01010001002", "amin@gmail.com",
-                    90.0, 45.0, giza, empty, hashedPassword);
+                    90.0,  giza, empty, hashedPassword);
 
             Driver d4 = new Driver("CAR004", "Nissan Sunny", true, "SSN103",
                     "Youssef Ibrahim", "01010001003", "youssef@gmail.com",
-                    150.0, 75.0, maadi, empty, hashedPassword);
+                    150.0, maadi, empty, hashedPassword);
 
             drivers.addAll(Arrays.asList(d1, d2, d3, d4));
 
@@ -258,19 +258,19 @@ public class MapGraph {
             // Create passengers with hashed passwords
             Passenger p1 = new Passenger("PSSN01", "ahmed ashraf",
                     "01110001001", "ahmed@gmail.com",
-                    200.0, 100.0, maadi, new ArrayList<>(), hashedPassword);
+                    200.0, maadi, new ArrayList<>(), hashedPassword);
 
             Passenger p2 = new Passenger("PSSN02", "mohamed sheta",
                     "01110001002", "sheta@gmail.com",
-                    200.0, 10.0, downtown, new ArrayList<>(), hashedPassword);
+                    200.0, downtown, new ArrayList<>(), hashedPassword);
 
             Passenger p3 = new Passenger("PSSN03", "mostafa hassan",
                     "01110001003", "mostafa@gmail.com",
-                    500.0, 250.0, nasrCity, new ArrayList<>(), hashedPassword);
+                    500.0, nasrCity, new ArrayList<>(), hashedPassword);
 
             Passenger p4 = new Passenger("PSSN04", "amr nabli",
                     "01110001004", "amr@gmail.com",
-                    15.0, 0.0, newCairo, new ArrayList<>(), hashedPassword);
+                    15.0, newCairo, new ArrayList<>(), hashedPassword);
 
             passengers.addAll(Arrays.asList(p1, p2, p3, p4));
 

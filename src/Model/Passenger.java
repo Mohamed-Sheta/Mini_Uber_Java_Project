@@ -11,22 +11,19 @@ public class Passenger extends Person {
     private int latestDriverRating = 0;
 
     // Full constructor (stores password as-is)
-    public Passenger(String userSSN, String name, String phoneNumber, String email, double walletBalance, double creditBalance, Location currentLocation, List<RideHistory> rideHistory, String password) {
-        super(userSSN, name, phoneNumber, email, walletBalance, creditBalance, currentLocation, rideHistory, password);
+    public Passenger(String userSSN, String name, String phoneNumber, String email, double walletBalance, Location currentLocation, List<RideHistory> rideHistory, String password) {
+        super(userSSN, name, phoneNumber, email, walletBalance, currentLocation, rideHistory, password);
     }
 
     // Simplified constructor for registration (stores password as-is)
     public Passenger(String userSSN, String name, String phoneNumber, String email, String password) {
-        super(userSSN, name, phoneNumber, email, 0.0, 0.0, null, new java.util.ArrayList<>(), password);
+        super(userSSN, name, phoneNumber, email, 0.0, null, new java.util.ArrayList<>(), password);
     }
 
     public void setWalletBalance(double walletBalance) {
         updateWalletBalance(walletBalance);
     }
 
-    public void setCreditBalance(double creditBalance) {
-        updateCreditBalance(creditBalance);
-    }
 
     public void RateDriver(int rating) {
         if (rating >= 1 && rating <= 5) {
@@ -87,7 +84,7 @@ public class Passenger extends Person {
         if (!Payment.canAfford(this, estimatedPrice)) {
             System.out.println(" Cannot request ride. Insufficient funds!");
             System.out.println("Required: " + estimatedPrice + " EGP | Available: " +
-                    (getWalletBalance() + getCreditBalance()) + " EGP");
+                    getWalletBalance()  + " EGP");
             return null;
         }
 
@@ -130,13 +127,10 @@ public class Passenger extends Person {
         final double COMPANY_SHARE = TOTAL_PENALTY / 2.0; // Half goes to company
 
         double wallet = this.getWalletBalance();
-        double credit = this.getCreditBalance();
 
         // Deduct penalty from passenger
         if (wallet >= TOTAL_PENALTY) {
             this.updateWalletBalance(wallet - TOTAL_PENALTY);
-        } else if (credit >= TOTAL_PENALTY) {
-            this.updateCreditBalance(credit - TOTAL_PENALTY);
         } else {
             this.updateWalletBalance(wallet - TOTAL_PENALTY);
         }
@@ -179,7 +173,6 @@ public class Passenger extends Person {
         System.out.println("Phone: " + getPhoneNumber());
         System.out.println("Email: " + getEmail());
         System.out.println("Wallet Balance: " + getWalletBalance());
-        System.out.println("Credit Balance: " + getCreditBalance());
         System.out.println("Rating: " + getAccountRating());
     }
 }

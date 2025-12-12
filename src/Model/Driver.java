@@ -12,8 +12,8 @@ public class Driver extends Person {
     private int latestPassengerRating = 0;
 
     // Full constructor (stores password as-is)
-    public Driver(String licensePlate, String carModel, boolean active, String userSSN, String name, String phoneNumber, String email, double walletBalance, double creditBalance, Location currentLocation, List<RideHistory> rideHistory, String password) {
-        super(userSSN, name, phoneNumber, email, walletBalance, creditBalance, currentLocation, rideHistory, password);
+    public Driver(String licensePlate, String carModel, boolean active, String userSSN, String name, String phoneNumber, String email, double walletBalance,Location currentLocation, List<RideHistory> rideHistory, String password) {
+        super(userSSN, name, phoneNumber, email, walletBalance,currentLocation, rideHistory, password);
         this.licensePlate = licensePlate;
         this.carModel = carModel;
         this.active = active;
@@ -21,7 +21,7 @@ public class Driver extends Person {
 
     // Simplified constructor for registration (stores password as-is)
     public Driver(String userSSN, String name, String phoneNumber, String email, String password, String licensePlate, String carModel) {
-        super(userSSN, name, phoneNumber, email, 0.0, 0.0, null, new java.util.ArrayList<>(), password);
+        super(userSSN, name, phoneNumber, email, 0.0, null, new java.util.ArrayList<>(), password);
         this.licensePlate = licensePlate;
         this.carModel = carModel;
         this.active = true; // New drivers are active by default
@@ -103,7 +103,6 @@ public class Driver extends Person {
         System.out.println("Phone: " + getPhoneNumber());
         System.out.println("Email: " + getEmail());
         System.out.println("Wallet Balance: $" + getWalletBalance());
-        System.out.println("Credit Balance: $" + getCreditBalance());
         System.out.println("License Plate: " + licensePlate);
         System.out.println("Car Model: " + carModel);
         System.out.println("Active: " + active);

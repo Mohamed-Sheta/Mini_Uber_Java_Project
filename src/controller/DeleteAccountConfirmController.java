@@ -104,6 +104,12 @@ public class DeleteAccountConfirmController {
             // Track total records affected
             int totalRecordsUpdated = 0;
 
+            // Step 0: Delete profile photo (if exists)
+            System.out.println("[SoftDelete] Step 0: Deleting profile photo (if exists)...");
+            int photoDeleted = deleteProfilePhoto(con, userId, isDriver ? "driver" : "passenger");
+            System.out.println("[SoftDelete]   " + (photoDeleted > 0 ? "✓" : "○") +
+                             " Profile photo: " + (photoDeleted > 0 ? photoDeleted + " record(s) deleted" : "none found"));
+
             if (isDriver) {
                 // ===== DRIVER SOFT DELETE =====
                 System.out.println("[SoftDelete] Step 1: Replacing foreign key references with -1 for DRIVER...");
@@ -231,6 +237,23 @@ public class DeleteAccountConfirmController {
         String sql = "UPDATE " + tableName + " SET " + columnName + " = -1 WHERE " + columnName + " = ?";
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setLong(1, userId);
+            return ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Deletes the profile photo entry from the profile_photos table for the given user.
+     * @param con Database connection
+     * @param userId The user's ID
+     * @param userType Either "passenger" or "driver"
+     * @return Number of rows deleted (0 or 1)
+     * @throws SQLException if database error occurs
+     */
+    private int deleteProfilePhoto(Connection con, long userId, String userType) throws SQLException {
+        String sql = "DELETE FROM profile_photos WHERE user_id = ? AND user_type = ?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, userId);
+            ps.setString(2, userType);
             return ps.executeUpdate();
         }
     }

@@ -216,14 +216,10 @@ public class RideManager {
         if (offender.equalsIgnoreCase("driver")) {
 
             double wallet = driver.getWalletBalance();
-            double credit = driver.getCreditBalance();
 
             if (wallet >= fineAmount) {
                 driver.updateWalletBalance(wallet - fineAmount);
                 System.out.println(" Driver fined from wallet: " + fineAmount + " EGP");
-            } else if (credit >= fineAmount) {
-                driver.updateCreditBalance(credit - fineAmount);
-                System.out.println(" Driver fined from credit: " + fineAmount + " EGP");
             } else {
                 driver.updateWalletBalance(wallet - fineAmount);
                 System.out.println(" Wallet not enough → forcing negative balance!");
@@ -232,14 +228,10 @@ public class RideManager {
         } else if (offender.equalsIgnoreCase("passenger")) {
 
             double wallet = passenger.getWalletBalance();
-            double credit = passenger.getCreditBalance();
 
             if (wallet >= fineAmount) {
                 passenger.updateWalletBalance(wallet - fineAmount);
                 System.out.println(" Passenger fined from wallet: " + 10 + " EGP");
-            } else if (credit >= fineAmount) {
-                passenger.updateCreditBalance(credit - fineAmount);
-                System.out.println(" Passenger fined from credit: " + fineAmount + " EGP");
             } else {
                 passenger.updateWalletBalance(wallet - fineAmount);
                 System.out.println(" Wallet not enough → forcing negative balance!");
