@@ -1041,21 +1041,35 @@ public class MapController {
                 // Store reference to dialog controller
                 activeDialogController = dialogController;
 
-                // Create stage as IN-APP MODAL attached to current window
-                Stage ownerStage = (Stage) rootContainer.getScene().getWindow();
+                // Try multiple ways to get the owner stage
+                final Stage ownerStage;
+                if (rootContainer != null && rootContainer.getScene() != null && rootContainer.getScene().getWindow() != null) {
+                    ownerStage = (Stage) rootContainer.getScene().getWindow();
+                } else if (findBtn != null && findBtn.getScene() != null && findBtn.getScene().getWindow() != null) {
+                    ownerStage = (Stage) findBtn.getScene().getWindow();
+                } else {
+                    ownerStage = null;
+                }
+
                 Stage dialogStage = new Stage();
                 dialogStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
-                dialogStage.initOwner(ownerStage); // Attach to app window
+                if (ownerStage != null) {
+                    dialogStage.initOwner(ownerStage); // Attach to app window
+                }
                 dialogStage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
                 Scene scene = new Scene(dialogRoot);
                 scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
                 dialogStage.setScene(scene);
 
                 // Center dialog within owner window (below profile bar, above bottom panel)
-                dialogStage.setOnShown(e -> {
-                    dialogStage.setX(ownerStage.getX() + (ownerStage.getWidth() - dialogStage.getWidth()) / 2);
-                    dialogStage.setY(ownerStage.getY() + 90); // 90px from top - below profile/settings bar
-                });
+                if (ownerStage != null) {
+                    dialogStage.setOnShown(e -> {
+                        dialogStage.setX(ownerStage.getX() + (ownerStage.getWidth() - dialogStage.getWidth()) / 2);
+                        dialogStage.setY(ownerStage.getY() + 90); // 90px from top - below profile/settings bar
+                    });
+                } else {
+                    dialogStage.centerOnScreen();
+                }
 
                 // Set callback for when user clicks Accept (Start Ride)
                 dialogController.setOnAcceptCallback(() -> {
@@ -1307,20 +1321,34 @@ public class MapController {
                 dialogController.setRideInfo(currentRequest);
 
                 // Create stage for dialog as IN-APP MODAL attached to current window
-                Stage ownerStage = (Stage) rootContainer.getScene().getWindow();
+                final Stage ownerStage;
+                if (rootContainer != null && rootContainer.getScene() != null && rootContainer.getScene().getWindow() != null) {
+                    ownerStage = (Stage) rootContainer.getScene().getWindow();
+                } else if (findBtn != null && findBtn.getScene() != null && findBtn.getScene().getWindow() != null) {
+                    ownerStage = (Stage) findBtn.getScene().getWindow();
+                } else {
+                    ownerStage = null;
+                }
+
                 Stage dialogStage = new Stage();
                 dialogStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
-                dialogStage.initOwner(ownerStage); // Attach to app window
+                if (ownerStage != null) {
+                    dialogStage.initOwner(ownerStage); // Attach to app window
+                }
                 dialogStage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
                 Scene scene = new Scene(dialogRoot);
                 scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
                 dialogStage.setScene(scene);
 
                 // Center dialog within owner window (below profile bar)
-                dialogStage.setOnShown(e -> {
-                    dialogStage.setX(ownerStage.getX() + (ownerStage.getWidth() - dialogStage.getWidth()) / 2);
-                    dialogStage.setY(ownerStage.getY() + 110); // 110px from top - below profile bar
-                });
+                if (ownerStage != null) {
+                    dialogStage.setOnShown(e -> {
+                        dialogStage.setX(ownerStage.getX() + (ownerStage.getWidth() - dialogStage.getWidth()) / 2);
+                        dialogStage.setY(ownerStage.getY() + 110); // 110px from top - below profile bar
+                    });
+                } else {
+                    dialogStage.centerOnScreen();
+                }
 
                 // Show dialog and wait
                 dialogStage.showAndWait();
@@ -1375,11 +1403,28 @@ public class MapController {
                 System.out.println("[MapController] Rating captured: " + selectedRating[0] + " stars");
             });
 
-            // Create stage as IN-APP MODAL attached to current window
-            Stage ownerStage = (Stage) rootContainer.getScene().getWindow();
+            // Try multiple ways to get the owner stage
+            Stage ownerStage = null;
+
+            // Try multiple ways to get the owner stage
+            if (rootContainer != null && rootContainer.getScene() != null && rootContainer.getScene().getWindow() != null) {
+                ownerStage = (Stage) rootContainer.getScene().getWindow();
+                System.out.println("[MapController] Owner stage retrieved from rootContainer");
+            } else if (findBtn != null && findBtn.getScene() != null && findBtn.getScene().getWindow() != null) {
+                ownerStage = (Stage) findBtn.getScene().getWindow();
+                System.out.println("[MapController] Owner stage retrieved from findBtn");
+            } else if (profileBtn != null && profileBtn.getScene() != null && profileBtn.getScene().getWindow() != null) {
+                ownerStage = (Stage) profileBtn.getScene().getWindow();
+                System.out.println("[MapController] Owner stage retrieved from profileBtn");
+            } else {
+                System.err.println("[MapController] ⚠️ Warning: Could not find owner stage - dialog will not be centered");
+            }
+
             Stage dialogStage = new Stage();
             dialogStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
-            dialogStage.initOwner(ownerStage); // Attach to app window
+            if (ownerStage != null) {
+                dialogStage.initOwner(ownerStage); // Attach to app window if found
+            }
             dialogStage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
             Scene scene = new Scene(dialogRoot);
             scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
@@ -1391,11 +1436,17 @@ public class MapController {
 
             dialogStage.setScene(scene);
 
-            // Center dialog within owner window (below profile bar)
-            dialogStage.setOnShown(e -> {
-                dialogStage.setX(ownerStage.getX() + (ownerStage.getWidth() - dialogStage.getWidth()) / 2);
-                dialogStage.setY(ownerStage.getY() + 130); // 130px from top - below profile bar
-            });
+            // Center dialog within owner window (below profile bar) - only if owner exists
+            if (ownerStage != null) {
+                final Stage finalOwnerStage = ownerStage;
+                dialogStage.setOnShown(e -> {
+                    dialogStage.setX(finalOwnerStage.getX() + (finalOwnerStage.getWidth() - dialogStage.getWidth()) / 2);
+                    dialogStage.setY(finalOwnerStage.getY() + 130); // 130px from top - below profile bar
+                });
+            } else {
+                // Fallback: center on screen
+                dialogStage.centerOnScreen();
+            }
 
             System.out.println("[MapController] Showing rating dialog with showAndWait()...");
             // Show dialog and WAIT for it to close
@@ -1482,9 +1533,24 @@ public class MapController {
             });
             System.out.println("[TipsDialog] ✅ Callback set");
 
-            Stage ownerStage = (Stage) rootContainer.getScene().getWindow();
+            // Try multiple ways to get the owner stage
+            final Stage ownerStage;
+            if (rootContainer != null && rootContainer.getScene() != null && rootContainer.getScene().getWindow() != null) {
+                ownerStage = (Stage) rootContainer.getScene().getWindow();
+                System.out.println("[TipsDialog] Owner stage retrieved from rootContainer");
+            } else if (findBtn != null && findBtn.getScene() != null && findBtn.getScene().getWindow() != null) {
+                ownerStage = (Stage) findBtn.getScene().getWindow();
+                System.out.println("[TipsDialog] Owner stage retrieved from findBtn");
+            } else if (profileBtn != null && profileBtn.getScene() != null && profileBtn.getScene().getWindow() != null) {
+                ownerStage = (Stage) profileBtn.getScene().getWindow();
+                System.out.println("[TipsDialog] Owner stage retrieved from profileBtn");
+            } else {
+                ownerStage = null;
+                System.err.println("[TipsDialog] ⚠️ Warning: Could not find owner stage - dialog will not be modal");
+            }
+
             if (ownerStage == null) {
-                System.err.println("[TipsDialog] ❌ Owner stage is null!");
+                System.err.println("[TipsDialog] ❌ Owner stage is null - cannot show modal dialog!");
                 finalizeRideCompletion(driverRating, 0.0, 0.0);
                 return;
             }
@@ -2104,16 +2170,33 @@ public class MapController {
             Stage chatStage = new Stage();
             chatStage.setTitle("💬 Ride Chat");
             chatStage.initModality(javafx.stage.Modality.NONE); // Non-blocking
-            chatStage.initOwner((Stage) rootContainer.getScene().getWindow());
+
+            // Try to get owner stage with null safety
+            if (rootContainer != null && rootContainer.getScene() != null && rootContainer.getScene().getWindow() != null) {
+                chatStage.initOwner((Stage) rootContainer.getScene().getWindow());
+            } else if (findBtn != null && findBtn.getScene() != null && findBtn.getScene().getWindow() != null) {
+                chatStage.initOwner((Stage) findBtn.getScene().getWindow());
+            }
 
             Scene scene = new Scene(root, 360, 700);
             chatStage.setScene(scene);
             chatStage.setResizable(false);
 
-            // Position next to main window
-            Stage ownerStage = (Stage) rootContainer.getScene().getWindow();
-            chatStage.setX(ownerStage.getX() + ownerStage.getWidth() + 10);
-            chatStage.setY(ownerStage.getY());
+            // Position next to main window (with null safety)
+            Stage ownerStage = null;
+            if (rootContainer != null && rootContainer.getScene() != null && rootContainer.getScene().getWindow() != null) {
+                ownerStage = (Stage) rootContainer.getScene().getWindow();
+            } else if (findBtn != null && findBtn.getScene() != null && findBtn.getScene().getWindow() != null) {
+                ownerStage = (Stage) findBtn.getScene().getWindow();
+            }
+
+            if (ownerStage != null) {
+                chatStage.setX(ownerStage.getX() + ownerStage.getWidth() + 10);
+                chatStage.setY(ownerStage.getY());
+            } else {
+                // Fallback: center on screen
+                chatStage.centerOnScreen();
+            }
 
             chatStage.show();
 

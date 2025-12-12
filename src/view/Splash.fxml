@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.image.*?>
-
 <StackPane xmlns="http://javafx.com/javafx/25"
            xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="controller.SplashController"
@@ -11,7 +9,6 @@
            styleClass="splash-background"
            stylesheets="@/style.css"
            style="-fx-background-color: #000000;">
-
     <!-- Logo centered exactly in middle -->
     <ImageView fx:id="logoImage"
                fitWidth="170"
@@ -26,6 +23,5 @@
                    smooth="true"/>
         </image>
     </ImageView>
-
 </StackPane>
 

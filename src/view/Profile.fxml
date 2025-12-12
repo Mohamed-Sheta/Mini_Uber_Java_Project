@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.shape.Circle?>
@@ -7,7 +6,6 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
 <?import javafx.geometry.Insets?>
-
 <VBox xmlns="http://javafx.com/javafx/25"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="controller.ProfileController"
@@ -16,11 +14,9 @@
       alignment="TOP_CENTER"
       spacing="0"
       stylesheets="@/style.css">
-
     <padding>
         <Insets top="8" bottom="8" left="20" right="20"/>
     </padding>
-
     <!-- Header with Back Button -->
     <HBox alignment="CENTER_LEFT" spacing="10">
         <VBox.margin>
@@ -37,13 +33,11 @@
         <padding>
             <Insets top="10" bottom="10" left="18" right="18"/>
         </padding>
-
         <!-- Top Stats Cards Row -->
         <HBox spacing="8" alignment="CENTER" maxHeight="66">
             <VBox.margin>
                 <Insets bottom="8"/>
             </VBox.margin>
-
             <!-- Rating Card (Display Only) -->
             <VBox styleClass="elevated-card" spacing="6" alignment="CENTER" prefWidth="88" maxHeight="66">
                 <HBox alignment="CENTER" spacing="3">
@@ -52,7 +46,6 @@
                 </HBox>
                 <Label text="Rating" styleClass="stat-label"/>
             </VBox>
-
             <!-- Total Rides Card (Clickable - Wider with Highlight) -->
             <VBox fx:id="ridesCard" styleClass="elevated-card-clickable" spacing="6" alignment="CENTER" prefWidth="105" maxHeight="66">
                 <HBox alignment="CENTER" spacing="3">
@@ -61,7 +54,6 @@
                 </HBox>
                 <Label text="Rides" styleClass="stat-label"/>
             </VBox>
-
             <!-- Total Spent/Earned Card (Display Only) -->
             <VBox styleClass="elevated-card" spacing="6" alignment="CENTER" prefWidth="88" maxHeight="66">
                 <HBox alignment="CENTER" spacing="3">
@@ -71,13 +63,11 @@
                 <Label fx:id="spentLabelText" text="Spent" styleClass="stat-label"/>
             </VBox>
         </HBox>
-
         <!-- Avatar Section -->
         <VBox alignment="CENTER" spacing="4" maxHeight="100">
             <VBox.margin>
                 <Insets bottom="8"/>
             </VBox.margin>
-
             <!-- Avatar -->
             <StackPane styleClass="profile-avatar-container" prefWidth="75" prefHeight="75" maxWidth="75" maxHeight="75">
                 <ImageView fx:id="avatarImageView" fitWidth="75" fitHeight="75" preserveRatio="false" smooth="true" onMouseClicked="#onAvatarClick" style="-fx-cursor: hand;">
@@ -89,50 +79,41 @@
                     </clip>
                 </ImageView>
             </StackPane>
-
             <!-- User Name and Role -->
             <VBox alignment="CENTER" spacing="2">
                 <Label fx:id="userNameLabel" text="User Name" styleClass="profile-name"/>
                 <Label fx:id="userRoleLabel" text="Passenger" styleClass="profile-role"/>
             </VBox>
         </VBox>
-
         <!-- Form Fields -->
         <VBox spacing="6" alignment="CENTER" maxWidth="280">
-
             <!-- Full Name Field -->
             <VBox spacing="2" alignment="CENTER_LEFT" maxWidth="280">
                 <Label text="Full Name" styleClass="field-label"/>
                 <TextField fx:id="nameField" promptText="Enter your full name" styleClass="text-field" prefWidth="280" prefHeight="32" maxWidth="280" maxHeight="32"/>
             </VBox>
-
             <!-- Email Field -->
             <VBox spacing="2" alignment="CENTER_LEFT" maxWidth="280">
                 <Label text="Email" styleClass="field-label"/>
                 <TextField fx:id="emailField" promptText="Enter your email" styleClass="text-field" editable="false" prefWidth="280" prefHeight="32" maxWidth="280" maxHeight="32"/>
             </VBox>
-
             <!-- Phone Number Field -->
             <VBox spacing="2" alignment="CENTER_LEFT" maxWidth="280">
                 <Label text="Phone Number" styleClass="field-label"/>
                 <TextField fx:id="phoneField" promptText="Enter your phone number" styleClass="text-field" prefWidth="280" prefHeight="32" maxWidth="280" maxHeight="32"/>
             </VBox>
-
             <!-- Home Address Field -->
             <VBox spacing="2" alignment="CENTER_LEFT" maxWidth="280">
                 <Label text="Home Address" styleClass="field-label"/>
                 <TextField fx:id="addressField" promptText="Enter your home address" styleClass="text-field" prefWidth="280" prefHeight="32" maxWidth="280" maxHeight="32"/>
             </VBox>
-
             <!-- Driver-specific fields -->
             <VBox fx:id="driverFieldsContainer" spacing="6" visible="false" managed="false" alignment="CENTER" maxWidth="280">
-
                 <!-- Car Model Field -->
                 <VBox spacing="2" alignment="CENTER_LEFT" maxWidth="280">
                     <Label text="Car Model" styleClass="field-label"/>
                     <TextField fx:id="carModelField" promptText="Enter your car model" styleClass="text-field" prefWidth="280" prefHeight="32" maxWidth="280" maxHeight="32"/>
                 </VBox>
-
                 <!-- License Plate Field -->
                 <VBox spacing="2" alignment="CENTER_LEFT" maxWidth="280">
                     <Label text="License Plate" styleClass="field-label"/>
@@ -140,19 +121,14 @@
                 </VBox>
 
             </VBox>
-
             <!-- Save Changes Button -->
             <Button fx:id="saveButton" text="Save Changes" styleClass="profile-save-button" onAction="#onSaveChanges" prefWidth="280" prefHeight="34" maxWidth="280" maxHeight="34">
                 <VBox.margin>
                     <Insets top="3"/>
                 </VBox.margin>
             </Button>
-
             <!-- Error/Success Message -->
             <Label fx:id="messageLabel" text="" styleClass="label-success" visible="false" managed="false" textAlignment="CENTER" wrapText="true" maxWidth="280"/>
-
         </VBox>
-
     </VBox>
-
 </VBox>

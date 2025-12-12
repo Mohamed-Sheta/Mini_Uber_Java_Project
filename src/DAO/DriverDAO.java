@@ -471,6 +471,26 @@ public class DriverDAO {
     }
 
     /**
+     * Check if license plate already exists in the drivers table
+     * @param plate the license plate to check
+     * @return true if license plate exists, false otherwise
+     */
+    public boolean licensePlateExists(String plate) {
+        final String sql = "SELECT 1 FROM drivers WHERE license_plate = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, plate);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next(); // Returns true if license plate found
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking license plate in drivers table: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
      * Cross-table validation: Check if email exists in passengers table
      * Used during driver registration to prevent duplicate accounts across tables
      * @param email the email to check

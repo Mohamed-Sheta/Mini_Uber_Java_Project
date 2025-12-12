@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.geometry.Insets?>
-
 <VBox xmlns="http://javafx.com/javafx/25"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="controller.AboutController"
@@ -12,11 +10,9 @@
       alignment="TOP_CENTER"
       spacing="0"
       stylesheets="@/style.css">
-
     <padding>
         <Insets top="12" bottom="16" left="16" right="16"/>
     </padding>
-
     <!-- Header with Back Button -->
     <HBox alignment="CENTER_LEFT" spacing="8">
         <VBox.margin>
@@ -25,35 +21,30 @@
         <Button fx:id="backButton" text="←" styleClass="back-button" onAction="#onBackToMap"/>
         <Label text="About" styleClass="title-large"/>
     </HBox>
-
     <!-- Main Content Card -->
     <VBox styleClass="card-container" spacing="16" alignment="TOP_LEFT">
         <padding>
             <Insets top="20" bottom="20" left="20" right="20"/>
         </padding>
-
         <!-- Project Name -->
         <Label text="MiniGO" styleClass="title-medium" textAlignment="CENTER">
             <VBox.margin>
                 <Insets bottom="8"/>
             </VBox.margin>
         </Label>
-
         <!-- Version -->
         <Label text="Version 1.0" styleClass="subtitle" textAlignment="CENTER">
             <VBox.margin>
                 <Insets bottom="16"/>
             </VBox.margin>
         </Label>
-
         <!-- Project Info Section -->
         <VBox spacing="12">
             <!-- Start Date -->
             <VBox spacing="4">
                 <Label text="Project Start Date" styleClass="field-label"/>
-                <Label text="October 2025" styleClass="body-text"/>
+                <Label text="December 2025" styleClass="body-text"/>
             </VBox>
-
             <!-- Goal -->
             <VBox spacing="4">
                 <Label text="Goal" styleClass="field-label"/>
@@ -62,7 +53,6 @@
                        wrapText="true"
                        maxWidth="310"/>
             </VBox>
-
             <!-- Description -->
             <VBox spacing="4">
                 <Label text="About This App" styleClass="field-label"/>
@@ -71,7 +61,6 @@
                        wrapText="true"
                        maxWidth="310"/>
             </VBox>
-
             <!-- Features -->
             <VBox spacing="4">
                 <Label text="Key Features" styleClass="field-label"/>
@@ -95,6 +84,5 @@
             </VBox>
         </VBox>
     </VBox>
-
 </VBox>
 

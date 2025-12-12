@@ -93,7 +93,7 @@ public class DriverRideViewController {
                 // Load map HTML
                 loadMapHtml();
             } else {
-                System.err.println("[DriverRideView] ❌ ERROR: mapView is NULL!");
+                System.err.println("[DriverRideView]  ERROR: mapView is NULL!");
             }
 
             // Setup popup overlay opacity
@@ -132,12 +132,12 @@ public class DriverRideViewController {
             java.net.URL mapUrl = getClass().getResource("/map.html");
 
             if (mapUrl == null) {
-                System.err.println("[DriverRideView] ❌ CRITICAL: map.html NOT FOUND at /map.html");
+                System.err.println("[DriverRideView]  CRITICAL: map.html NOT FOUND at /map.html");
                 System.err.println("[DriverRideView] Make sure map.html is in the resources root folder");
                 return;
             }
 
-            System.out.println("[DriverRideView] ✅ map.html found at: " + mapUrl.toExternalForm());
+            System.out.println("[DriverRideView]  map.html found at: " + mapUrl.toExternalForm());
             System.out.println("[DriverRideView] Loading map into WebEngine...");
 
             // Load the map using the approach requested by the user
@@ -155,7 +155,7 @@ public class DriverRideViewController {
 
             System.out.println("[DriverRideView] ========== MAP LOADING INITIATED ==========");
         } catch (Exception e) {
-            System.err.println("[DriverRideView] ❌ EXCEPTION during map loading: " + e.getMessage());
+            System.err.println("[DriverRideView]  EXCEPTION during map loading: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -166,7 +166,7 @@ public class DriverRideViewController {
             boolean jsReady = (ready instanceof Boolean && (Boolean) ready);
 
             if (jsReady) {
-                System.out.println("[DriverRideView] ✅ Map ready = true (attempt " + (attempt + 1) + ")");
+                System.out.println("[DriverRideView]  Map ready = true (attempt " + (attempt + 1) + ")");
             } else {
                 System.out.println("[DriverRideView] Map not ready yet (attempt " + (attempt + 1) + "/10)");
                 if (attempt < 10) {
@@ -177,7 +177,7 @@ public class DriverRideViewController {
                         }
                     }, 500);
                 } else {
-                    System.err.println("[DriverRideView] ❌ Map failed to become ready after 10 attempts");
+                    System.err.println("[DriverRideView]  Map failed to become ready after 10 attempts");
                 }
             }
         } catch (Exception ex) {
@@ -215,7 +215,7 @@ public class DriverRideViewController {
 
             startRidePhases();
         } catch (Exception e) {
-            System.err.println("[DriverRideView] ❌ ERROR in setRideDetails: " + e.getMessage());
+            System.err.println("[DriverRideView]  ERROR in setRideDetails: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -282,7 +282,7 @@ public class DriverRideViewController {
     private void drawRouteOnMapWithRetry(LocationDAO.LocationRow pickup, LocationDAO.LocationRow destination, int attemptCount) {
         try {
             if (webEngine == null) {
-                System.err.println("[DriverRideView] ❌ Cannot draw route - webEngine is null");
+                System.err.println("[DriverRideView]  Cannot draw route - webEngine is null");
                 return;
             }
 
@@ -306,7 +306,7 @@ public class DriverRideViewController {
                         }
                     }, 1000);
                 } else {
-                    System.err.println("[DriverRideView] ❌ Map failed to become ready after 5 retries");
+                    System.err.println("[DriverRideView]  Map failed to become ready after 5 retries");
                 }
                 return;
             }
@@ -322,9 +322,9 @@ public class DriverRideViewController {
 
             try {
                 webEngine.executeScript(script);
-                System.out.println("[DriverRideView] ✅ Route drawn on map from " + pickup.name + " to " + destination.name);
+                System.out.println("[DriverRideView]  Route drawn on map from " + pickup.name + " to " + destination.name);
             } catch (Exception jsEx) {
-                System.err.println("[DriverRideView] ❌ JS execution error: " + jsEx.getMessage());
+                System.err.println("[DriverRideView]  JS execution error: " + jsEx.getMessage());
                 if (attemptCount < 5) {
                     System.out.println("[DriverRideView] Retrying due to JS error...");
                     new Timer(true).schedule(new TimerTask() {
@@ -337,7 +337,7 @@ public class DriverRideViewController {
             }
 
         } catch (Exception e) {
-            System.err.println("[DriverRideView] ❌ Error in drawRouteOnMapWithRetry: " + e.getMessage());
+            System.err.println("[DriverRideView]  Error in drawRouteOnMapWithRetry: " + e.getMessage());
             e.printStackTrace();
             if (attemptCount < 5) {
                 new Timer(true).schedule(new TimerTask() {
@@ -349,14 +349,6 @@ public class DriverRideViewController {
             }
         }
     }
-
-    /**
-     * Start the automatic ride phases
-     * Phase 1: On way to pickup (3-5 seconds)
-     * Phase 2: Arrived at pickup (show popup)
-     * Phase 3: Driving to destination (3-5 seconds after start ride)
-     * Phase 4: Ride completed (show popup with rating)
-     */
     private void startRidePhases() {
         System.out.println("[DriverRideView] Starting ride phases...");
 

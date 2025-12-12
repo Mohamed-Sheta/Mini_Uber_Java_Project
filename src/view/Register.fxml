@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.geometry.Insets?>
-
 <VBox xmlns="http://javafx.com/javafx/25"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="controller.RegisterController"
@@ -13,16 +11,12 @@
       spacing="12"
       styleClass="content-container"
       stylesheets="@/style.css">
-
     <padding>
         <Insets top="5" right="30" bottom="15" left="30"/>
     </padding>
-
-    <!-- Logo -->
     <ImageView fitWidth="75" preserveRatio="true">
         <Image url="@/Logo-removebg-preview.png"/>
     </ImageView>
-
     <!-- Role Label -->
     <Label fx:id="roleLabel" text="Passenger Registration" styleClass="title-medium"/>
 

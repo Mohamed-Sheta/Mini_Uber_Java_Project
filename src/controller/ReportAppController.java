@@ -223,17 +223,7 @@ public class ReportAppController {
         }
     }
 
-    private void showAlert(String title, String message, Alert.AlertType type) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
 
-    /**
-     * Send app report email to company
-     */
     private void sendAppReportEmail(long reportId, ReportType reportType, String description) {
         try {
             // Company email address
@@ -255,9 +245,9 @@ public class ReportAppController {
             boolean emailSent = EmailSender.sendSimpleEmail(companyEmail, "App Report – MiniGO", emailBody);
 
             if (emailSent) {
-                System.out.println("[ReportApp] ✅ Email sent successfully to company");
+                System.out.println("[ReportApp]  Email sent successfully to company");
             } else {
-                System.out.println("[ReportApp] ⚠️ Email sending failed (report still saved to database)");
+                System.out.println("[ReportApp]  Email sending failed (report still saved to database)");
             }
 
         } catch (Exception e) {

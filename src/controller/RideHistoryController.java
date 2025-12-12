@@ -29,9 +29,6 @@ public class RideHistoryController {
     private long userId = -1;
     private boolean isDriver = false;
 
-    /**
-     * Set the current user and load their ride history
-     */
     public void setUser(Person user) {
         this.currentUser = user;
         this.isDriver = (user instanceof Driver);
@@ -43,9 +40,6 @@ public class RideHistoryController {
         loadRideHistory();
     }
 
-    /**
-     * Get user ID from database by email
-     */
     private long getUserIdFromDatabase(String email, boolean isDriver) {
         String tableName = isDriver ? "drivers" : "passengers";
         String sql = "SELECT id FROM " + tableName + " WHERE email = ?";
@@ -67,10 +61,6 @@ public class RideHistoryController {
         return -1;
     }
 
-    /**
-     * Load ride history from database
-     * Each ride is stored as ONE record containing all information
-     */
     private void loadRideHistory() {
         if (userId == -1) {
             return;
@@ -130,10 +120,6 @@ public class RideHistoryController {
         }
     }
 
-    /**
-     * Get total number of rides
-     * Each ride is stored as ONE record in ride_history
-     */
     private int getTotalRides() {
         if (userId == -1) {
             return 0;
@@ -160,9 +146,6 @@ public class RideHistoryController {
         return 0;
     }
 
-    /**
-     * Create a styled ride card
-     */
     private VBox createRideCard(long rideId, double cost, String origin, String destination,
                                  double distance, String paymentMethod, Timestamp completedAt, String status) {
         VBox card = new VBox(8);
@@ -224,9 +207,6 @@ public class RideHistoryController {
         return card;
     }
 
-    /**
-     * Navigate back to Profile screen
-     */
     @FXML
     public void onBack() {
         try {

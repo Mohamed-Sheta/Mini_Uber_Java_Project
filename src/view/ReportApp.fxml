@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.geometry.Insets?>
-
 <VBox xmlns="http://javafx.com/javafx/25"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="controller.ReportAppController"
@@ -12,11 +10,9 @@
       alignment="TOP_CENTER"
       spacing="0"
       stylesheets="@/style.css">
-
     <padding>
         <Insets top="12" bottom="16" left="16" right="16"/>
     </padding>
-
     <!-- Header with Back Button -->
     <HBox alignment="CENTER_LEFT" spacing="8">
         <VBox.margin>
@@ -25,21 +21,18 @@
         <Button fx:id="backButton" text="←" styleClass="back-button" onAction="#onBack"/>
         <Label text="Report App Issue" styleClass="title-large"/>
     </HBox>
-
     <!-- Report Form Card -->
     <ScrollPane fitToWidth="true" styleClass="transparent-scroll" VBox.vgrow="ALWAYS">
         <VBox styleClass="card-container" spacing="18" alignment="TOP_LEFT" maxWidth="350">
             <padding>
                 <Insets top="24" bottom="24" left="24" right="24"/>
             </padding>
-
             <!-- Icon/Title Section -->
             <VBox alignment="CENTER" spacing="8">
                 <Label text="📱" style="-fx-font-size: 42px;"/>
                 <Label text="Report App Issue" styleClass="title-medium"/>
                 <Label text="Help us improve the app by reporting issues or suggesting features" styleClass="caption" wrapText="true" textAlignment="CENTER"/>
             </VBox>
-
             <!-- Category -->
             <VBox spacing="8">
                 <Label text="Category" styleClass="field-label"/>
@@ -53,7 +46,6 @@
                        visible="false"
                        managed="false"/>
             </VBox>
-
             <!-- Description -->
             <VBox spacing="8">
                 <Label text="Description" styleClass="field-label"/>
@@ -72,7 +64,6 @@
                        visible="false"
                        managed="false"/>
             </VBox>
-
             <!-- Message Label -->
             <Label fx:id="messageLabel"
                    styleClass="message-label"
@@ -81,13 +72,11 @@
                    wrapText="true"
                    maxWidth="300"
                    textAlignment="CENTER"/>
-
             <!-- Buttons Container -->
             <HBox spacing="12" alignment="CENTER">
                 <VBox.margin>
                     <Insets top="8"/>
                 </VBox.margin>
-
                 <!-- Submit Button -->
                 <Button fx:id="submitButton"
                        text="Submit Report"
@@ -98,7 +87,6 @@
                         <Insets top="12" bottom="12" left="20" right="20"/>
                     </padding>
                 </Button>
-
                 <!-- Clear Button -->
                 <Button fx:id="clearButton"
                        text="Clear Form"
@@ -110,7 +98,6 @@
                     </padding>
                 </Button>
             </HBox>
-
             <!-- Info Box -->
             <VBox spacing="6" alignment="CENTER_LEFT" styleClass="info-card">
                 <VBox.margin>

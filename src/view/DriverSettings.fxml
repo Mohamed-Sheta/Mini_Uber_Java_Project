@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.geometry.Insets?>
-
 <VBox xmlns="http://javafx.com/javafx/25"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="controller.DriverSettingsController"
@@ -12,11 +10,9 @@
       alignment="TOP_CENTER"
       spacing="0"
       stylesheets="@/style.css">
-
     <padding>
         <Insets top="12" bottom="16" left="16" right="16"/>
     </padding>
-
     <!-- Header with Back Button -->
     <HBox alignment="CENTER_LEFT" spacing="8">
         <VBox.margin>
@@ -25,15 +21,11 @@
         <Button fx:id="backButton" text="←" styleClass="back-button" onAction="#onBackToDashboard"/>
         <Label text="Settings" styleClass="title-large"/>
     </HBox>
-
-    <!-- Note: Account Balance removed - now shown only in Profile screen -->
-
     <!-- Settings Options Card -->
     <VBox styleClass="card-container" spacing="0" alignment="TOP_LEFT" maxWidth="360">
         <padding>
             <Insets top="6" bottom="6" left="0" right="0"/>
         </padding>
-
         <!-- Change Password Button -->
         <Button fx:id="changePasswordButton" text="🔒 Change Password" styleClass="settings-item-button" onAction="#onChangePassword" alignment="CENTER_LEFT">
             <padding>
@@ -42,7 +34,6 @@
         </Button>
 
         <Region prefHeight="1" styleClass="divider"/>
-
         <!-- Report App Button -->
         <Button fx:id="reportAppButton" text="📱 Report App" styleClass="settings-item-button" onAction="#onReportApp" alignment="CENTER_LEFT">
             <padding>
@@ -51,7 +42,6 @@
         </Button>
 
         <Region prefHeight="1" styleClass="divider"/>
-
         <!-- Delete Account Button -->
         <Button fx:id="deleteAccountButton" text="🗑️ Delete Account" styleClass="settings-item-button-danger" onAction="#onDeleteAccount" alignment="CENTER_LEFT">
             <padding>
@@ -60,7 +50,6 @@
         </Button>
 
         <Region prefHeight="1" styleClass="divider"/>
-
         <!-- Logout Button -->
         <Button fx:id="logoutButton" text="🚪 Logout" styleClass="settings-item-button" onAction="#onLogout" alignment="CENTER_LEFT">
             <padding>
@@ -68,13 +57,11 @@
             </padding>
         </Button>
     </VBox>
-
     <!-- App Version -->
     <Label text="Version 1.0" styleClass="caption" textAlignment="CENTER">
         <VBox.margin>
             <Insets top="20"/>
         </VBox.margin>
     </Label>
-
 </VBox>
 

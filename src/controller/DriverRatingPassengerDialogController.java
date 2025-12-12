@@ -7,9 +7,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 import javafx.stage.Stage;
-
 import java.util.function.Consumer;
-
 public class DriverRatingPassengerDialogController {
 
     @FXML private Label titleLabel;

@@ -1,5 +1,4 @@
 package controller;
-
 import DAO.DriverDAO;
 import Model.Driver;
 import Model.Person;
@@ -14,9 +13,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import utils.DBConnection;
 import utils.UserSession;
-
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
@@ -28,16 +25,11 @@ public class ChangePasswordController {
     @FXML private PasswordField currentPasswordField;
     @FXML private PasswordField newPasswordField;
     @FXML private PasswordField confirmPasswordField;
-    @FXML private Button changePasswordButton;
     @FXML private Label messageLabel;
-
     private Person currentUser;
     private long userId = -1;
     private boolean isDriver = false;
 
-    /**
-     * Set the current user
-     */
     public void setUser(Person user) {
         this.currentUser = user;
         this.isDriver = (user instanceof Model.Driver);
@@ -46,9 +38,6 @@ public class ChangePasswordController {
         this.userId = getUserIdFromDatabase(user.getEmail(), isDriver);
     }
 
-    /**
-     * Get user ID from database by email
-     */
     private long getUserIdFromDatabase(String email, boolean isDriver) {
         String tableName = isDriver ? "drivers" : "passengers";
         String sql = "SELECT id FROM " + tableName + " WHERE email = ?";
@@ -70,9 +59,7 @@ public class ChangePasswordController {
         return -1;
     }
 
-    /**
-     * Handle change password action
-     */
+
     @FXML
     public void onChangePassword() {
         String currentPassword = currentPasswordField.getText();
@@ -85,8 +72,8 @@ public class ChangePasswordController {
             return;
         }
 
-        if (newPassword.length() < 6) {
-            showMessage("Password must be at least 6 characters", true);
+        if (!isStrongPassword(newPassword)) {
+            showMessage("Password must be at least 8 characters and include:\n• Uppercase\n• Lowercase\n• Number\n• Special character", true);
             return;
         }
 
@@ -104,13 +91,10 @@ public class ChangePasswordController {
             pause.setOnFinished(e -> navigateToProfile());
             pause.play();
         } else {
-            showMessage("❌ Current password is incorrect", true);
+            showMessage(" Current password is incorrect", true);
         }
     }
 
-    /**
-     * Update password in database
-     */
     private boolean updatePassword(String currentPassword, String newPassword) {
         try {
             // Verify current password
@@ -138,10 +122,10 @@ public class ChangePasswordController {
                     // Update UserSession to reflect the new password
                     UserSession.getInstance().updateCurrentUser(currentUser);
 
-                    System.out.println("[ChangePassword] ✅ Password updated successfully in database and session");
+                    System.out.println("[ChangePassword]  Password updated successfully in database and session");
                     return true;
                 }
-                System.err.println("[ChangePassword] ❌ No rows updated");
+                System.err.println("[ChangePassword]  No rows updated");
                 return false;
             }
         } catch (Exception e) {
@@ -151,10 +135,7 @@ public class ChangePasswordController {
         }
     }
 
-    /**
-     * Hash password using SHA-256
-     * NOTE: Must match the hashing method in LoginController exactly
-     */
+
     private static String hashPassword(String password) {
         if (password == null || password.isEmpty()) {
             return "";
@@ -174,9 +155,12 @@ public class ChangePasswordController {
         }
     }
 
-    /**
-     * Show message to user
-     */
+    private boolean isStrongPassword(String password) {
+        String regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
+        return password != null && password.matches(regex);
+    }
+
+
     private void showMessage(String message, boolean isError) {
         messageLabel.setText(message);
         messageLabel.setVisible(true);
@@ -189,17 +173,13 @@ public class ChangePasswordController {
         }
     }
 
-    /**
-     * Navigate back to Profile Settings screen
-     */
+
     @FXML
     public void onBack() {
         navigateToProfileSettings();
     }
 
-    /**
-     * Navigate to Profile Settings screen (Driver or Passenger)
-     */
+
     private void navigateToProfileSettings() {
         try {
             if (isDriver) {
@@ -218,12 +198,12 @@ public class ChangePasswordController {
                             Driver freshDriver = driverDAO.getDriverById(driverId);
                             if (freshDriver != null) {
                                 controller.setUser(freshDriver);
-                                System.out.println("[ChangePassword] ✅ Opened DriverSettings with fresh driver data from database");
+                                System.out.println("[ChangePassword]  Opened DriverSettings with fresh driver data from database");
                             } else {
                                 // Fallback: use old object if fetch fails
                                 controller.setUser(currentUser);
                                 controller.refreshBalance();
-                                System.out.println("[ChangePassword] ⚠️ Using old driver object, refreshing balance");
+                                System.out.println("[ChangePassword]  Using old driver object, refreshing balance");
                             }
                         }
                     } catch (Exception e) {
@@ -256,9 +236,6 @@ public class ChangePasswordController {
         }
     }
 
-    /**
-     * Navigate to Profile screen (used after successful password change)
-     */
     private void navigateToProfile() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/Profile.fxml"));

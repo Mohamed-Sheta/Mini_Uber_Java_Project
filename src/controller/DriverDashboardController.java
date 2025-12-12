@@ -40,6 +40,7 @@ public class DriverDashboardController {
     @FXML private ImageView profileBtn;
 
     @FXML private Label welcomeLabel;
+    @FXML private Label assignedPassengerName;
     @FXML private Pane toggleSwitch;
     @FXML private Pane toggleThumb;
     @FXML private Label statusLabel;
@@ -631,6 +632,12 @@ public class DriverDashboardController {
                 distanceLabel.setText(String.format("%.2f km", request.distanceKm));
                 fareLabel.setText(String.format("$%.2f", request.estimatedPrice));
 
+                // Fetch and display passenger name
+                String passengerName = getPassengerNameById(request.passengerId);
+                if (passengerName != null) {
+                    setAssignedPassengerName(passengerName);
+                }
+
                 rideRequestWidget.setVisible(true);
                 rideRequestWidget.setManaged(true);
                 noRidesContainer.setVisible(false);
@@ -639,6 +646,30 @@ public class DriverDashboardController {
         } catch (SQLException e) {
             System.err.println("Error displaying ride request: " + e.getMessage());
         }
+    }
+
+    /**
+     * Get passenger name by passenger ID from the database
+     * @param passengerId The passenger's ID
+     * @return The passenger's name, or null if not found
+     */
+    private String getPassengerNameById(long passengerId) {
+        try (Connection con = DBConnection.getConnection()) {
+            String query = "SELECT name FROM passengers WHERE id = ?";
+            try (PreparedStatement ps = con.prepareStatement(query)) {
+                ps.setLong(1, passengerId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        String name = rs.getString("name");
+                        System.out.println("[DriverDashboard] Found passenger name: " + name);
+                        return name;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("[DriverDashboard] Error fetching passenger name: " + e.getMessage());
+        }
+        return null;
     }
 
     private void hideRideRequest() {
@@ -650,6 +681,8 @@ public class DriverDashboardController {
             noRidesContainer.setVisible(true);
             noRidesContainer.setManaged(true);
         }
+        // Hide passenger name when hiding ride request
+        hideAssignedPassengerName();
     }
 
     /**
@@ -937,6 +970,29 @@ public class DriverDashboardController {
         } catch (Exception e) {
             System.err.println("[DriverDashboard] Error loading profile image: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Set the assigned passenger name and display it in the dashboard
+     * @param name The passenger's name
+     */
+    public void setAssignedPassengerName(String name) {
+        if (assignedPassengerName != null && name != null && !name.isEmpty()) {
+            assignedPassengerName.setText("Passenger: " + name);
+            assignedPassengerName.setVisible(true);
+            assignedPassengerName.setManaged(true);
+            System.out.println("[DriverDashboard] Assigned passenger name displayed: " + name);
+        }
+    }
+
+    /**
+     * Hide the assigned passenger name label
+     */
+    private void hideAssignedPassengerName() {
+        if (assignedPassengerName != null) {
+            assignedPassengerName.setVisible(false);
+            assignedPassengerName.setManaged(false);
         }
     }
 }

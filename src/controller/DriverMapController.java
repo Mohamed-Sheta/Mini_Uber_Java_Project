@@ -128,20 +128,6 @@ public class DriverMapController {
         }
     }
 
-    public void setDriver(Driver driver, long driverId) {
-        this.currentDriver = driver;
-        this.currentDriverId = driverId;
-
-        System.out.println("[DriverMap] Driver set: " + driver.getName() + " (ID: " + driverId + ")");
-
-        // Update UI
-        updateStats();
-
-        // Center map on driver's location
-        if (driver.getCurrentLocation() != null) {
-            centerMapOnDriver();
-        }
-    }
 
     private void toggleOnlineStatus() {
         isOnline = !isOnline;

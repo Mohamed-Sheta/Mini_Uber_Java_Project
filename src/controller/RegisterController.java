@@ -1,5 +1,4 @@
 package controller;
-
 import DAO.DriverDAO;
 import DAO.PassengerDAO;
 import Model.Driver;
@@ -21,87 +20,59 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-
 import java.io.IOException;
-
 public class RegisterController {
-
     @FXML
     private Label roleLabel;
-
     @FXML
     private TextField nameField;
-
     @FXML
     private TextField phoneField;
-
     @FXML
     private TextField emailField;
-
     @FXML
     private PasswordField passwordField;
-
     @FXML
     private PasswordField confirmPasswordField;
-
     @FXML
     private VBox driverFieldsBox;
-
     @FXML
     private TextField licensePlateField;
-
     @FXML
     private TextField carModelField;
-
     @FXML
     private Label errorLabel;
-
-    @FXML
-    private Label loginLink;
-
     @FXML
     private Label nameErrorLabel;
-
     @FXML
     private Label phoneErrorLabel;
-
     @FXML
     private Label emailErrorLabel;
-
     @FXML
     private Label passwordErrorLabel;
-
     @FXML
     private Label confirmPasswordErrorLabel;
-
     @FXML
     private Label licensePlateErrorLabel;
-
     @FXML
     private Label carModelErrorLabel;
-
     @FXML
     private ComboBox<Location> locationComboBox;
-
     @FXML
     private Label locationErrorLabel;
-
     @FXML
     private Button registerButton;
-
     private String selectedRole;
 
     public void setSelectedRole(String role) {
         this.selectedRole = role;
         updateRoleLabel();
 
-        // Show/hide driver-specific fields
         if (driverFieldsBox != null) {
             boolean isDriver = role.equals("driver");
             driverFieldsBox.setVisible(isDriver);
             driverFieldsBox.setManaged(isDriver);
 
-            // Populate location dropdown for drivers
             if (isDriver && locationComboBox != null) {
                 locationComboBox.getItems().clear();
                 locationComboBox.getItems().addAll(MapGraph.getPredefinedLocations());
@@ -185,9 +156,20 @@ public class RegisterController {
             String licensePlate = licensePlateField.getText().trim();
             String carModel = carModelField.getText().trim();
 
+            // Validate license plate
             if (licensePlate.isEmpty()) {
                 showFieldError(licensePlateErrorLabel, "License plate is required");
                 isValid = false;
+            } else if (!licensePlate.matches("^[A-Za-z]{3}[0-9]{3}$")) {
+                showFieldError(licensePlateErrorLabel, "Invalid format. Must be 3 letters followed by 3 digits (e.g. ABC123)");
+                isValid = false;
+            } else {
+                // Check if license plate already exists in database
+                DriverDAO driverDAO = new DriverDAO();
+                if (driverDAO.licensePlateExists(licensePlate)) {
+                    showFieldError(licensePlateErrorLabel, "This license plate is already registered");
+                    isValid = false;
+                }
             }
 
             if (carModel.isEmpty()) {
@@ -282,36 +264,22 @@ public class RegisterController {
         }
     }
 
-    /**
-     * Validates email format using proper regex.
-     * Accepts standard email formats like user@example.com
-     */
     private boolean isValidEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
             return false;
         }
-        // RFC 5322 compliant email regex (simplified version)
         String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
         return email.matches(emailRegex);
     }
 
-    /**
-     * Validates password strength.
-     * Must be at least 8 characters with at least one uppercase, one lowercase, one number, and one special character.
-     */
     private boolean isValidPassword(String password) {
         if (password == null || password.length() < 8) {
             return false;
         }
-        // Check for at least one uppercase letter
         boolean hasUppercase = password.matches(".*[A-Z].*");
-        // Check for at least one lowercase letter
         boolean hasLowercase = password.matches(".*[a-z].*");
-        // Check for at least one digit
         boolean hasDigit = password.matches(".*\\d.*");
-        // Check for at least one special character
         boolean hasSpecialChar = password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*");
-
         return hasUppercase && hasLowercase && hasDigit && hasSpecialChar;
     }
 
@@ -325,11 +293,9 @@ public class RegisterController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/Login.fxml"));
             Scene scene = new Scene(loader.load(), 390, 750);
 
-            // Pass the selected role back to Login controller
             LoginController controller = loader.getController();
             controller.setSelectedRole(selectedRole);
 
-            // Set success message if provided
             if (successMessage != null) {
                 controller.setSuccessMessage(successMessage);
             }
@@ -406,10 +372,7 @@ public class RegisterController {
         }
     }
 
-
     private String generateSSN(String email) {
-        // Simple SSN generation based on email hash
-        // In production, you'd use a more sophisticated method
         return String.valueOf(Math.abs(email.hashCode()));
     }
 }

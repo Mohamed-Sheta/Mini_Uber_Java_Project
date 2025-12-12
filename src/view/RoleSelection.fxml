@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
-
 <VBox alignment="TOP_CENTER"
       prefHeight="750"
       prefWidth="390"
@@ -13,11 +11,7 @@
       xmlns="http://javafx.com/javafx/25"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="controller.RoleSelectionController">
-
-    <!-- Top Spacing -->
     <Region prefHeight="55" />
-
-    <!-- Logo Image -->
     <StackPane>
         <ImageView fitWidth="130" preserveRatio="true" opacity="1.0">
             <image>
@@ -25,11 +19,7 @@
             </image>
         </ImageView>
     </StackPane>
-
-    <!-- Spacing after logo -->
     <Region prefHeight="35" />
-
-    <!-- Title: "Your journey, simplified" -->
     <Label styleClass="title-large"
            text="Your journey, simplified"
            textAlignment="CENTER"
@@ -38,17 +28,11 @@
             <Insets left="35" right="35" />
         </VBox.margin>
     </Label>
-
-    <!-- Spacing after title -->
     <Region prefHeight="30" />
-
-    <!-- Icon Row: Fast Pickup • Safe Rides -->
     <HBox alignment="CENTER" spacing="22" styleClass="features-row">
         <VBox.margin>
             <Insets left="35" right="35" />
         </VBox.margin>
-
-        <!-- Fast Pickup -->
         <VBox alignment="CENTER" spacing="8" styleClass="icon-container">
             <StackPane prefHeight="65" prefWidth="65" styleClass="elevated-card">
                 <ImageView fitHeight="42" fitWidth="42" pickOnBounds="true" preserveRatio="true">
@@ -59,11 +43,7 @@
             </StackPane>
             <Label styleClass="subtitle" text="Fast Pickup" />
         </VBox>
-
-        <!-- Bullet Separator -->
         <Label styleClass="title-medium" text="•" />
-
-        <!-- Safe Rides -->
         <VBox alignment="CENTER" spacing="8" styleClass="icon-container">
             <StackPane prefHeight="65" prefWidth="65" styleClass="elevated-card">
                 <ImageView fitHeight="42" fitWidth="42" pickOnBounds="true" preserveRatio="true">
@@ -75,11 +55,7 @@
             <Label styleClass="subtitle" text="Safe Rides" />
         </VBox>
     </HBox>
-
-    <!-- Spacing before card -->
     <Region prefHeight="40" />
-
-    <!-- Get Started Card Container -->
     <VBox alignment="TOP_CENTER" spacing="18" styleClass="card-container">
         <VBox.margin>
             <Insets left="28" right="28" />
@@ -87,14 +63,8 @@
         <padding>
             <Insets bottom="32" left="26" right="26" top="28" />
         </padding>
-
-        <!-- Card Title -->
         <Label styleClass="title-medium" text="Get Started" />
-
-        <!-- Spacing after title -->
         <Region prefHeight="4" />
-
-        <!-- Continue as Passenger Button -->
         <Button fx:id="passengerButton"
                 maxWidth="Infinity"
                 minHeight="48"
@@ -102,8 +72,6 @@
                 prefHeight="48"
                 styleClass="btn-passenger"
                 text="Continue as Passenger" />
-
-        <!-- Continue as Driver Button -->
         <Button fx:id="driverButton"
                 maxWidth="Infinity"
                 minHeight="48"
@@ -112,9 +80,6 @@
                 styleClass="btn-driver"
                 text="Continue as Driver" />
     </VBox>
-
-    <!-- Bottom Spacing -->
     <Region VBox.vgrow="ALWAYS" />
-
 </VBox>
 

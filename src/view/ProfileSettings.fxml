@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-
 <VBox alignment="TOP_CENTER" prefHeight="750" prefWidth="390" spacing="0" styleClass="content-container" stylesheets="@/style.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.ProfileSettingsController">
-
     <padding>
         <Insets bottom="14" left="16" right="16" top="10" />
     </padding>
-
     <!-- Header with Back Button -->
     <HBox alignment="CENTER_LEFT" spacing="8">
         <VBox.margin>
@@ -18,7 +14,6 @@
         <Button fx:id="backButton" onAction="#onBackToProfile" styleClass="back-button" text="←" />
         <Label styleClass="title-large" text="Settings" />
     </HBox>
-
     <!-- Driver Balance KPI (Drivers only) -->
     <VBox fx:id="driverBalanceCard" alignment="CENTER" managed="false" maxWidth="340" prefWidth="340" spacing="6" styleClass="elevated-card" visible="false">
         <VBox.margin>
@@ -33,60 +28,47 @@
             <Label fx:id="driverBalanceLabel" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #E6EDF3;" styleClass="stat-value" text="0.00 EGP" />
         </HBox>
     </VBox>
-
     <!-- Settings Options Card -->
     <VBox alignment="TOP_LEFT" maxWidth="360" spacing="0" styleClass="card-container">
         <padding>
             <Insets bottom="6" left="0" right="0" top="6" />
         </padding>
-
         <!-- Add Funds Button (Passengers only) -->
         <Button fx:id="addFundsButton" alignment="CENTER_LEFT" onAction="#onAddFunds" styleClass="settings-item-button" text="💰 Add Funds">
             <padding>
                 <Insets bottom="14" left="20" right="20" top="14" />
             </padding>
         </Button>
-
         <Region fx:id="addFundsDivider" prefHeight="1" styleClass="divider" />
-
         <!-- Change Password Button -->
         <Button fx:id="changePasswordButton" alignment="CENTER_LEFT" onAction="#onChangePassword" styleClass="settings-item-button" text="🔒 Change Password">
             <padding>
                 <Insets bottom="14" left="20" right="20" top="14" />
             </padding>
         </Button>
-
         <Region prefHeight="1" styleClass="divider" />
-
         <Region fx:id="reportRideDivider" prefHeight="1" styleClass="divider" />
-
         <!-- Report a Ride Button (Passengers only) -->
         <Button fx:id="reportRideButton" alignment="CENTER_LEFT" onAction="#onReportRide" styleClass="settings-item-button" text="📝 Report a Ride">
             <padding>
                 <Insets bottom="14" left="20" right="20" top="14" />
             </padding>
         </Button>
-
         <Region prefHeight="1" styleClass="divider" />
-
         <!-- Report App Button -->
         <Button fx:id="reportAppButton" alignment="CENTER_LEFT" onAction="#onReportApp" styleClass="settings-item-button" text="📱 Report App">
             <padding>
                 <Insets bottom="14" left="20" right="20" top="14" />
             </padding>
         </Button>
-
         <Region prefHeight="1" styleClass="divider" />
-
         <!-- Delete Account Button -->
         <Button fx:id="deleteAccountButton" alignment="CENTER_LEFT" onAction="#onDeleteAccount" styleClass="settings-item-button-danger" text="🗑️ Delete Account">
             <padding>
                 <Insets bottom="14" left="20" right="20" top="14" />
             </padding>
         </Button>
-
         <Region prefHeight="1" styleClass="divider" />
-
         <!-- Logout Button -->
         <Button fx:id="logoutButton" alignment="CENTER_LEFT" onAction="#onLogout" styleClass="settings-item-button" text="🚪 Logout">
             <padding>
@@ -94,7 +76,6 @@
             </padding>
         </Button>
     </VBox>
-
     <!-- App Version -->
     <Label styleClass="caption" text="Version 1.0" textAlignment="CENTER">
         <VBox.margin>

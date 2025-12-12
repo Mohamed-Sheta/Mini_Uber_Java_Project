@@ -9,10 +9,6 @@ import javafx.geometry.Pos;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 
-/**
- * Controller for the standalone Chat View
- * Manages chat messages, quick buttons, and chat interactions
- */
 public class ChatViewController {
 
     @FXML private ScrollPane messagesScrollPane;
@@ -30,9 +26,6 @@ public class ChatViewController {
     // Callback for close button action
     private Runnable onCloseCallback = null;
 
-    /**
-     * Initialize the chat view
-     */
     @FXML
     public void initialize() {
         System.out.println("[ChatViewController] Initialized");
@@ -58,36 +51,6 @@ public class ChatViewController {
         // DO NOT send any automatic welcome message
     }
 
-    /**
-     * Called when the driver accepts the ride
-     * Sends the first driver message to the passenger
-     */
-    public void onRideAccepted() {
-        if (!rideAcceptedMessageSent) {
-            Platform.runLater(() -> {
-                addMessageToChat("🚗 I'm on the way to your pickup location", true);
-                rideAcceptedMessageSent = true;
-            });
-            System.out.println("[ChatViewController] Ride accepted message sent");
-        }
-    }
-
-    /**
-     * Send automated driver message based on ride progress
-     * Called by MapController during ride lifecycle
-     */
-    public void sendAutomatedDriverMessage(String message) {
-        if (message == null || message.trim().isEmpty()) return;
-
-        Platform.runLater(() -> {
-            addMessageToChat(message, true);
-            System.out.println("[ChatViewController] Automated driver message: " + message);
-        });
-    }
-
-    /**
-     * Set the ride ID and user role for this chat session
-     */
     public void setChatSession(long rideId, boolean isDriver) {
         this.currentRideId = rideId;
         this.isDriver = isDriver;
@@ -112,38 +75,20 @@ public class ChatViewController {
         });
     }
 
-    /**
-     * Set callback for close button action
-     * This allows MapController to handle the hide animation
-     */
     public void setOnCloseCallback(Runnable callback) {
         this.onCloseCallback = callback;
     }
 
-    /**
-     * Setup quick message buttons based on user role
-     */
     private void setupQuickButtons() {
         if (quickButtonsBox == null) return;
 
         quickButtonsBox.getChildren().clear();
-
-        if (isDriver) {
-            // Driver quick messages (not used in current logic)
-            addQuickButton("✅ I have arrived at your location", "I have arrived at your location");
-            addQuickButton("⏱️ I will reach you in 5 minutes", "I will reach you in 5 minutes");
-            addQuickButton("🚗 I am downstairs", "I am downstairs");
-        } else {
             // Passenger quick messages (trigger driver auto-reply)
             addQuickButton("📍 Where are you?", "Where are you?");
             addQuickButton("⏰ How long until you arrive?", "How long until you arrive?");
             addQuickButton("👋 I'm waiting at the pickup point", "I'm waiting at the pickup point");
-        }
     }
 
-    /**
-     * Add a quick message button
-     */
     private void addQuickButton(String displayText, String messageText) {
         Button btn = new Button(displayText);
         btn.setMaxWidth(Double.MAX_VALUE);
@@ -169,27 +114,18 @@ public class ChatViewController {
         quickButtonsBox.getChildren().add(btn);
     }
 
-    /**
-     * Send a passenger message and trigger driver auto-reply
-     */
     private void sendPassengerMessage(String text) {
         if (text == null || text.trim().isEmpty()) {
             return;
         }
-
         // Add passenger message to chat (called once per user action)
         addMessageToChat(text, false);
-
         // Trigger driver reply based on message (called once)
         sendDriverReply(text);
     }
 
-    /**
-     * Send driver auto-reply based on passenger message
-     */
     private void sendDriverReply(String passengerText) {
         String driverReply;
-
         // Match passenger messages and generate appropriate replies
         if (passengerText.equals("Where are you?")) {
             driverReply = "I'm 2 minutes away from your location.";
@@ -208,11 +144,8 @@ public class ChatViewController {
         } else if (passengerText.toLowerCase().contains("hello") || passengerText.toLowerCase().contains("hi")) {
             driverReply = "Hello! I'm on my way to pick you up.";
         } else {
-            // For any other custom text from passenger
             driverReply = "Got it! I'm on the way.";
         }
-
-        // Add driver reply to chat with slight delay for realism
         final String reply = driverReply;
         new java.util.Timer().schedule(new java.util.TimerTask() {
             @Override
@@ -222,9 +155,6 @@ public class ChatViewController {
         }, 500); // 500ms delay
     }
 
-    /**
-     * Add a message to the chat display (SINGLE display method)
-     */
     private void addMessageToChat(String text, boolean isFromDriver) {
         if (messagesBox == null || text == null || text.trim().isEmpty()) return;
 
@@ -269,10 +199,6 @@ public class ChatViewController {
         });
     }
 
-
-    /**
-     * Clear chat button action
-     */
     @FXML
     private void onClearChat() {
         if (messagesBox != null) {
@@ -281,9 +207,6 @@ public class ChatViewController {
         }
     }
 
-    /**
-     * Send custom message from text field
-     */
     @FXML
     private void onSendMessage() {
         if (messageTextField == null || messageTextField.getText().trim().isEmpty()) {
@@ -302,9 +225,6 @@ public class ChatViewController {
         Platform.runLater(() -> messageTextField.requestFocus());
     }
 
-    /**
-     * Close chat button action
-     */
     @FXML
     private void onCloseChat() {
         System.out.println("[ChatViewController] Close chat clicked");
@@ -318,10 +238,6 @@ public class ChatViewController {
             hideChatPanel();
         }
     }
-
-    /**
-     * Hide the chat panel (find and hide the parent chat side panel)
-     */
     private void hideChatPanel() {
         try {
             // Find the chatSidePanel in the scene graph and hide it
@@ -336,22 +252,18 @@ public class ChatViewController {
                             node.setVisible(false);
                             node.setManaged(false);
                             node.setPickOnBounds(false);
-                            System.out.println("[ChatViewController] ✅ Chat panel hidden");
+                            System.out.println("[ChatViewController]  Chat panel hidden");
                             return;
                         }
                     }
                 }
             }
-            System.out.println("[ChatViewController] ⚠️ Could not find chat panel to hide");
+            System.out.println("[ChatViewController]  Could not find chat panel to hide");
         } catch (Exception e) {
-            System.err.println("[ChatViewController] ❌ Error hiding chat panel: " + e.getMessage());
+            System.err.println("[ChatViewController]  Error hiding chat panel: " + e.getMessage());
             e.printStackTrace();
         }
     }
-
-    /**
-     * Cleanup when controller is destroyed
-     */
     public void cleanup() {
         System.out.println("[ChatViewController] Cleanup called");
     }

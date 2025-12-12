@@ -24,48 +24,35 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class LoginController {
-
     @FXML
     private Label roleLabel;
-
     @FXML
     private TextField emailField;
-
     @FXML
     private PasswordField passwordField;
-
     @FXML
     private Label errorLabel;
-
     @FXML
     private Label successLabel;
-
     @FXML
     private Label registerLink;
-
     @FXML
     private Label emailErrorLabel;
-
     @FXML
     private Label passwordErrorLabel;
-
     @FXML
     private Button loginButton;
-
     private String selectedRole;
-
     public void initialize() {
         // Auto-focus on email field when screen loads
         if (emailField != null) {
             emailField.requestFocus();
         }
     }
-
     public void setSelectedRole(String role) {
         this.selectedRole = role;
         updateRoleLabel();
     }
-
     public void setSuccessMessage(String message) {
         if (successLabel != null) {
             successLabel.setText(message);
@@ -73,55 +60,43 @@ public class LoginController {
             successLabel.setManaged(true);
         }
     }
-
     private void updateRoleLabel() {
         if (roleLabel != null && selectedRole != null) {
             String roleText = selectedRole.equals("passenger") ? "Passenger Login" : "Driver Login";
             roleLabel.setText(roleText);
         }
     }
-
     @FXML
     public void onLogin(ActionEvent event) {
         // Hide previous messages
         hideMessages();
         hideFieldErrors();
-
         // Add button click animation
         playButtonAnimation(loginButton);
-
         String email = emailField.getText().trim();
         String password = passwordField.getText();
-
         // Field-level validation
         boolean isValid = true;
-
         if (email.isEmpty()) {
             showFieldError(emailErrorLabel, "Email cannot be empty");
             isValid = false;
         }
-
         if (password.isEmpty()) {
             showFieldError(passwordErrorLabel, "Password cannot be empty");
             isValid = false;
         }
-
         if (!isValid) {
             return;
         }
-
         // Hash the password
         String hashedPassword = hashPassword(password);
-
         // Check credentials based on role
         boolean loginSuccess = false;
         Object user = null;
-
         try {
             if (selectedRole.equals("passenger")) {
                 PassengerDAO passengerDAO = new PassengerDAO();
                 Passenger passenger = passengerDAO.getByEmail(email);
-
                 if (passenger != null && passenger.getPassword().equals(hashedPassword)) {
                     loginSuccess = true;
                     user = passenger;
@@ -135,32 +110,27 @@ public class LoginController {
                     user = driver;
                 }
             }
-
             if (loginSuccess) {
                 // Store user in session
                 navigateToHome(event, user);
             } else {
                 showError("Account not found. Please register.");
             }
-
         } catch (Exception e) {
             System.err.println("Login error: " + e.getMessage());
             e.printStackTrace();
             showError("An error occurred. Please try again.");
         }
     }
-
     @FXML
     public void onRegisterClick(MouseEvent event) {
         loadRegisterScreen(event);
     }
-
     @FXML
     public void onBackToRoleSelection(ActionEvent event) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/RoleSelection.fxml"));
             Scene scene = new Scene(loader.load(), 390, 750);
-
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(scene);
             stage.show();
@@ -169,12 +139,10 @@ public class LoginController {
             e.printStackTrace();
         }
     }
-
     private void loadRegisterScreen(MouseEvent event) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/Register.fxml"));
             Scene scene = new Scene(loader.load(), 390, 750);
-
             // Pass the selected role to Register controller
             RegisterController controller = loader.getController();
             controller.setSelectedRole(selectedRole);
@@ -187,7 +155,6 @@ public class LoginController {
             e.printStackTrace();
         }
     }
-
     private void navigateToHome(ActionEvent event, Object user) {
         try {
             if (selectedRole.equals("driver")) {
@@ -197,7 +164,6 @@ public class LoginController {
                 // Navigate passengers to MapView
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/MapView.fxml"));
                 Scene scene = new Scene(loader.load(), 390, 750);
-
                 // Pass user data to MapController
                 MapController controller = loader.getController();
                 controller.setPassenger((Passenger) user);
@@ -212,7 +178,6 @@ public class LoginController {
             showError("Failed to load home screen.");
         }
     }
-
     private void openDriverDashboard(Driver driver) {
         try {
             System.out.println("Loading Driver Dashboard for: " + driver.getName());
@@ -223,7 +188,6 @@ public class LoginController {
                 showError("Failed to load driver dashboard. FXML file not found.");
                 return;
             }
-
             System.out.println("FXML URL found: " + fxmlUrl);
             FXMLLoader loader = new FXMLLoader(fxmlUrl);
             Scene scene = new Scene(loader.load(), 390, 750);
@@ -234,7 +198,6 @@ public class LoginController {
                 showError("Failed to load driver dashboard. Controller not found.");
                 return;
             }
-
             controller.setDriver(driver);
 
             Stage stage = (Stage) loginButton.getScene().getWindow();
@@ -248,8 +211,6 @@ public class LoginController {
             showError("Failed to load driver dashboard.");
         }
     }
-
-
     private void showError(String message) {
         if (errorLabel != null) {
             errorLabel.setText(message);
@@ -257,7 +218,6 @@ public class LoginController {
             errorLabel.setManaged(true);
         }
     }
-
     private void hideMessages() {
         if (errorLabel != null) {
             errorLabel.setVisible(false);
@@ -268,12 +228,10 @@ public class LoginController {
             successLabel.setManaged(false);
         }
     }
-
     private void hideFieldErrors() {
         hideFieldError(emailErrorLabel);
         hideFieldError(passwordErrorLabel);
     }
-
     private void showFieldError(Label label, String message) {
         if (label != null) {
             label.setText(message);
@@ -281,14 +239,12 @@ public class LoginController {
             label.setManaged(true);
         }
     }
-
     private void hideFieldError(Label label) {
         if (label != null) {
             label.setVisible(false);
             label.setManaged(false);
         }
     }
-
     private void playButtonAnimation(Button button) {
         if (button != null) {
             ScaleTransition scaleDown = new ScaleTransition(Duration.millis(60), button);
@@ -303,7 +259,6 @@ public class LoginController {
             scaleDown.play();
         }
     }
-
     private String hashPassword(String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");

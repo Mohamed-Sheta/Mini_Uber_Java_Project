@@ -238,4 +238,74 @@ public class PassengerDAO {
         }
         return -1L;
     }
+
+    /**
+     * Get the current wallet balance for a passenger
+     * @param passengerId the passenger ID
+     * @return the wallet balance, or -1 if passenger not found
+     */
+    public double getWalletBalance(long passengerId) {
+        final String sql = "SELECT wallet_balance FROM passengers WHERE id=?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, passengerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("wallet_balance");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting wallet balance: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return -1.0;
+    }
+
+    /**
+     * Deduct an amount from passenger's wallet balance
+     * @param passengerId the passenger ID
+     * @param amount the amount to deduct (must be positive)
+     * @return true if successful, false otherwise
+     */
+    public boolean deductFromWallet(long passengerId, double amount) {
+        if (amount <= 0) {
+            System.err.println("Cannot deduct negative or zero amount");
+            return false;
+        }
+
+        final String sql = "UPDATE passengers SET wallet_balance = wallet_balance - ? WHERE id = ? AND wallet_balance >= ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setDouble(1, amount);
+            ps.setLong(2, passengerId);
+            ps.setDouble(3, amount); // Ensure balance is sufficient
+
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("Error deducting from wallet: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Record a tip or donation transaction
+     * @param passengerId the passenger ID
+     * @param amount the transaction amount (will be stored as negative)
+     * @param type the transaction type ('TIP' or 'DONATION')
+     * @return true if successful, false otherwise
+     */
+    public boolean recordTransaction(long passengerId, double amount, String type) {
+        // Note: Since there's no dedicated transactions table for user transactions,
+        // we'll log this for now. In a production system, you'd create a transactions table.
+        System.out.println("[Transaction] Passenger ID: " + passengerId +
+                         ", Amount: -" + amount + " EGP, Type: " + type +
+                         ", Timestamp: " + java.time.LocalDateTime.now());
+
+        // For now, just return true. In production, you'd insert into a transactions table:
+        // INSERT INTO user_transactions (passenger_id, amount, type, timestamp) VALUES (?, ?, ?, NOW())
+        return true;
+    }
 }
+

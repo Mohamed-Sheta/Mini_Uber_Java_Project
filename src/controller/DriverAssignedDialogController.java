@@ -1,9 +1,7 @@
 package controller;
-
 import Model.Driver;
 import services.Request;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -15,13 +13,11 @@ import javafx.stage.Stage;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class DriverAssignedDialogController {
-
     @FXML
     private Label driverNameLabel;
     @FXML
@@ -66,9 +62,7 @@ public class DriverAssignedDialogController {
     private Runnable onCancelCallback;
     private long rideId = 0; // Track ride ID for chat
 
-    /**
-     * Initialize chat UI
-     */
+
     @FXML
     public void initialize() {
         if (chatMessagesContainer != null) {
@@ -79,9 +73,6 @@ public class DriverAssignedDialogController {
         startChatPolling();
     }
 
-    /**
-     * Set the ride ID for chat
-     */
     public void setRideId(long rideId) {
         this.rideId = rideId;
         loadChatHistory();
@@ -185,49 +176,11 @@ public class DriverAssignedDialogController {
             }
         }
     }
-
-    @FXML
-    public void onPanelClick(MouseEvent event) {
-        // No longer needed - hit-testing in onOverlayClick handles this
-        // Keeping for backward compatibility
-    }
-
-    /**
-     * Check if a node is contained within a parent node
-     * @deprecated No longer needed with current implementation
-     */
-    private boolean isNodeInsideParent(Node node, Node parent) {
-        if (node == null) {
-            return false;
-        }
-        if (node == parent) {
-            return true;
-        }
-        // Traverse up the parent hierarchy
-        Node current = node;
-        while (current != null) {
-            if (current == parent) {
-                return true;
-            }
-            current = current.getParent();
-        }
-        return false;
-    }
-
-    @FXML
-    public void onDialogClick(MouseEvent event) {
-        // No longer needed - keeping for backward compatibility
-        event.consume();
-    }
-
     private void closeDialog() {
         Stage stage = (Stage) okButton.getScene().getWindow();
         stage.close();
     }
 
-    public boolean isAccepted() {
-        return accepted;
-    }
 
     public void disableCancelButton() {
         if (cancelRideButton != null && cancelButtonBox != null) {
@@ -235,15 +188,6 @@ public class DriverAssignedDialogController {
             cancelButtonBox.setVisible(false);
             cancelButtonBox.setManaged(false);
             System.out.println("[DriverAssignedDialogController] Cancel button hidden - passenger is onboard");
-        }
-    }
-
-    public void hideDriverPanel() {
-        if (dialogContainer != null) {
-            // Hide the entire driver info panel
-            dialogContainer.setVisible(false);
-            dialogContainer.setManaged(false);
-            System.out.println("[DriverAssignedDialogController] Driver panel hidden - ride started");
         }
     }
 
@@ -257,10 +201,6 @@ public class DriverAssignedDialogController {
     }
 
     // ==================== CHAT FUNCTIONALITY ====================
-
-    /**
-     * Send passenger message to chat
-     */
     private void sendPassengerMessage(String message) {
         if (rideId == 0) {
             System.err.println("[DriverAssignedDialog] Cannot send message - ride ID not set");
@@ -272,9 +212,6 @@ public class DriverAssignedDialogController {
         displayChatMessage(chatMsg);
     }
 
-    /**
-     * Display a chat message in the UI
-     */
     private void displayChatMessage(Model.ChatMessage message) {
         if (chatMessagesContainer == null) return;
 
@@ -313,9 +250,6 @@ public class DriverAssignedDialogController {
         });
     }
 
-    /**
-     * Load existing chat messages when dialog opens
-     */
     private void loadChatHistory() {
         if (rideId == 0) return;
 
@@ -325,9 +259,6 @@ public class DriverAssignedDialogController {
         }
     }
 
-    /**
-     * Poll for new messages from driver
-     */
     private Timer chatPollingTimer;
     private int lastMessageCount = 0;
 
@@ -349,7 +280,6 @@ public class DriverAssignedDialogController {
             }
         }, 1000, 1000); // Check every 1 second
     }
-
     // Quick message buttons for passenger
     @FXML
     private void onPassengerQuickMessage1() {

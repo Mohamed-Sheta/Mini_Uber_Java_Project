@@ -7,26 +7,20 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 import utils.DBConnection;
-
 import java.io.IOException;
 import java.sql.*;
-
 public class AddFundsController {
-
     @FXML private Button backButton;
     @FXML private Button addMoneyButton;
     @FXML private Button logoutButton;
     @FXML private TextField amountField;
     @FXML private Label currentBalanceLabel;
     @FXML private Label messageLabel;
-
     private Person currentUser;
-
     public void setUser(Person user) {
         this.currentUser = user;
         updateBalanceDisplay();
     }
-
     @FXML
     public void initialize() {
         // Restrict amount field to numbers and decimal point only, and prevent negative values
@@ -36,88 +30,74 @@ public class AddFundsController {
                 messageLabel.setText("");
                 messageLabel.setStyle("");
             }
-
             // Check for negative sign
             if (newValue.contains("-")) {
-                showError("❌ Negative values are not allowed!");
+                showError("Negative values are not allowed!");
                 amountField.setText(oldValue);
                 return;
             }
-
             // Only allow digits and decimal point with max 2 decimal places
             if (!newValue.matches("\\d*(\\.\\d{0,2})?")) {
                 amountField.setText(oldValue);
             }
         });
     }
-
     private void updateBalanceDisplay() {
         if (currentUser != null) {
             double balance = currentUser.getWalletBalance();
             currentBalanceLabel.setText(String.format("%.2f EGP", balance));
         }
     }
-
     @FXML
     public void quickAdd50() {
         amountField.setText("50");
     }
-
     @FXML
     public void quickAdd100() {
         amountField.setText("100");
     }
-
     @FXML
     public void quickAdd200() {
         amountField.setText("200");
     }
-
     @FXML
     public void onAddMoney() {
         // Get the amount from the text field
         String amountText = amountField.getText().trim();
-
         // Validate input is not empty
         if (amountText.isEmpty()) {
-            showError("❌ Please enter a valid amount.");
+            showError("Please enter a valid amount.");
             return;
         }
-
         // Validate input is numeric
         double amount;
         try {
             amount = Double.parseDouble(amountText);
         } catch (NumberFormatException e) {
-            showError("❌ Please enter a valid numeric amount.");
+            showError("Please enter a valid numeric amount.");
             return;
         }
-
         // Validate amount is not negative
         if (amount < 0) {
-            showError("❌ Negative amounts are not allowed!");
+            showError("Negative amounts are not allowed!");
             return;
         }
-
         // Validate amount is positive (greater than 0)
         if (amount <= 0) {
-            showError("❌ Amount must be greater than 0");
+            showError("Amount must be greater than 0");
             return;
         }
-
         // Validate maximum amount
         if (amount > 10000) {
-            showError("❌ Maximum amount is 10,000 EGP");
+            showError("Maximum amount is 10,000 EGP");
             return;
         }
-
         // Get user ID from database
         long userId = getUserIdFromDatabase();
         if (userId == -1) {
-            showError("❌ User not found in database");
+            showError("User not found in database");
             return;
         }
-
         // Update database balance
         try {
             boolean success = updateBalanceInDatabase(userId, amount);
@@ -126,33 +106,24 @@ public class AddFundsController {
                 // Update the in-memory user object
                 double newBalance = currentUser.getWalletBalance() + amount;
                 currentUser.updateWalletBalance(newBalance);
-
                 // Refresh the balance display immediately
                 updateBalanceDisplay();
-
                 // Show success message
-                showSuccess(String.format("✅ Successfully added %.2f EGP to your wallet!", amount));
-
+                showSuccess(String.format("Successfully added %.2f EGP to your wallet!", amount));
                 // Clear the amount field
                 amountField.clear();
             } else {
-                showError("❌ Failed to update balance. Please try again.");
+                showError(" Failed to update balance. Please try again.");
             }
-
         } catch (SQLException e) {
-            showError("❌ Database error: " + e.getMessage());
+            showError("Database error: " + e.getMessage());
             e.printStackTrace();
         }
     }
-
-    /**
-     * Get user ID from database
-     */
     private long getUserIdFromDatabase() {
         if (currentUser == null) {
             return -1;
         }
-
         String tableName = (currentUser instanceof Model.Driver) ? "drivers" : "passengers";
         String sql = "SELECT id FROM " + tableName + " WHERE email = ?";
 
@@ -173,11 +144,6 @@ public class AddFundsController {
 
         return -1;
     }
-
-    /**
-     * Update balance in database using direct SQL UPDATE
-     * This is the KEY FIX - using executeUpdate() properly
-     */
     private boolean updateBalanceInDatabase(long userId, double amount) throws SQLException {
         String tableName = (currentUser instanceof Model.Driver) ? "drivers" : "passengers";
         String sql = "UPDATE " + tableName + " SET wallet_balance = wallet_balance + ? WHERE id = ?";
@@ -188,20 +154,14 @@ public class AddFundsController {
             ps.setDouble(1, amount);
             ps.setLong(2, userId);
 
-            // Execute the update - THIS IS THE KEY FIX
             int rowsAffected = ps.executeUpdate();
 
-            // Log the result
             System.out.println("Balance update - Rows affected: " + rowsAffected);
 
-            // Return true if at least one row was updated
             return rowsAffected > 0;
         }
     }
 
-    /**
-     * Refresh balance from database after update
-     */
     private void refreshBalanceFromDatabase(long userId) {
         String tableName = (currentUser instanceof Model.Driver) ? "drivers" : "passengers";
         String sql = "SELECT wallet_balance FROM " + tableName + " WHERE id = ?";
@@ -251,11 +211,6 @@ public class AddFundsController {
             e.printStackTrace();
         }
     }
-
-    /**
-     * Handle Logout button click
-     * Clears current user session and navigates back to RoleSelection screen
-     */
     @FXML
     public void onLogout() {
         System.out.println("=== Logout clicked ===");
@@ -273,7 +228,6 @@ public class AddFundsController {
             Stage stage = (Stage) logoutButton.getScene().getWindow();
             stage.setScene(scene);
             stage.show();
-
             System.out.println("Navigated to RoleSelection screen successfully");
         } catch (IOException e) {
             System.err.println("Failed to navigate to RoleSelection: " + e.getMessage());
@@ -281,12 +235,10 @@ public class AddFundsController {
             showError("Logout failed. Please try again.");
         }
     }
-
     private void showError(String message) {
         messageLabel.setText("❌ " + message);
         messageLabel.setStyle("-fx-text-fill: #E74C3C; -fx-font-weight: bold;");
     }
-
     private void showSuccess(String message) {
         messageLabel.setText("✓ " + message);
         messageLabel.setStyle("-fx-text-fill: #4CAF50; -fx-font-weight: bold;");

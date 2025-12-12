@@ -75,18 +75,11 @@ public class ReportProblemController {
         }
     }
 
-    /**
-     * Set the current user and load their completed rides
-     */
     public void setUser(Person user) {
         this.currentUser = user;
         loadCompletedRides();
     }
 
-    /**
-     * Load completed rides for the current user
-     * Each ride is stored as ONE record in ride_history
-     */
     private void loadCompletedRides() {
         if (currentUser == null) {
             System.err.println("[ReportProblem] Current user is null");
@@ -156,9 +149,6 @@ public class ReportProblemController {
         }
     }
 
-    /**
-     * Submit the problem report
-     */
     @FXML
     public void onSubmit() {
         System.out.println("[ReportProblem] Submit button clicked");
@@ -166,7 +156,7 @@ public class ReportProblemController {
         // Validate ride selection
         int selectedIndex = rideComboBox.getSelectionModel().getSelectedIndex();
         if (selectedIndex == -1) {
-            showMessage("❌ Please select a ride", true);
+            showMessage(" Please select a ride", true);
             System.err.println("[ReportProblem] No ride selected");
             return;
         }
@@ -174,7 +164,7 @@ public class ReportProblemController {
         // Validate problem type selection
         ProblemType problemType = problemTypeComboBox.getValue();
         if (problemType == null) {
-            showMessage("❌ Please select a problem type", true);
+            showMessage(" Please select a problem type", true);
             System.err.println("[ReportProblem] No problem type selected");
             return;
         }
@@ -232,23 +222,20 @@ public class ReportProblemController {
                     }
                 }).start();
             } else {
-                showMessage("❌ Failed to submit report", true);
+                showMessage(" Failed to submit report", true);
                 System.err.println("[ReportProblem] Report ID is 0 or negative");
             }
         } catch (SQLException e) {
-            showMessage("❌ Error: " + e.getMessage(), true);
+            showMessage(" Error: " + e.getMessage(), true);
             System.err.println("[ReportProblem] SQL Error submitting report:");
             e.printStackTrace();
         } catch (Exception e) {
-            showMessage("❌ Unexpected error: " + e.getMessage(), true);
+            showMessage(" Unexpected error: " + e.getMessage(), true);
             System.err.println("[ReportProblem] Unexpected error:");
             e.printStackTrace();
         }
     }
 
-    /**
-     * Insert problem details into problem_report_types table
-     */
     private void insertProblemDetails(long reportId, int problemTypeId, String description) throws SQLException {
         String sql = "INSERT INTO problem_report_types (report_id, type_id, details) VALUES (?, ?, ?)";
 
@@ -263,9 +250,6 @@ public class ReportProblemController {
         }
     }
 
-    /**
-     * Get driver ID for a specific request
-     */
     private Long getDriverIdForRequest(long requestId) {
         String sql = "SELECT driver_id FROM ride_history WHERE request_id = ?";
 
@@ -284,9 +268,6 @@ public class ReportProblemController {
         return null;
     }
 
-    /**
-     * Get driver name for a specific request
-     */
     private String getDriverNameForRequest(long requestId) {
         String sql = "SELECT d.name FROM drivers d " +
                      "JOIN ride_history rh ON d.id = rh.driver_id " +
@@ -308,9 +289,6 @@ public class ReportProblemController {
         return "Unknown Driver";
     }
 
-    /**
-     * Get user ID from database
-     */
     private long getUserIdFromDatabase() {
         if (currentUser == null) return -1;
 
@@ -332,9 +310,6 @@ public class ReportProblemController {
         return -1;
     }
 
-    /**
-     * Navigate back to ProfileSettings
-     */
     @FXML
     public void onBack() {
         try {

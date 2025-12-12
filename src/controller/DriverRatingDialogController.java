@@ -156,11 +156,6 @@ public class DriverRatingDialogController {
         System.out.println("[Rating] Dialog closed (skipped)");
     }
 
-    private void closeDialog() {
-        Stage stage = (Stage) submitButton.getScene().getWindow();
-        stage.close();
-    }
-
     public int getSelectedRating() {
         return selectedRating;
     }
