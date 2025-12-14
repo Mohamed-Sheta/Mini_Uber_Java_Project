@@ -280,19 +280,4 @@ public class DriverAssignedDialogController {
             }
         }, 1000, 1000); // Check every 1 second
     }
-    // Quick message buttons for passenger
-    @FXML
-    private void onPassengerQuickMessage1() {
-        sendPassengerMessage("Where are you?");
-    }
-
-    @FXML
-    private void onPassengerQuickMessage2() {
-        sendPassengerMessage("How long until you arrive?");
-    }
-
-    @FXML
-    private void onPassengerQuickMessage3() {
-        sendPassengerMessage("I'm waiting at the pickup point.");
-    }
 }

@@ -8,9 +8,7 @@ import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
-
 public class ChatViewController {
-
     @FXML private ScrollPane messagesScrollPane;
     @FXML private VBox messagesBox;
     @FXML private VBox quickButtonsBox;
@@ -18,49 +16,31 @@ public class ChatViewController {
     @FXML private Button closeChatButton;
     @FXML private TextField messageTextField;
     @FXML private Button sendButton;
-
     private long currentRideId = 0;
     private boolean isDriver = false;
     private boolean rideAcceptedMessageSent = false;
-
-    // Callback for close button action
     private Runnable onCloseCallback = null;
-
     @FXML
     public void initialize() {
         System.out.println("[ChatViewController] Initialized");
-
-        // Ensure messagesBox is visible and managed
         if (messagesBox != null) {
             messagesBox.setVisible(true);
             messagesBox.setManaged(true);
             messagesBox.getChildren().clear();
         }
-
-        // Ensure ScrollPane is visible
         if (messagesScrollPane != null) {
             messagesScrollPane.setVisible(true);
             messagesScrollPane.setManaged(true);
         }
-
-        // Setup Enter key listener for message text field
         if (messageTextField != null) {
             messageTextField.setOnAction(e -> onSendMessage());
         }
-
-        // DO NOT send any automatic welcome message
     }
-
     public void setChatSession(long rideId, boolean isDriver) {
         this.currentRideId = rideId;
         this.isDriver = isDriver;
-
         System.out.println("[ChatViewController] Chat session set - Ride ID: " + rideId + ", IsDriver: " + isDriver);
-
-        // Setup quick buttons for user role
         setupQuickButtons();
-
-        // Ensure everything is visible
         Platform.runLater(() -> {
             if (messagesBox != null) {
                 messagesBox.setVisible(true);
@@ -74,11 +54,9 @@ public class ChatViewController {
             }
         });
     }
-
     public void setOnCloseCallback(Runnable callback) {
         this.onCloseCallback = callback;
     }
-
     private void setupQuickButtons() {
         if (quickButtonsBox == null) return;
 
@@ -88,7 +66,6 @@ public class ChatViewController {
             addQuickButton("⏰ How long until you arrive?", "How long until you arrive?");
             addQuickButton("👋 I'm waiting at the pickup point", "I'm waiting at the pickup point");
     }
-
     private void addQuickButton(String displayText, String messageText) {
         Button btn = new Button(displayText);
         btn.setMaxWidth(Double.MAX_VALUE);
@@ -96,8 +73,6 @@ public class ChatViewController {
         btn.setStyle("-fx-background-color: #3B82F6; -fx-text-fill: white; " +
                     "-fx-background-radius: 8; -fx-font-size: 12px; -fx-cursor: hand; " +
                     "-fx-padding: 8 14;");
-
-        // Hover effect
         btn.setOnMouseEntered(e -> btn.setStyle(
             "-fx-background-color: #60A5FA; -fx-text-fill: white; " +
             "-fx-background-radius: 8; -fx-font-size: 12px; -fx-cursor: hand; " +
@@ -107,26 +82,18 @@ public class ChatViewController {
             "-fx-background-color: #3B82F6; -fx-text-fill: white; " +
             "-fx-background-radius: 8; -fx-font-size: 12px; -fx-cursor: hand; " +
             "-fx-padding: 8 14;"));
-
-        // Send message when clicked
         btn.setOnAction(e -> sendPassengerMessage(messageText));
-
         quickButtonsBox.getChildren().add(btn);
     }
-
     private void sendPassengerMessage(String text) {
         if (text == null || text.trim().isEmpty()) {
             return;
         }
-        // Add passenger message to chat (called once per user action)
         addMessageToChat(text, false);
-        // Trigger driver reply based on message (called once)
         sendDriverReply(text);
     }
-
     private void sendDriverReply(String passengerText) {
         String driverReply;
-        // Match passenger messages and generate appropriate replies
         if (passengerText.equals("Where are you?")) {
             driverReply = "I'm 2 minutes away from your location.";
         } else if (passengerText.equals("How long until you arrive?")) {
@@ -154,43 +121,29 @@ public class ChatViewController {
             }
         }, 500); // 500ms delay
     }
-
     private void addMessageToChat(String text, boolean isFromDriver) {
         if (messagesBox == null || text == null || text.trim().isEmpty()) return;
 
         Platform.runLater(() -> {
-            // Create message bubble
             Label msgLabel = new Label(text);
             msgLabel.setWrapText(true);
             msgLabel.setMaxWidth(340);
             msgLabel.setMinWidth(100);
             msgLabel.setPadding(new Insets(14, 14, 14, 14));
-
-            // Style based on sender
             if (isFromDriver) {
-                // Driver message (green, left-aligned)
                 msgLabel.setStyle("-fx-background-color: #238636; -fx-text-fill: white; " +
                                 "-fx-background-radius: 12; -fx-font-size: 14px;");
             } else {
-                // Passenger message (blue, right-aligned)
                 msgLabel.setStyle("-fx-background-color: #3B82F6; -fx-text-fill: white; " +
                                 "-fx-background-radius: 12; -fx-font-size: 14px;");
             }
-
-            // Time label
             String timestamp = new java.text.SimpleDateFormat("HH:mm").format(new java.util.Date());
             Label timeLabel = new Label(timestamp);
             timeLabel.setStyle("-fx-text-fill: #8B949E; -fx-font-size: 11px;");
-
-            // Container for message with proper spacing and alignment
             VBox msgBox = new VBox(5, msgLabel, timeLabel);
-            // FIX: Passenger (isFromDriver=false) aligns RIGHT, Driver (isFromDriver=true) aligns LEFT
             msgBox.setAlignment(isFromDriver ? Pos.CENTER_LEFT : Pos.CENTER_RIGHT);
             msgBox.setPadding(new Insets(0, 0, 10, 0));
-
             messagesBox.getChildren().add(msgBox);
-
-            // Force layout update and scroll to bottom
             messagesBox.layout();
             if (messagesScrollPane != null) {
                 messagesScrollPane.layout();
@@ -198,7 +151,6 @@ public class ChatViewController {
             }
         });
     }
-
     @FXML
     private void onClearChat() {
         if (messagesBox != null) {
@@ -206,49 +158,34 @@ public class ChatViewController {
             System.out.println("[ChatViewController] Chat cleared");
         }
     }
-
     @FXML
     private void onSendMessage() {
         if (messageTextField == null || messageTextField.getText().trim().isEmpty()) {
             return;
         }
-
         String messageText = messageTextField.getText().trim();
-
-        // Send the passenger message
         sendPassengerMessage(messageText);
-
-        // Clear the text field
         messageTextField.clear();
-
-        // Request focus back to text field for next message
         Platform.runLater(() -> messageTextField.requestFocus());
     }
-
     @FXML
     private void onCloseChat() {
         System.out.println("[ChatViewController] Close chat clicked");
-
-        // If callback is set (preferred method), use it
         if (onCloseCallback != null) {
             onCloseCallback.run();
             System.out.println("[ChatViewController] Close callback executed");
         } else {
-            // Fallback: try to hide the panel directly
             hideChatPanel();
         }
     }
     private void hideChatPanel() {
         try {
-            // Find the chatSidePanel in the scene graph and hide it
             if (closeChatButton != null && closeChatButton.getScene() != null) {
                 javafx.scene.Parent root = closeChatButton.getScene().getRoot();
                 if (root instanceof StackPane) {
                     StackPane stackPane = (StackPane) root;
-                    // Find the chat side panel by ID
                     for (Node node : stackPane.getChildren()) {
                         if (node instanceof VBox && "chatSidePanel".equals(node.getId())) {
-                            // Hide the panel
                             node.setVisible(false);
                             node.setManaged(false);
                             node.setPickOnBounds(false);

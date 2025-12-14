@@ -29,24 +29,17 @@ public class ChangePasswordController {
     private Person currentUser;
     private long userId = -1;
     private boolean isDriver = false;
-
     public void setUser(Person user) {
         this.currentUser = user;
         this.isDriver = (user instanceof Model.Driver);
-
-        // Get user ID from database
         this.userId = getUserIdFromDatabase(user.getEmail(), isDriver);
     }
-
     private long getUserIdFromDatabase(String email, boolean isDriver) {
         String tableName = isDriver ? "drivers" : "passengers";
         String sql = "SELECT id FROM " + tableName + " WHERE email = ?";
-
         try (Connection con = DBConnection.getConnection();
              java.sql.PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setString(1, email);
-
             try (java.sql.ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getLong("id");
@@ -58,35 +51,25 @@ public class ChangePasswordController {
 
         return -1;
     }
-
-
     @FXML
     public void onChangePassword() {
         String currentPassword = currentPasswordField.getText();
         String newPassword = newPasswordField.getText();
         String confirmPassword = confirmPasswordField.getText();
-
-        // Validate inputs
         if (currentPassword.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty()) {
             showMessage("All fields are required", true);
             return;
         }
-
         if (!isStrongPassword(newPassword)) {
             showMessage("Password must be at least 8 characters and include:\n• Uppercase\n• Lowercase\n• Number\n• Special character", true);
             return;
         }
-
         if (!newPassword.equals(confirmPassword)) {
             showMessage("New passwords do not match", true);
             return;
         }
-
-        // Update password
         if (updatePassword(currentPassword, newPassword)) {
             showMessage("✓ Password changed successfully!", false);
-
-            // Navigate back to Profile after 1.5 seconds
             PauseTransition pause = new PauseTransition(Duration.seconds(1.5));
             pause.setOnFinished(e -> navigateToProfile());
             pause.play();
@@ -94,34 +77,24 @@ public class ChangePasswordController {
             showMessage(" Current password is incorrect", true);
         }
     }
-
     private boolean updatePassword(String currentPassword, String newPassword) {
         try {
-            // Verify current password
             String hashedCurrent = hashPassword(currentPassword);
             if (!currentUser.getPassword().equals(hashedCurrent)) {
                 System.out.println("[ChangePassword] Current password verification failed");
                 return false;
             }
-
             String hashedNew = hashPassword(newPassword);
             String tableName = isDriver ? "drivers" : "passengers";
             String sql = "UPDATE " + tableName + " SET password = ? WHERE id = ?";
-
             try (Connection con = DBConnection.getConnection();
                  PreparedStatement ps = con.prepareStatement(sql)) {
-
                 ps.setString(1, hashedNew);
                 ps.setLong(2, userId);
                 int rowsUpdated = ps.executeUpdate();
-
-                // Update the user object's password and UserSession
                 if (rowsUpdated > 0) {
                     currentUser.setPassword(hashedNew);
-
-                    // Update UserSession to reflect the new password
                     UserSession.getInstance().updateCurrentUser(currentUser);
-
                     System.out.println("[ChangePassword]  Password updated successfully in database and session");
                     return true;
                 }
@@ -134,8 +107,6 @@ public class ChangePasswordController {
             return false;
         }
     }
-
-
     private static String hashPassword(String password) {
         if (password == null || password.isEmpty()) {
             return "";
@@ -154,13 +125,10 @@ public class ChangePasswordController {
             throw new RuntimeException("SHA-256 algorithm not found", e);
         }
     }
-
     private boolean isStrongPassword(String password) {
         String regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#])[A-Za-z\\d@$!%*?&#]{8,}$";
         return password != null && password.matches(regex);
     }
-
-
     private void showMessage(String message, boolean isError) {
         messageLabel.setText(message);
         messageLabel.setVisible(true);
@@ -172,25 +140,17 @@ public class ChangePasswordController {
             messageLabel.setStyle("-fx-text-fill: #3FB950; -fx-font-size: 13px; -fx-font-weight: 600;");
         }
     }
-
-
     @FXML
     public void onBack() {
         navigateToProfileSettings();
     }
-
-
     private void navigateToProfileSettings() {
         try {
             if (isDriver) {
-                // Navigate to DriverSettings
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/DriverSettings.fxml"));
                 Scene scene = new Scene(loader.load(), 390, 750);
-
                 DriverSettingsController controller = loader.getController();
                 if (currentUser != null) {
-                    // ✅ CRITICAL: Fetch fresh driver data from database before opening Settings
-                    // DO NOT pass the old driver object as it may have stale balance
                     try {
                         DriverDAO driverDAO = new DriverDAO();
                         Long driverId = driverDAO.getDriverIdByEmail(currentUser.getEmail());
@@ -200,7 +160,6 @@ public class ChangePasswordController {
                                 controller.setUser(freshDriver);
                                 System.out.println("[ChangePassword]  Opened DriverSettings with fresh driver data from database");
                             } else {
-                                // Fallback: use old object if fetch fails
                                 controller.setUser(currentUser);
                                 controller.refreshBalance();
                                 System.out.println("[ChangePassword]  Using old driver object, refreshing balance");
@@ -212,12 +171,10 @@ public class ChangePasswordController {
                         controller.refreshBalance();
                     }
                 }
-
                 Stage stage = (Stage) backButton.getScene().getWindow();
                 stage.setScene(scene);
                 stage.show();
             } else {
-                // Navigate to ProfileSettings (Passenger)
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ProfileSettings.fxml"));
                 Scene scene = new Scene(loader.load(), 390, 750);
 
@@ -225,7 +182,6 @@ public class ChangePasswordController {
                 if (currentUser != null) {
                     controller.setUser(currentUser);
                 }
-
                 Stage stage = (Stage) backButton.getScene().getWindow();
                 stage.setScene(scene);
                 stage.show();
@@ -235,12 +191,10 @@ public class ChangePasswordController {
             e.printStackTrace();
         }
     }
-
     private void navigateToProfile() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/Profile.fxml"));
             Scene scene = new Scene(loader.load(), 390, 750);
-
             ProfileController controller = loader.getController();
             if (currentUser != null) {
                 controller.setUser(currentUser);

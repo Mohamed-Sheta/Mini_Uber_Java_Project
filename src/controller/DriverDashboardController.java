@@ -178,11 +178,6 @@ public class DriverDashboardController {
         }
     }
 
-    /**
-     * Update driver status in database using existing DriverDAO.update() method
-     * @param isActive true for online (active=1), false for offline (active=0)
-     * @return true if update succeeded, false otherwise
-     */
     private boolean updateDriverStatusInDatabase(boolean isActive) {
         try {
             // Use the currentDriver field that was set in setDriver()
@@ -247,9 +242,7 @@ public class DriverDashboardController {
         }
     }
 
-    /**
-     * Animate toggle switch to ON position (right side, bright green)
-     */
+
     private void animateToggleToOn() {
         if (toggleThumb == null || toggleSwitch == null) return;
 
@@ -271,9 +264,6 @@ public class DriverDashboardController {
                             "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 6, 0.0, 0, 2);");
     }
 
-    /**
-     * Animate toggle switch to OFF position (left side, dark grey)
-     */
     private void animateToggleToOff() {
         if (toggleThumb == null || toggleSwitch == null) return;
 
@@ -299,11 +289,6 @@ public class DriverDashboardController {
         setDriver(driver, false); // Default: not coming from ride completion
     }
 
-    /**
-     * Set driver with optional flag for ride completion flow
-     * @param driver The driver object
-     * @param comingFromRideCompletion If true, applies 3-second delay before next ride
-     */
     public void setDriver(Driver driver, boolean comingFromRideCompletion) {
         System.out.println("setDriver() called with driver: " + (driver != null ? driver.getName() : "null") +
                           ", comingFromRideCompletion: " + comingFromRideCompletion);
@@ -342,11 +327,6 @@ public class DriverDashboardController {
         loadTodayStatistics();
     }
 
-    /**
-     * Load the driver's current active status from database and update toggle UI
-     * Loads actual status from database to allow resuming ONLINE mode after ride completion
-     * @param comingFromRideCompletion If true, applies 3-second delay before checking for next ride
-     */
     private void loadDriverStatusFromDatabase(boolean comingFromRideCompletion) {
         try {
             System.out.println("[DriverDashboard] Loading driver status from database...");
@@ -517,10 +497,6 @@ public class DriverDashboardController {
         }
     }
 
-    /**
-     * Check for pending rides and display immediately (no additional delay)
-     * The delay is applied at the higher level (when going online or after ride completion)
-     */
     private void checkForPendingRidesAndDisplay() {
         try {
             RideRequestDAO rideRequestDAO = new RideRequestDAO();
@@ -647,11 +623,6 @@ public class DriverDashboardController {
         }
     }
 
-    /**
-     * Get passenger name by passenger ID from the database
-     * @param passengerId The passenger's ID
-     * @return The passenger's name, or null if not found
-     */
     private String getPassengerNameById(long passengerId) {
         try (Connection con = DBConnection.getConnection()) {
             String query = "SELECT name FROM passengers WHERE id = ?";
@@ -684,9 +655,6 @@ public class DriverDashboardController {
         hideAssignedPassengerName();
     }
 
-    /**
-     * Show offline message when driver is not active
-     */
     private void showOfflineMessage() {
         hideRideRequest();
         if (waitingMessageLabel != null) {
@@ -699,9 +667,7 @@ public class DriverDashboardController {
         }
     }
 
-    /**
-     * Show waiting for rides message when driver just went online
-     */
+
     private void showWaitingForRidesMessage() {
         hideRideRequest();
         if (waitingMessageLabel != null) {
@@ -809,9 +775,6 @@ public class DriverDashboardController {
     }
 
 
-    /**
-     * Navigate to About page (same as passenger version)
-     */
     private void navigateToAbout() {
         System.out.println("[DriverDashboard] Navigating to About page");
         stopPollingForRides(); // Stop polling when navigating away
@@ -855,9 +818,6 @@ public class DriverDashboardController {
         }
     }
 
-    /**
-     * Navigate to Profile page (uses same Profile.fxml but for driver)
-     */
     private void navigateToProfile() {
         System.out.println("[DriverDashboard] Navigating to Driver Profile page");
         stopPollingForRides(); // Stop polling when navigating away
@@ -900,11 +860,6 @@ public class DriverDashboardController {
         }
     }
 
-    /**
-     * Load profile image using ProfilePhotoDAO for current driver
-     * This ensures each driver always sees their own latest profile picture
-     * Called when driver is set or dashboard is refreshed
-     */
     private void loadProfileImage() {
         try {
             System.out.println("[DriverDashboard] Loading profile image for driver: " +
@@ -961,10 +916,6 @@ public class DriverDashboardController {
         }
     }
 
-    /**
-     * Set the assigned passenger name and display it in the dashboard
-     * @param name The passenger's name
-     */
     public void setAssignedPassengerName(String name) {
         if (assignedPassengerName != null && name != null && !name.isEmpty()) {
             assignedPassengerName.setText("Passenger: " + name);
@@ -974,9 +925,7 @@ public class DriverDashboardController {
         }
     }
 
-    /**
-     * Hide the assigned passenger name label
-     */
+
     private void hideAssignedPassengerName() {
         if (assignedPassengerName != null) {
             assignedPassengerName.setVisible(false);

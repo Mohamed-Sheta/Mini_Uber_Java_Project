@@ -35,18 +35,11 @@ public class DriverSettingsController {
     private boolean isDriver = true;
     private long currentDriverId = -1;
 
-    /**
-     * Initialize the controller
-     */
     @FXML
     public void initialize() {
         System.out.println("[DriverSettings] Controller initialized");
     }
 
-    /**
-     * Set the current user
-     * Note: Balance display removed from Settings - now only in Profile
-     */
     public void setUser(Person user) {
         this.currentUser = user;
         this.isDriver = (user instanceof Driver);
@@ -67,17 +60,12 @@ public class DriverSettingsController {
         }
     }
 
-    /**
-     * Legacy method - no longer needed since balance is not displayed in Settings
-     * Kept for backward compatibility
-     */
+
     public void refreshBalance() {
         System.out.println("[DriverSettings] refreshBalance() called but not needed - balance is in Profile screen now");
     }
 
-    /**
-     * Navigate back to Driver Dashboard
-     */
+
     @FXML
     public void onBackToDashboard() {
         try {
@@ -99,9 +87,6 @@ public class DriverSettingsController {
     }
 
 
-    /**
-     * Navigate to Change Password screen
-     */
     @FXML
     public void onChangePassword() {
         try {
@@ -122,9 +107,6 @@ public class DriverSettingsController {
         }
     }
 
-    /**
-     * Navigate to Delete Account Confirmation screen
-     */
     @FXML
     public void onDeleteAccount() {
         try {
@@ -145,17 +127,12 @@ public class DriverSettingsController {
         }
     }
 
-    /**
-     * Logout and return to role selection
-     */
     @FXML
     public void onLogout() {
         navigateToRoleSelection();
     }
 
-    /**
-     * Navigate to Report App screen
-     */
+
     @FXML
     public void onReportApp() {
         try {
@@ -182,9 +159,7 @@ public class DriverSettingsController {
         }
     }
 
-    /**
-     * Navigate to role selection screen
-     */
+
     private void navigateToRoleSelection() {
         try {
             // Clear the user session (logout)

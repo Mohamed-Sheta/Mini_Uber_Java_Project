@@ -16,8 +16,6 @@ public class miniuber extends Application { // Fixed naming convention
     public void start(Stage stage) throws IOException {
         try {
             Request.DatabaseInitializer dbInit = new Request.DatabaseInitializer();
-            // FIXED: Changed to false to prevent database reset on every startup
-            // This ensures all data (users, rides, ratings, history) persists across app restarts
             Map<ProblemType, Integer> problemTypeMap = dbInit.initialize(false); // false = DO NOT reset DB
             MapGraph.CityMapSetup citySetup = new MapGraph.CityMapSetup();
             citySetup.initializeAll();
@@ -26,7 +24,6 @@ public class miniuber extends Application { // Fixed naming convention
             stage.setMinHeight(750);
             stage.setResizable(false);
 
-            // Set application icon
             try {
                 java.io.InputStream iconStream = getClass().getResourceAsStream("/Logo-removebg-preview.png");
                 if (iconStream != null) {

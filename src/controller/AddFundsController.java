@@ -23,9 +23,7 @@ public class AddFundsController {
     }
     @FXML
     public void initialize() {
-        // Restrict amount field to numbers and decimal point only, and prevent negative values
         amountField.textProperty().addListener((observable, oldValue, newValue) -> {
-            // Clear any existing error message
             if (messageLabel != null && newValue.isEmpty()) {
                 messageLabel.setText("");
                 messageLabel.setStyle("");
@@ -36,7 +34,6 @@ public class AddFundsController {
                 amountField.setText(oldValue);
                 return;
             }
-            // Only allow digits and decimal point with max 2 decimal places
             if (!newValue.matches("\\d*(\\.\\d{0,2})?")) {
                 amountField.setText(oldValue);
             }
@@ -62,14 +59,11 @@ public class AddFundsController {
     }
     @FXML
     public void onAddMoney() {
-        // Get the amount from the text field
         String amountText = amountField.getText().trim();
-        // Validate input is not empty
         if (amountText.isEmpty()) {
             showError("Please enter a valid amount.");
             return;
         }
-        // Validate input is numeric
         double amount;
         try {
             amount = Double.parseDouble(amountText);
@@ -77,40 +71,31 @@ public class AddFundsController {
             showError("Please enter a valid numeric amount.");
             return;
         }
-        // Validate amount is not negative
         if (amount < 0) {
             showError("Negative amounts are not allowed!");
             return;
         }
-        // Validate amount is positive (greater than 0)
         if (amount <= 0) {
             showError("Amount must be greater than 0");
             return;
         }
-        // Validate maximum amount
         if (amount > 10000) {
             showError("Maximum amount is 10,000 EGP");
             return;
         }
-        // Get user ID from database
         long userId = getUserIdFromDatabase();
         if (userId == -1) {
             showError("User not found in database");
             return;
         }
-        // Update database balance
         try {
             boolean success = updateBalanceInDatabase(userId, amount);
 
             if (success) {
-                // Update the in-memory user object
                 double newBalance = currentUser.getWalletBalance() + amount;
                 currentUser.updateWalletBalance(newBalance);
-                // Refresh the balance display immediately
                 updateBalanceDisplay();
-                // Show success message
                 showSuccess(String.format("Successfully added %.2f EGP to your wallet!", amount));
-                // Clear the amount field
                 amountField.clear();
             } else {
                 showError(" Failed to update balance. Please try again.");
@@ -126,12 +111,9 @@ public class AddFundsController {
         }
         String tableName = (currentUser instanceof Model.Driver) ? "drivers" : "passengers";
         String sql = "SELECT id FROM " + tableName + " WHERE email = ?";
-
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setString(1, currentUser.getEmail());
-
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getLong("id");
@@ -141,36 +123,26 @@ public class AddFundsController {
             System.err.println("Error getting user ID: " + e.getMessage());
             e.printStackTrace();
         }
-
         return -1;
     }
     private boolean updateBalanceInDatabase(long userId, double amount) throws SQLException {
         String tableName = (currentUser instanceof Model.Driver) ? "drivers" : "passengers";
         String sql = "UPDATE " + tableName + " SET wallet_balance = wallet_balance + ? WHERE id = ?";
-
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setDouble(1, amount);
             ps.setLong(2, userId);
-
             int rowsAffected = ps.executeUpdate();
-
             System.out.println("Balance update - Rows affected: " + rowsAffected);
-
             return rowsAffected > 0;
         }
     }
-
     private void refreshBalanceFromDatabase(long userId) {
         String tableName = (currentUser instanceof Model.Driver) ? "drivers" : "passengers";
         String sql = "SELECT wallet_balance FROM " + tableName + " WHERE id = ?";
-
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setLong(1, userId);
-
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     double newBalance = rs.getDouble("wallet_balance");
@@ -183,26 +155,19 @@ public class AddFundsController {
             e.printStackTrace();
         }
     }
-
     @FXML
     public void onBackToProfile() {
         try {
-            // Refresh balance from database before navigating back
             long userId = getUserIdFromDatabase();
             if (userId != -1) {
                 refreshBalanceFromDatabase(userId);
             }
-
-            // Navigate back to ProfileSettings (which is the caller)
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/ProfileSettings.fxml"));
             Scene scene = new Scene(loader.load(), 390, 750);
-
-            // Pass updated user data back
             ProfileSettingsController controller = loader.getController();
             if (currentUser != null) {
                 controller.setUser(currentUser);
             }
-
             Stage stage = (Stage) backButton.getScene().getWindow();
             stage.setScene(scene);
             stage.show();
@@ -214,17 +179,11 @@ public class AddFundsController {
     @FXML
     public void onLogout() {
         System.out.println("=== Logout clicked ===");
-
         try {
-            // Clear current user session
             currentUser = null;
             System.out.println("User session cleared");
-
-            // Load RoleSelection screen using existing navigation pattern
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/RoleSelection.fxml"));
             Scene scene = new Scene(loader.load(), 390, 750);
-
-            // Get current stage and set new scene
             Stage stage = (Stage) logoutButton.getScene().getWindow();
             stage.setScene(scene);
             stage.show();

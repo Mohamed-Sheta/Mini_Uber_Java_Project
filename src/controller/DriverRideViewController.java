@@ -766,10 +766,6 @@ public class DriverRideViewController {
     }
 
     // ==================== CHAT FUNCTIONALITY ====================
-
-    /**
-     * Initialize chat UI
-     */
     private void initializeChat() {
         if (chatMessagesContainer != null) {
             chatMessagesContainer.getChildren().clear();
@@ -777,9 +773,6 @@ public class DriverRideViewController {
         }
     }
 
-    /**
-     * Send automatic message to chat
-     */
     private void sendAutoChatMessage(String message) {
         if (rideId == 0) return;
 
@@ -787,10 +780,6 @@ public class DriverRideViewController {
         utils.ChatStorage.getInstance().addMessage(rideId, chatMsg);
         displayChatMessage(chatMsg);
     }
-
-    /**
-     * Display a chat message in the UI
-     */
     private void displayChatMessage(Model.ChatMessage message) {
         if (chatMessagesContainer == null) return;
 
@@ -829,9 +818,6 @@ public class DriverRideViewController {
         });
     }
 
-    /**
-     * Load existing chat messages when view opens
-     */
     private void loadChatHistory() {
         if (rideId == 0) return;
 
@@ -857,9 +843,6 @@ public class DriverRideViewController {
         sendAutoChatMessage("I am downstairs.");
     }
 
-    /**
-     * Poll for new messages from passenger
-     */
     private Timer chatPollingTimer;
     private int lastMessageCount = 0;
 
