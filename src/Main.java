@@ -211,7 +211,7 @@ public class Main {
         System.out.println("Test 2: Low balance (Sara from Downtown -> Nasr City)");
         Request r2 = p2.request_ride(downtown, nasrCity, cityMap);
         if (r2 != null) {
-            Payment pay2 = new Payment(r2.getEstimatedPrice(), PaymentType.credit, optBasic);
+            Payment pay2 = new Payment(r2.getEstimatedPrice(), PaymentType.wallet, optBasic);
             RideManager rm2 = new RideManager(allDrivers, r2, cityMap, pay2);
             rm2.setDatabaseMaps(passengerId, driverId);
 
@@ -286,7 +286,7 @@ public class Main {
 
             Payment pxPay = new Payment(
                     rx.getEstimatedPrice(),
-                    (i % 2 == 0) ? PaymentType.wallet : PaymentType.credit,
+                    PaymentType.wallet,
                     (i % 3 == 0) ? optTipsDonate : optBasic
             );
 

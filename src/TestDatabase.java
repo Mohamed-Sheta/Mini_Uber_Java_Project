@@ -169,11 +169,11 @@ public class TestDatabase {
             RideHistoryDAO histDAO = new RideHistoryDAO();
 
             histDAO.insert(req1, did1, pid1, 5, 4, 900.0, PaymentType.wallet, 20.0, 5.0, "UNICEF");
-            histDAO.insert(req2, did2, pid2, 4, 5, 950.0, PaymentType.credit, 10.0, 0.0, "");
+            histDAO.insert(req2, did2, pid2, 4, 5, 950.0, PaymentType.wallet, 10.0, 0.0, "");
 
             histDAO.insert(req3, did2, pid3, 5, 5, 600.0, PaymentType.wallet, 0.0, 0.0, "");
-            histDAO.insert(req4, did1, pid4, 3, 4, 120.0, PaymentType.credit, 0.0, 10.0, "");
-            histDAO.insert(req6, did5, pid7, 5, 5, 1100.0, PaymentType.credit, 50.0, 0.0, "Resala");
+            histDAO.insert(req4, did1, pid4, 3, 4, 120.0, PaymentType.wallet, 0.0, 10.0, "");
+            histDAO.insert(req6, did5, pid7, 5, 5, 1100.0, PaymentType.wallet, 50.0, 0.0, "Resala");
             histDAO.insert(req9, did4, pid6, 5, 5, 150.0, PaymentType.wallet, 0.0, 0.0, "");
 
             histDAO.update(1, 5, 5, 1000.0, PaymentType.wallet, 30.0, 10.0, "Red Crescent");

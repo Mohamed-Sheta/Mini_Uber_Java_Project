@@ -103,7 +103,7 @@ CREATE TABLE ride_history (
                               passenger_rating TINYINT DEFAULT 0 CHECK(passenger_rating BETWEEN 0 AND 5),
                               driver_rating TINYINT DEFAULT 0 CHECK(driver_rating BETWEEN 0 AND 5),
                               ride_cost DECIMAL(12,2) NOT NULL DEFAULT 0,
-                              payment_method ENUM('wallet','credit') NOT NULL,
+                              payment_method ENUM('wallet') NOT NULL DEFAULT 'wallet',
                               tips DECIMAL(12,2) NOT NULL DEFAULT 0,
                               donation_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
                               donation_organization VARCHAR(160) NOT NULL DEFAULT '',
