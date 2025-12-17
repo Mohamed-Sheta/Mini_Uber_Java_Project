@@ -135,141 +135,1246 @@ This workflow ensures a smooth, transparent, and reliable ride-hailing experienc
 
 ## 🏗 System Architecture
 
-MiniGo implements a **layered MVC (Model-View-Controller) architecture** with clear separation between presentation, business logic, and data access layers.
+MiniGo implements a **layered MVC (Model-View-Controller) architecture** with clear separation between presentation, business logic, and data access layers. This design ensures maintainability, testability, and scalability.
 
 ### **Architecture Overview**
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                  PRESENTATION LAYER                  │
-│              (JavaFX Views + Controllers)            │
-│  - Login, Registration, Map, Dashboard, Settings    │
-└─────────────────────┬───────────────────────────────┘
-                      │
-                      ↓
-┌─────────────────────────────────────────────────────┐
-│                  SERVICE LAYER                       │
-│              (Business Logic & Algorithms)           │
-│  - RideManager, MapGraph, Payment, Request          │
-└─────────────────────┬───────────────────────────────┘
-                      │
-                      ↓
-┌─────────────────────────────────────────────────────┐
-│                    DAO LAYER                         │
-│            (Data Access Abstraction)                 │
-│  - PassengerDAO, DriverDAO, RideRequestDAO, etc.    │
-└─────────────────────┬───────────────────────────────┘
-                      │
-                      ↓
-┌─────────────────────────────────────────────────────┐
-│                  DATABASE LAYER                      │
-│                  (MySQL Database)                    │
-│  - Tables: passengers, drivers, ride_requests, etc. │
-└─────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│              PRESENTATION LAYER (MVC)                     │
+│                                                           │
+│  ┌─────────────────┐         ┌─────────────────┐        │
+│  │  VIEW (FXML)    │  ←───→  │  CONTROLLER     │        │
+│  │  - MapView.fxml │         │  - MapController│        │
+│  │  - Login.fxml   │         │  - LoginCtrl    │        │
+│  │  - Dashboard    │         │  - DashboardCtrl│        │
+│  └─────────────────┘         └────────┬────────┘        │
+│                                        │                  │
+│                    User Interaction    │                  │
+│                    ↕                   │ Calls Services   │
+└────────────────────────────────────────┼──────────────────┘
+                                         ↓
+┌────────────────────────────────────────────────────────┐
+│         SERVICE LAYER (MODEL - Business Logic)         │
+│                                                         │
+│  - RideManager.java      → Orchestrates ride workflow  │
+│  - MapGraph.java         → Dijkstra's algorithm        │
+│  - Payment.java          → Wallet & fare calculations  │
+│  - Request.java          → Ride state management       │
+│                                                         │
+│  Responsibilities:                                      │
+│  ✓ Apply business rules and validations                │
+│  ✓ Coordinate between multiple DAOs                    │
+│  ✓ Execute algorithms (routing, pricing)               │
+│  ✓ Never contain SQL or UI code                        │
+└─────────────────────────┬──────────────────────────────┘
+                          ↓
+┌────────────────────────────────────────────────────────┐
+│           DAO LAYER (Data Access Object)               │
+│                                                         │
+│  - PassengerDAO      ↔  passengers table               │
+│  - DriverDAO         ↔  drivers table                  │
+│  - RideRequestDAO    ↔  ride_requests table            │
+│  - RideHistoryDAO    ↔  ride_history table             │
+│  - LocationDAO       ↔  locations table                │
+│  - EdgeDAO           ↔  edges table                    │
+│  - ProfilePhotoDAO   ↔  profile_photos table           │
+│                                                         │
+│  Responsibilities:                                      │
+│  ✓ Execute SQL queries (SELECT, INSERT, UPDATE, etc.)  │
+│  ✓ Map database ResultSets to Java objects             │
+│  ✓ Use PreparedStatements (prevent SQL injection)      │
+│  ✓ Only layer that communicates with database          │
+└─────────────────────────┬──────────────────────────────┘
+                          ↓
+┌────────────────────────────────────────────────────────┐
+│              DATABASE LAYER (MySQL)                     │
+│                                                         │
+│  Tables: passengers, drivers, ride_requests,           │
+│          ride_history, locations, edges,               │
+│          profile_photos, reports, etc.                 │
+│                                                         │
+│  Enforces:                                              │
+│  ✓ Primary Keys (PK)                                   │
+│  ✓ Foreign Keys (FK) with CASCADE rules                │
+│  ✓ UNIQUE constraints (emails, SSNs)                   │
+│  ✓ CHECK constraints (ratings, distances)              │
+└────────────────────────────────────────────────────────┘
 ```
 
-### **Layer Responsibilities**
+### **MVC Pattern Explained**
 
-#### **1. Presentation Layer (View + Controller)**
+MiniGo follows the **Model-View-Controller (MVC)** design pattern, which separates the application into three interconnected components:
 
-**View (FXML Files)**
-- Define the UI structure declaratively
-- Located in `resources/` directory
-- Styled using CSS for consistent branding
-- Examples: `MapView.fxml`, login screens, dashboards
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        MVC PATTERN                           │
+│                                                              │
+│  ┌──────────────┐       ┌──────────────┐      ┌──────────┐ │
+│  │    VIEW      │ ◄───► │  CONTROLLER  │ ───► │  MODEL   │ │
+│  │   (FXML)     │       │    (Java)    │ ◄─── │  (Java)  │ │
+│  └──────────────┘       └──────────────┘      └──────────┘ │
+│       ↑                        ↑                     ↑       │
+│       │                        │                     │       │
+│   User sees &              Orchestrates          Contains    │
+│   interacts               user actions          business     │
+│   with UI                                         logic      │
+└─────────────────────────────────────────────────────────────┘
+```
 
-**Controller (Controller Classes)**
-- Handle user interactions and UI events
-- Validate user input before processing
-- Invoke service layer methods
-- Update UI based on operation results
-- Examples: `MapController.java`, `LoginController.java`, `DriverDashboardController.java`
+---
 
-**Key Principle**: Controllers never directly access the database. They communicate only with the Service layer.
+### **MVC Components Breakdown**
 
-#### **2. Service Layer (Business Logic)**
+#### **📺 VIEW (User Interface)**
 
-This layer contains the core business logic and algorithms:
+**What is the View?**
+The View is everything the user sees and interacts with—the graphical interface.
 
-**RideManager.java**
-- Orchestrates the complete ride lifecycle
-- Coordinates between multiple DAOs
-- Implements ride request matching logic
-- Manages concurrent ride requests using multithreading
+**Files & Location**:
+- **FXML Files**: Located in `resources/` directory
+- **CSS Files**: For styling (e.g., `style.css`, `driver-dialog.css`)
+- **Images**: Icons, logos, avatars in `resources/`
+- **HTML**: Embedded web views (e.g., `map.html` for OpenLayers map)
 
-**MapGraph.java**
-- Builds the location graph from database data
-- Implements Dijkstra's shortest path algorithm
-- Calculates optimal routes between locations
-- Computes distance, time, and fare estimates
+**View Components in MiniGo**:
 
-**Payment.java**
-- Handles wallet transactions
-- Validates sufficient balance before rides
-- Processes fare deductions and credits
-- Records company transaction fees
+| View File | Purpose | UI Elements |
+|-----------|---------|-------------|
+| `MapView.fxml` | Main map interface | Map container, location dropdowns, request ride button |
+| Login/Registration forms | User authentication | Text fields, password fields, submit buttons |
+| Passenger Dashboard | Passenger home screen | Wallet balance, ride history table, profile section |
+| Driver Dashboard | Driver interface | Accept ride button, active rides list, earnings display |
+| Settings Dialog | User preferences | Profile photo upload, account settings |
 
-**Request.java**
-- Manages ride request state transitions
-- Validates ride request data
-- Coordinates driver assignment
-- Handles ride cancellation logic
+**Example FXML Structure**:
+```xml
+<!-- MapView.fxml -->
+<VBox>
+    <ComboBox fx:id="originComboBox" promptText="Select Origin" />
+    <ComboBox fx:id="destinationComboBox" promptText="Select Destination" />
+    <Button fx:id="requestRideButton" text="Request Ride" 
+            onAction="#onRequestRideButtonClick" />
+    <Label fx:id="statusLabel" text="Ready" />
+    <WebView fx:id="mapWebView" />
+</VBox>
+```
 
-**Key Principle**: Service classes encapsulate business rules and coordinate between multiple data sources.
+**What View Does**:
+- ✅ Displays data to the user
+- ✅ Captures user input (clicks, typing)
+- ✅ Binds UI elements to Controller methods (via `fx:id` and `onAction`)
+- ✅ Shows notifications, alerts, and confirmations
 
-#### **3. DAO Layer (Data Access Object)**
+**What View Does NOT Do**:
+- ❌ NO business logic (no calculations, validations)
+- ❌ NO database operations
+- ❌ NO decision-making about data
 
-The DAO pattern abstracts all database interactions:
+**Key Principle**: The View is "dumb"—it displays what it's told and reports user actions to the Controller.
 
-**Purpose**:
-- Provide a clean interface for database operations
-- Encapsulate SQL queries and JDBC logic
-- Prevent SQL injection using prepared statements
-- Enable easy database migration or testing with mock data
+---
 
-**DAO Classes**:
-- `PassengerDAO.java` – CRUD operations for passengers
-- `DriverDAO.java` – CRUD operations for drivers
-- `RideRequestDAO.java` – Ride request management
-- `RideHistoryDAO.java` – Completed ride records
-- `LocationDAO.java` – Location and map data
-- `EdgeDAO.java` – Road graph edges
-- `ProfilePhotoDAO.java` – User profile images
+#### **🎮 CONTROLLER (Traffic Director)**
 
-**Example DAO Method**:
+**What is the Controller?**
+The Controller is the bridge between View and Model. It handles user actions and coordinates responses.
+
+**Files & Location**:
+- **Java Classes**: Located in `src/controller/` package
+- **Naming Convention**: `*Controller.java` (e.g., `MapController.java`)
+
+**Controller Classes in MiniGo**:
+
+| Controller Class | Manages | Key Responsibilities |
+|-----------------|---------|---------------------|
+| `MapController.java` | Map interface & ride requests | Handle ride creation, route display, real-time updates |
+| `LoginController.java` | Authentication | Validate credentials, call authentication service |
+| `PassengerDashboardController.java` | Passenger home | Load ride history, update wallet, display stats |
+| `DriverDashboardController.java` | Driver interface | Accept rides, update status, track earnings |
+| `RegistrationController.java` | New user signup | Validate inputs, create accounts |
+| `SettingsController.java` | User preferences | Handle profile updates, photo uploads |
+
+**Example Controller Flow**:
 ```java
-// Abstraction: Controllers/Services call this method
-public Passenger findByEmail(String email);
-
-// Implementation: DAO handles SQL internally
-// Uses prepared statements to prevent SQL injection
+// MapController.java
+public class MapController {
+    // FXML-injected UI components
+    @FXML private ComboBox<Location> originComboBox;
+    @FXML private ComboBox<Location> destinationComboBox;
+    @FXML private Button requestRideButton;
+    @FXML private Label statusLabel;
+    
+    // Service layer dependencies
+    private RideManager rideManager = new RideManager();
+    private Passenger currentPassenger;
+    
+    // Controller method triggered by View
+    @FXML
+    public void onRequestRideButtonClick() {
+        // STEP 1: Get data from View
+        Location origin = originComboBox.getValue();
+        Location destination = destinationComboBox.getValue();
+        
+        // STEP 2: Validate input (Controller responsibility)
+        if (origin == null || destination == null) {
+            statusLabel.setText("Error: Please select both locations");
+            showAlert("Validation Error", "Please select origin and destination");
+            return;
+        }
+        
+        if (origin.equals(destination)) {
+            showAlert("Invalid Selection", "Origin and destination must be different");
+            return;
+        }
+        
+        // STEP 3: Call Model (Service layer)
+        try {
+            RideRequest request = rideManager.createRideRequest(
+                currentPassenger, origin, destination
+            );
+            
+            // STEP 4: Update View based on result
+            statusLabel.setText("Ride requested! Waiting for driver...");
+            displayRideDetails(request);
+            disableRequestButton();
+            
+        } catch (InsufficientBalanceException e) {
+            showAlert("Insufficient Balance", 
+                     "Please add funds to your wallet");
+        } catch (Exception e) {
+            showAlert("Error", "Failed to create ride request: " + e.getMessage());
+        }
+    }
+    
+    // Helper method to update View
+    private void displayRideDetails(RideRequest request) {
+        statusLabel.setText(String.format(
+            "Distance: %.2f km | Fare: %.2f EGP | Time: %d min",
+            request.getDistance(), 
+            request.getEstimatedPrice(), 
+            request.getEstimatedTime()
+        ));
+    }
+}
 ```
 
-**Key Principle**: DAOs are the only classes that contain SQL queries and database connection logic.
+**What Controller Does**:
+- ✅ Captures user events from View (button clicks, form submissions)
+- ✅ Performs input validation (null checks, format validation)
+- ✅ Calls Model/Service methods to process data
+- ✅ Updates View based on Model's response
+- ✅ Handles exceptions and shows error messages
+- ✅ Manages UI state (enable/disable buttons, show/hide elements)
 
-#### **4. Model Layer (Data Entities)**
+**What Controller Does NOT Do**:
+- ❌ NO business logic (no calculations, algorithms)
+- ❌ NO direct database access (no SQL queries)
+- ❌ NO complex data processing
 
-Plain Java objects representing business entities:
-- `Passenger.java`, `Driver.java` – User data models
-- `RideHistory.java`, `Request.java` – Ride information
-- `Location.java`, `Edge.java` – Map graph entities
-- `ProblemReport.java`, `Report.java` – Issue tracking
+**Key Principle**: Controllers orchestrate the flow but delegate actual work to the Model.
 
-These classes contain fields, getters, setters, and basic validation logic.
+---
 
-### **Data Flow Example: Requesting a Ride**
+#### **🧠 MODEL (Brain of the Application)**
 
-1. **User Action**: Passenger selects origin/destination and clicks "Request Ride"
-2. **Controller**: `MapController` validates input (non-null locations, sufficient wallet balance)
-3. **Service Layer**: 
-   - `MapGraph.calculateShortestPath()` computes optimal route
-   - `Payment.validateBalance()` checks if passenger can afford the ride
-   - `RideManager.createRideRequest()` orchestrates request creation
-4. **DAO Layer**: 
-   - `RideRequestDAO.insert()` saves request to database
-   - `PassengerDAO.updateWalletBalance()` reserves funds (if needed)
-5. **Notification**: Email service sends confirmation to passenger
-6. **Response**: Controller receives success/failure result and updates UI
+**What is the Model?**
+The Model represents the business logic, data, and rules of the application.
+
+**Model Has Two Parts**:
+
+**Part 1: Business Logic (Service Layer)**
+**Files & Location**: `src/services/` package
+
+| Service Class | Responsibility | What It Does |
+|--------------|----------------|--------------|
+| `RideManager.java` | Ride orchestration | Creates rides, manages lifecycle, coordinates drivers and passengers |
+| `MapGraph.java` | Route calculation | Implements Dijkstra's algorithm, finds shortest paths |
+| `Payment.java` | Financial operations | Validates balance, processes payments, handles tips |
+| `Request.java` | Ride state management | Manages ride status transitions, validates ride data |
+| `EmailService.java` | Notifications | Sends confirmation emails, invoices, alerts |
+| `Authentication.java` | User security | Login validation, password hashing, session management |
+
+**Example Service Method**:
+```java
+// RideManager.java (Model - Business Logic)
+public class RideManager {
+    private RideRequestDAO rideRequestDAO = new RideRequestDAO();
+    private PassengerDAO passengerDAO = new PassengerDAO();
+    private MapGraph mapGraph = new MapGraph();
+    
+    public RideRequest createRideRequest(Passenger passenger, 
+                                         Location origin, 
+                                         Location destination) {
+        
+        // BUSINESS RULE 1: Calculate optimal route
+        List<Location> route = mapGraph.calculateShortestPath(origin, destination);
+        double distance = calculateDistance(route);
+        
+        // BUSINESS RULE 2: Calculate fare
+        double baseFare = 10.0;
+        double pricePerKm = 2.5;
+        double estimatedFare = baseFare + (distance * pricePerKm);
+        
+        // BUSINESS RULE 3: Validate passenger balance
+        if (passenger.getWalletBalance() < estimatedFare) {
+            throw new InsufficientBalanceException(
+                "Balance: " + passenger.getWalletBalance() + 
+                " EGP, Required: " + estimatedFare + " EGP"
+            );
+        }
+        
+        // BUSINESS RULE 4: Calculate estimated time
+        double avgSpeed = 60.0; // km/h
+        int estimatedMinutes = (int) ((distance / avgSpeed) * 60);
+        
+        // Create ride request object
+        RideRequest request = new RideRequest();
+        request.setPassengerId(passenger.getId());
+        request.setOriginId(origin.getId());
+        request.setDestinationId(destination.getId());
+        request.setDistance(distance);
+        request.setEstimatedPrice(estimatedFare);
+        request.setEstimatedTime(estimatedMinutes);
+        request.setStatus("Pending");
+        request.setCreatedAt(LocalDateTime.now());
+        
+        // Save to database via DAO
+        rideRequestDAO.insert(request);
+        
+        // Send notification
+        emailService.sendRideConfirmation(passenger, request);
+        
+        return request;
+    }
+}
+```
+
+**Part 2: Data Models (Entities)**
+**Files & Location**: `src/Model/` package
+
+| Model Class | Represents | Database Table |
+|-------------|-----------|----------------|
+| `Passenger.java` | Passenger account | `passengers` |
+| `Driver.java` | Driver account | `drivers` |
+| `RideRequest.java` | Active ride request | `ride_requests` |
+| `RideHistory.java` | Completed ride | `ride_history` |
+| `Location.java` | Map location | `locations` |
+| `Edge.java` | Road connection | `edges` |
+| `Report.java` | User report | `reports` |
+
+**Example Model Class**:
+```java
+// Passenger.java (Model - Data Entity)
+public class Passenger {
+    // Fields matching database columns
+    private Long id;
+    private String userSsn;
+    private String name;
+    private String email;
+    private String phoneNumber;
+    private String password;
+    private double walletBalance;
+    private String currentLocation;
+    
+    // Constructors
+    public Passenger() {}
+    
+    public Passenger(String name, String email, String password) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.walletBalance = 0.0;
+    }
+    
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    
+    public double getWalletBalance() { return walletBalance; }
+    public void setWalletBalance(double balance) { 
+        this.walletBalance = balance; 
+    }
+    
+    // ... other getters and setters
+    
+    // Optional: Basic validation
+    public boolean hasValidEmail() {
+        return email != null && email.contains("@");
+    }
+    
+    public boolean hasSufficientBalance(double requiredAmount) {
+        return walletBalance >= requiredAmount;
+    }
+}
+```
+
+**What Model Does**:
+- ✅ Contains all business rules and logic
+- ✅ Executes algorithms (Dijkstra, pricing)
+- ✅ Validates business constraints
+- ✅ Coordinates between multiple data sources (via DAOs)
+- ✅ Performs calculations and data transformations
+- ✅ Stores structured data (entity classes)
+
+**What Model Does NOT Do**:
+- ❌ NO direct database access (uses DAO layer)
+- ❌ NO UI updates or display logic
+- ❌ NO user interaction handling
+
+**Key Principle**: The Model is the "brain"—it knows the rules, makes decisions, and processes data.
+
+---
+
+### **How View, Controller, and Model Work Together**
+
+#### **Complete Interaction Flow**
+
+```
+USER ACTION                                    SYSTEM RESPONSE
+─────────────────────────────────────────────────────────────
+
+1. User clicks button     ────────►  VIEW captures event
+   in MapView.fxml                   (Button with fx:id)
+                                            │
+                                            ↓
+2. View triggers          ────────►  CONTROLLER method called
+   onAction="#method"                (MapController.java)
+                                            │
+                                            ↓
+3. Controller validates   ────────►  Check: origin != null?
+   input                             Check: balance >= fare?
+                                            │
+                                            ↓
+4. Controller calls       ────────►  MODEL executes business logic
+   service method                    (RideManager.createRideRequest)
+                                            │
+                                            ↓
+5. Model applies rules    ────────►  Calculate route (Dijkstra)
+                                     Calculate fare
+                                     Validate constraints
+                                            │
+                                            ↓
+6. Model calls DAO        ────────►  DAO executes SQL
+                                     (RideRequestDAO.insert)
+                                            │
+                                            ↓
+7. DAO saves to DB        ────────►  DATABASE stores record
+                                            │
+                                            ↓
+8. DAO returns object     ────────►  RideRequest object created
+                                            │
+                                            ↓
+9. Model returns result   ────────►  CONTROLLER receives RideRequest
+                                            │
+                                            ↓
+10. Controller updates    ────────►  VIEW displays success message
+    UI components                    Shows ride details
+                                            │
+                                            ↓
+11. User sees feedback    ────────►  "Ride requested! Waiting for driver..."
+```
+
+---
+
+#### **Real Example: Requesting a Ride**
+
+Let's trace a complete ride request through all MVC components:
+
+**STEP 1: User Interaction (VIEW)**
+```xml
+<!-- MapView.fxml -->
+<ComboBox fx:id="originComboBox" />
+<ComboBox fx:id="destinationComboBox" />
+<Button fx:id="requestRideButton" 
+        text="Request Ride" 
+        onAction="#onRequestRideButtonClick" />
+<Label fx:id="statusLabel" />
+```
+
+**What Happens**:
+- User selects "Cairo" as origin
+- User selects "Alexandria" as destination  
+- User clicks "Request Ride" button
+- Button's `onAction` triggers Controller method
+
+---
+
+**STEP 2: Event Handling (CONTROLLER)**
+```java
+// MapController.java
+@FXML
+public void onRequestRideButtonClick() {
+    // Get data from View
+    Location origin = originComboBox.getValue();
+    Location destination = destinationComboBox.getValue();
+    
+    // Input validation (Controller responsibility)
+    if (origin == null || destination == null) {
+        statusLabel.setText("Error: Select both locations");
+        showAlert("Validation Error", "Please select origin and destination");
+        return;
+    }
+    
+    if (origin.equals(destination)) {
+        showAlert("Invalid", "Origin and destination must be different");
+        return;
+    }
+    
+    // Check balance (preliminary check)
+    if (currentPassenger.getWalletBalance() < 10) {
+        showAlert("Insufficient Balance", "Minimum balance required: 10 EGP");
+        return;
+    }
+    
+    // Call Model
+    try {
+        statusLabel.setText("Processing request...");
+        RideRequest request = rideManager.createRideRequest(
+            currentPassenger, origin, destination
+        );
+        
+        // Update View with success
+        handleRideRequestSuccess(request);
+        
+    } catch (InsufficientBalanceException e) {
+        statusLabel.setText("Error: Insufficient balance");
+        showAlert("Balance Error", e.getMessage());
+    } catch (NoRouteFoundException e) {
+        statusLabel.setText("Error: No route available");
+        showAlert("Route Error", "No route found between these locations");
+    } catch (Exception e) {
+        statusLabel.setText("Error: Request failed");
+        showAlert("Error", "Failed to create ride request");
+    }
+}
+
+private void handleRideRequestSuccess(RideRequest request) {
+    statusLabel.setText("Ride requested! Waiting for driver...");
+    
+    // Display ride details in UI
+    distanceLabel.setText(String.format("%.2f km", request.getDistance()));
+    fareLabel.setText(String.format("%.2f EGP", request.getEstimatedPrice()));
+    timeLabel.setText(String.format("%d min", request.getEstimatedTime()));
+    
+    // Disable request button
+    requestRideButton.setDisable(true);
+    
+    // Show confirmation dialog
+    showConfirmation("Success", "Ride request created successfully!");
+}
+```
+
+**Controller Responsibilities**:
+- ✅ Gets origin "Cairo" and destination "Alexandria" from ComboBoxes
+- ✅ Validates: both selected, different from each other
+- ✅ Validates: passenger has minimum balance
+- ✅ Calls `rideManager.createRideRequest()`
+- ✅ Handles exceptions
+- ✅ Updates UI labels with ride details
+- ✅ Disables button to prevent duplicate requests
+
+---
+
+**STEP 3: Business Logic (MODEL - Service Layer)**
+```java
+// RideManager.java
+public RideRequest createRideRequest(Passenger passenger, 
+                                     Location origin, 
+                                     Location destination) {
+    
+    // BUSINESS RULE 1: Calculate optimal route using Dijkstra
+    MapGraph graph = new MapGraph();
+    graph.loadFromDatabase(); // Loads locations and edges
+    
+    List<Location> route = graph.calculateShortestPath(
+        origin.getName(), 
+        destination.getName()
+    );
+    
+    if (route == null || route.isEmpty()) {
+        throw new NoRouteFoundException("No route exists between locations");
+    }
+    
+    // Calculate total distance
+    double totalDistance = 0.0;
+    for (int i = 0; i < route.size() - 1; i++) {
+        Edge edge = edgeDAO.findBetween(route.get(i), route.get(i + 1));
+        totalDistance += edge.getDistanceKm();
+    }
+    
+    // BUSINESS RULE 2: Calculate fare
+    double baseFare = 10.0;        // Base charge
+    double pricePerKm = 2.5;       // Per kilometer
+    double estimatedFare = baseFare + (totalDistance * pricePerKm);
+    
+    // BUSINESS RULE 3: Validate passenger can afford ride
+    if (passenger.getWalletBalance() < estimatedFare) {
+        throw new InsufficientBalanceException(
+            String.format("Required: %.2f EGP, Available: %.2f EGP", 
+                         estimatedFare, passenger.getWalletBalance())
+        );
+    }
+    
+    // BUSINESS RULE 4: Calculate estimated travel time
+    double averageSpeed = 60.0; // km/h
+    int estimatedMinutes = (int) ((totalDistance / averageSpeed) * 60);
+    
+    // BUSINESS RULE 5: Create ride request object
+    RideRequest request = new RideRequest();
+    request.setPassengerId(passenger.getId());
+    request.setOriginId(origin.getId());
+    request.setDestinationId(destination.getId());
+    request.setDistance(totalDistance);
+    request.setEstimatedPrice(estimatedFare);
+    request.setEstimatedTime(estimatedMinutes);
+    request.setStatus("Pending");
+    request.setCreatedAt(LocalDateTime.now());
+    
+    // BUSINESS RULE 6: Save to database via DAO
+    rideRequestDAO.insert(request);
+    
+    // BUSINESS RULE 7: Send notification email
+    emailService.sendRideConfirmation(passenger.getEmail(), request);
+    
+    // Return created request
+    return request;
+}
+```
+
+**Model Responsibilities**:
+- ✅ Calculates shortest path: Cairo → Giza → Fayoum → Minya → Asyut → Sohag → Alexandria
+- ✅ Calculates total distance: 220.5 km
+- ✅ Calculates fare: 10 + (220.5 × 2.5) = 561.25 EGP
+- ✅ Validates passenger balance: 800 EGP (sufficient ✓)
+- ✅ Calculates travel time: (220.5 / 60) × 60 = 220 minutes
+- ✅ Creates RideRequest object with all calculated data
+- ✅ Calls DAO to save request
+- ✅ Sends confirmation email
+
+---
+
+**STEP 4: Data Persistence (DAO Layer)**
+```java
+// RideRequestDAO.java
+public void insert(RideRequest request) {
+    String sql = "INSERT INTO ride_requests " +
+                 "(passenger_id, origin_id, destination_id, status, " +
+                 "distance_km, estimated_time, estimated_price, created_at) " +
+                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql, 
+                                  Statement.RETURN_GENERATED_KEYS)) {
+        
+        stmt.setLong(1, request.getPassengerId());      // 101
+        stmt.setInt(2, request.getOriginId());          // 1 (Cairo)
+        stmt.setInt(3, request.getDestinationId());     // 5 (Alexandria)
+        stmt.setString(4, request.getStatus());         // "Pending"
+        stmt.setDouble(5, request.getDistance());       // 220.5
+        stmt.setInt(6, request.getEstimatedTime());     // 220
+        stmt.setDouble(7, request.getEstimatedPrice()); // 561.25
+        stmt.setTimestamp(8, Timestamp.valueOf(request.getCreatedAt()));
+        
+        int rowsAffected = stmt.executeUpdate();
+        
+        if (rowsAffected > 0) {
+            // Get generated ID
+            ResultSet rs = stmt.getGeneratedKeys();
+            if (rs.next()) {
+                request.setId(rs.getLong(1)); // Set ID: 2053
+            }
+        }
+        
+    } catch (SQLException e) {
+        throw new DatabaseException("Failed to insert ride request", e);
+    }
+}
+```
+
+**DAO Responsibilities**:
+- ✅ Converts RideRequest object to SQL INSERT statement
+- ✅ Uses PreparedStatement (prevents SQL injection)
+- ✅ Executes query: Inserts record into `ride_requests` table
+- ✅ Retrieves generated ID: 2053
+- ✅ Updates request object with database ID
+- ✅ Returns control to Service layer
+
+---
+
+**STEP 5: Database Storage**
+```sql
+-- MySQL Database executes:
+INSERT INTO ride_requests 
+(passenger_id, origin_id, destination_id, status, distance_km, 
+ estimated_time, estimated_price, created_at)
+VALUES 
+(101, 1, 5, 'Pending', 220.5, 220, 561.25, '2025-12-17 14:30:00');
+
+-- Record created with auto-generated id = 2053
+```
+
+---
+
+**STEP 6: Return Flow (Back to User)**
+
+```
+DATABASE     →  Confirms insert, returns ID: 2053
+    ↓
+DAO          →  Returns RideRequest with id=2053
+    ↓
+MODEL        →  Returns complete RideRequest to Controller
+    ↓
+CONTROLLER   →  Receives RideRequest object
+    ↓
+CONTROLLER   →  Updates View:
+                - statusLabel: "Ride requested! Waiting for driver..."
+                - distanceLabel: "220.5 km"
+                - fareLabel: "561.25 EGP"
+                - timeLabel: "220 min"
+                - Disables requestRideButton
+    ↓
+VIEW         →  User sees confirmation message and ride details
+```
+
+---
+
+### **MVC Separation Summary**
+
+| Component | What It Knows | What It Does | What It Doesn't Do |
+|-----------|---------------|--------------|-------------------|
+| **VIEW** | UI structure, styling | Displays data, captures clicks | ❌ No calculations<br>❌ No database<br>❌ No logic |
+| **CONTROLLER** | View references, Service references | Validates input, orchestrates flow, updates UI | ❌ No business rules<br>❌ No SQL<br>❌ No algorithms |
+| **MODEL (Service)** | Business rules, algorithms | Calculates, validates, coordinates | ❌ No UI updates<br>❌ No SQL<br>❌ No user interaction |
+| **MODEL (Entity)** | Data structure | Stores data, getters/setters | ❌ No logic<br>❌ No database<br>❌ No UI |
+| **DAO** | SQL, database schema | Executes queries, maps data | ❌ No business logic<br>❌ No UI<br>❌ No validation |
+
+---
+
+### **Why This Separation Matters**
+
+**Benefit 1: Easy Maintenance**
+- Bug in fare calculation? → Fix `RideManager.java` (Model)
+- Change button text? → Edit `MapView.fxml` (View)
+- Update validation? → Modify `MapController.java` (Controller)
+
+**Benefit 2: Independent Testing**
+- Test Model without UI: Mock Controller, test `RideManager` directly
+- Test Controller without database: Mock Service layer
+- Test DAO without business logic: Test SQL queries in isolation
+
+**Benefit 3: Parallel Development**
+- UI designer works on FXML (View)
+- Backend developer codes Service layer (Model)
+- Database developer writes DAOs
+- No conflicts!
+
+**Benefit 4: Reusability**
+- Same Model logic used by passenger app, driver app, admin panel
+- Change from JavaFX to web UI? → Replace View + Controller, keep Model + DAO
+
+**Benefit 5: Security**
+- Only DAO layer accesses database → Easy to secure
+- Only Model layer has business rules → Easy to protect intellectual property
+- UI can't bypass validations → Data integrity guaranteed
+
+### **Layer Responsibilities in Detail**
+
+#### **1. Presentation Layer: View + Controller (MVC)**
+
+This layer implements the **View** and **Controller** components of the MVC pattern.
+
+**View (FXML Files) – The User Interface**
+- Define UI structure declaratively using XML
+- Display data to the user
+- Capture user interactions (clicks, text input)
+- Located in `resources/` directory
+- Styled using CSS (e.g., `style.css`, `driver-dialog.css`)
+- **Examples**: 
+  - `MapView.fxml` – Interactive map interface
+  - Login/registration forms
+  - Passenger/driver dashboards
+
+**Responsibilities**:
+- ✅ Display information to users
+- ✅ Bind UI components to controller methods
+- ❌ NO business logic
+- ❌ NO database access
+- ❌ NO calculations
+
+---
+
+**Controller (JavaFX Controller Classes) – The Traffic Director**
+- Act as intermediaries between View and Model
+- Handle user events triggered by the View
+- Validate user input (null checks, format validation)
+- Call Service layer methods to perform operations
+- Receive results and update the View accordingly
+- **Examples**: 
+  - `MapController.java` – Handles ride request interactions
+  - `LoginController.java` – Manages authentication flow
+  - `DriverDashboardController.java` – Controls driver interface
+
+**Typical Controller Method Flow**:
+```java
+@FXML
+public void onRequestRideButtonClick() {
+    // 1. Get data from View
+    Location origin = originComboBox.getValue();
+    Location destination = destinationComboBox.getValue();
+    
+    // 2. Validate input
+    if (origin == null || destination == null) {
+        showAlert("Please select both origin and destination");
+        return;
+    }
+    
+    // 3. Call Service layer
+    RideRequest request = rideManager.createRideRequest(
+        passenger, origin, destination
+    );
+    
+    // 4. Update View based on result
+    if (request != null) {
+        showConfirmation("Ride request created successfully!");
+    } else {
+        showAlert("Failed to create ride request");
+    }
+}
+```
+
+**Responsibilities**:
+- ✅ Capture user actions
+- ✅ Validate input data
+- ✅ Call Service layer methods
+- ✅ Update UI components
+- ❌ NO business calculations
+- ❌ NO database access
+- ❌ NO SQL queries
+
+**Key Principle**: Controllers orchestrate the flow but delegate actual work to the Service layer.
+
+---
+
+#### **2. Service Layer: Business Logic (Model)**
+
+This layer represents the **Model** component of the MVC pattern—the brain of the application.
+
+**Purpose**: Contains all business rules, algorithms, and application logic.
+
+**Key Service Classes**:
+
+**RideManager.java – Ride Lifecycle Orchestrator**
+- Creates and manages ride requests
+- Coordinates between passengers and drivers
+- Handles ride state transitions (Pending → Accepted → Completed)
+- Manages concurrent ride requests using multithreading
+- Coordinates multiple DAOs to complete operations
+- **Example**: When creating a ride, it validates passenger balance, checks driver availability, and saves the request
+
+**MapGraph.java – Routing Engine**
+- Builds a weighted graph from locations and edges
+- Implements **Dijkstra's shortest path algorithm**
+- Calculates optimal routes between any two locations
+- Computes distance, travel time, and fare estimates
+- **Example**: Given origin "Cairo" and destination "Alexandria", calculates the shortest path through intermediate cities
+
+**Payment.java – Financial Manager**
+- Validates wallet balance before rides
+- Processes fare deductions from passengers
+- Credits driver wallets after ride completion
+- Records company transaction fees
+- Handles tips and donations
+- **Example**: Deducts 50 EGP from passenger wallet, adds 45 EGP to driver wallet, logs 5 EGP company fee
+
+**Request.java – Ride State Manager**
+- Manages ride request lifecycle
+- Validates ride request data
+- Handles driver assignment logic
+- Processes ride cancellations
+- Updates ride status
+- **Example**: Validates that passenger has sufficient balance before creating a request
+
+**Responsibilities**:
+- ✅ Apply business rules and validations
+- ✅ Execute algorithms (routing, pricing)
+- ✅ Coordinate between multiple DAOs
+- ✅ Perform calculations and data transformations
+- ✅ Enforce application constraints
+- ❌ NO direct database access (uses DAOs)
+- ❌ NO UI code or JavaFX components
+- ❌ NO SQL queries
+
+**Example Service Method**:
+```java
+public RideRequest createRideRequest(Passenger passenger, 
+                                     Location origin, 
+                                     Location destination) {
+    // Business Rule 1: Validate balance
+    double estimatedFare = calculateFare(origin, destination);
+    if (passenger.getWalletBalance() < estimatedFare) {
+        throw new InsufficientBalanceException();
+    }
+    
+    // Business Rule 2: Calculate route using Dijkstra
+    List<Location> route = mapGraph.shortestPath(origin, destination);
+    double distance = calculateDistance(route);
+    
+    // Business Rule 3: Create request
+    RideRequest request = new RideRequest();
+    request.setPassenger(passenger);
+    request.setOrigin(origin);
+    request.setDestination(destination);
+    request.setDistance(distance);
+    request.setEstimatedPrice(estimatedFare);
+    request.setStatus("Pending");
+    
+    // DAO Interaction: Save to database
+    rideRequestDAO.insert(request);
+    
+    return request;
+}
+```
+
+**Key Principle**: Services contain the "what" and "why" of the application—what should happen and why it should happen that way.
+
+---
+
+#### **3. DAO Layer: Data Access Object**
+
+The DAO pattern provides a clean abstraction for all database operations, isolating SQL code from business logic.
+
+**Purpose**: Act as the bridge between the application and the database.
+
+**DAO Mapping (One DAO per Table)**:
+
+| DAO Class | Database Table | Responsibility |
+|-----------|---------------|----------------|
+| `PassengerDAO.java` | `passengers` | CRUD operations for passenger accounts |
+| `DriverDAO.java` | `drivers` | CRUD operations for driver accounts |
+| `RideRequestDAO.java` | `ride_requests` | Manage ride requests lifecycle |
+| `RideHistoryDAO.java` | `ride_history` | Archive completed rides |
+| `LocationDAO.java` | `locations` | Manage map locations |
+| `EdgeDAO.java` | `edges` | Manage road connections |
+| `ProfilePhotoDAO.java` | `profile_photos` | Store user profile images |
+| `ReportDAO.java` | `reports` | Handle user issue reports |
+| `ProblemReportDAO.java` | `problem_reports` | Manage ride problem reports |
+
+**Core DAO Operations**:
+- **Create**: Insert new records into the database
+- **Read**: Retrieve records by ID, email, or other criteria
+- **Update**: Modify existing records
+- **Delete**: Remove records from the database
+
+**Example DAO Methods**:
+```java
+public class PassengerDAO {
+    // Find passenger by email
+    public Passenger findByEmail(String email) {
+        String sql = "SELECT * FROM passengers WHERE email = ?";
+        // Execute query using PreparedStatement
+        // Map ResultSet to Passenger object
+        // Return passenger
+    }
+    
+    // Update wallet balance
+    public void updateWalletBalance(long passengerId, double newBalance) {
+        String sql = "UPDATE passengers SET wallet_balance = ? WHERE id = ?";
+        // Execute update using PreparedStatement
+    }
+    
+    // Insert new passenger
+    public void insert(Passenger passenger) {
+        String sql = "INSERT INTO passengers (name, email, password, ...) VALUES (?, ?, ?, ...)";
+        // Execute insert using PreparedStatement
+    }
+}
+```
+
+**How DAOs Work**:
+
+1. **Service calls DAO method**:
+   ```java
+   Passenger passenger = passengerDAO.findByEmail("user@example.com");
+   ```
+
+2. **DAO executes SQL query**:
+   ```java
+   PreparedStatement stmt = connection.prepareStatement(
+       "SELECT * FROM passengers WHERE email = ?"
+   );
+   stmt.setString(1, "user@example.com");
+   ResultSet rs = stmt.executeQuery();
+   ```
+
+3. **DAO maps database results to Java objects**:
+   ```java
+   if (rs.next()) {
+       Passenger passenger = new Passenger();
+       passenger.setId(rs.getLong("id"));
+       passenger.setName(rs.getString("name"));
+       passenger.setEmail(rs.getString("email"));
+       passenger.setWalletBalance(rs.getDouble("wallet_balance"));
+       return passenger;
+   }
+   ```
+
+4. **DAO returns object to Service layer**:
+   ```java
+   return passenger; // Service layer now has the passenger object
+   ```
+
+**Responsibilities**:
+- ✅ Execute SQL queries (SELECT, INSERT, UPDATE, DELETE)
+- ✅ Map `ResultSet` data to Java objects
+- ✅ Use `PreparedStatement` to prevent SQL injection
+- ✅ Manage database connections
+- ✅ Handle SQL exceptions
+- ❌ NO business logic or validations
+- ❌ NO UI code
+- ❌ NO direct calls from Controllers (always through Services)
+
+**Key Principle**: DAOs are the **only** classes that contain SQL queries and communicate with the database. This isolation makes database changes easy—you only modify DAOs, not business logic.
+
+---
+
+#### **4. Model Layer: Data Entities**
+
+Data models are simple Java classes (POJOs - Plain Old Java Objects) that represent database entities.
+
+**Purpose**: Encapsulate data and provide a structured way to pass information between layers.
+
+**Core Model Classes**:
+- `Passenger.java` – Passenger account data
+- `Driver.java` – Driver account and vehicle data
+- `RideRequest.java` – Ride request information
+- `RideHistory.java` – Completed ride details
+- `Location.java` – Map location coordinates
+- `Edge.java` – Road connection between locations
+- `ProblemReport.java` – Ride issue reports
+- `Report.java` – General user reports
+
+**Typical Model Structure**:
+```java
+public class Passenger {
+    // Fields matching database columns
+    private Long id;
+    private String name;
+    private String email;
+    private String phoneNumber;
+    private double walletBalance;
+    private String currentLocation;
+    
+    // Constructor
+    public Passenger() { }
+    
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    
+    // ... other getters and setters
+    
+    // Optional: Basic validation
+    public boolean isValid() {
+        return name != null && email != null && walletBalance >= 0;
+    }
+}
+```
+
+**Responsibilities**:
+- ✅ Store data in structured fields
+- ✅ Provide getters and setters for field access
+- ✅ Basic field validation (optional)
+- ✅ Represent database records as Java objects
+- ❌ NO business logic
+- ❌ NO database operations
+- ❌ NO UI code
+
+**Key Principle**: Models are "dumb" data containers—they hold information but don't perform operations.
+
+---
+
+### **Complete Data Flow: Requesting a Ride**
+
+Let's trace how data flows through all layers when a passenger requests a ride:
+
+**Step 1: User Interaction (View)**
+```
+Passenger opens MapView.fxml
+Selects "Cairo" as origin
+Selects "Alexandria" as destination
+Clicks "Request Ride" button
+```
+
+**Step 2: Controller Captures Event**
+```java
+@FXML // MapController.java
+public void onRequestRideButtonClick() {
+    // Get data from View
+    Location origin = originComboBox.getValue();     // Cairo
+    Location destination = destinationComboBox.getValue(); // Alexandria
+    
+    // Validate input
+    if (origin == null || destination == null) {
+        showAlert("Please select both locations");
+        return;
+    }
+    
+    if (currentPassenger.getWalletBalance() < 10) {
+        showAlert("Insufficient balance. Please add funds.");
+        return;
+    }
+    
+    // Call Service layer
+    RideRequest request = rideManager.createRideRequest(
+        currentPassenger, origin, destination
+    );
+    
+    // Update View
+    if (request != null) {
+        showSuccess("Ride requested! Waiting for driver...");
+        displayRideDetails(request);
+    } else {
+        showError("Failed to create ride request");
+    }
+}
+```
+
+**Step 3: Service Layer Processes Request**
+```java
+// RideManager.java (Service Layer)
+public RideRequest createRideRequest(Passenger passenger, 
+                                     Location origin, 
+                                     Location destination) {
+    
+    // Business Rule 1: Calculate route using Dijkstra
+    MapGraph graph = new MapGraph();
+    List<Location> route = graph.calculateShortestPath(origin, destination);
+    double distance = calculateTotalDistance(route);
+    
+    // Business Rule 2: Calculate fare
+    double baseFare = 10.0;
+    double farePerKm = 2.5;
+    double estimatedFare = baseFare + (distance * farePerKm);
+    
+    // Business Rule 3: Validate passenger can afford the ride
+    if (passenger.getWalletBalance() < estimatedFare) {
+        throw new InsufficientBalanceException("Not enough balance");
+    }
+    
+    // Business Rule 4: Estimate travel time
+    int estimatedTime = (int) (distance / 60.0 * 60); // Assume 60 km/h
+    
+    // Create request object
+    RideRequest request = new RideRequest();
+    request.setPassengerId(passenger.getId());
+    request.setOriginId(origin.getId());
+    request.setDestinationId(destination.getId());
+    request.setDistance(distance);
+    request.setEstimatedPrice(estimatedFare);
+    request.setEstimatedTime(estimatedTime);
+    request.setStatus("Pending");
+    
+    // Call DAO to save to database
+    rideRequestDAO.insert(request);
+    
+    // Send email notification
+    emailService.sendRideConfirmation(passenger.getEmail(), request);
+    
+    return request;
+}
+```
+
+**Step 4: DAO Saves to Database**
+```java
+// RideRequestDAO.java (DAO Layer)
+public void insert(RideRequest request) {
+    String sql = "INSERT INTO ride_requests " +
+                 "(passenger_id, origin_id, destination_id, status, " +
+                 "distance_km, estimated_time, estimated_price) " +
+                 "VALUES (?, ?, ?, ?, ?, ?, ?)";
+    
+    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        stmt.setLong(1, request.getPassengerId());
+        stmt.setInt(2, request.getOriginId());
+        stmt.setInt(3, request.getDestinationId());
+        stmt.setString(4, request.getStatus());
+        stmt.setDouble(5, request.getDistance());
+        stmt.setInt(6, request.getEstimatedTime());
+        stmt.setDouble(7, request.getEstimatedPrice());
+        
+        stmt.executeUpdate(); // SQL INSERT executed
+        
+        // Retrieve generated ID
+        ResultSet rs = stmt.getGeneratedKeys();
+        if (rs.next()) {
+            request.setId(rs.getLong(1));
+        }
+    } catch (SQLException e) {
+        throw new RuntimeException("Failed to insert ride request", e);
+    }
+}
+```
+
+**Step 5: Database Stores Data**
+```sql
+-- MySQL Database executes:
+INSERT INTO ride_requests 
+(passenger_id, origin_id, destination_id, status, distance_km, estimated_time, estimated_price)
+VALUES (101, 1, 5, 'Pending', 220.5, 220, 561.25);
+
+-- New record created with id = 2053
+```
+
+**Step 6: Return Flow (Database → View)**
+```
+Database  →  DAO returns RideRequest object with ID
+    ↓
+Service  →  Returns RideRequest to Controller
+    ↓
+Controller  →  Updates UI to show "Ride Requested!"
+    ↓
+View  →  Displays ride details and "Waiting for driver..." message
+```
+
+**Complete Flow Summary**:
+1. **View**: User clicks "Request Ride" button
+2. **Controller**: Validates input, calls `rideManager.createRideRequest()`
+3. **Service**: Applies business rules (Dijkstra, fare calculation, validation)
+4. **Service**: Calls `rideRequestDAO.insert()`
+5. **DAO**: Executes SQL INSERT with PreparedStatement
+6. **Database**: Stores the ride request record
+7. **DAO**: Returns created RideRequest object
+8. **Service**: Returns RideRequest to Controller
+9. **Controller**: Updates View with success message
+10. **View**: Displays confirmation to user
+
+**Reverse Flow (Reading Data)**:
+```
+User wants to view ride history
+    ↓
+View → Controller.loadRideHistory()
+    ↓
+Service → rideHistoryDAO.findByPassengerId(passengerId)
+    ↓
+DAO → SELECT * FROM ride_history WHERE passenger_id = ?
+    ↓
+Database → Returns ResultSet
+    ↓
+DAO → Maps ResultSet to List<RideHistory> objects
+    ↓
+Service → Applies any filtering/sorting logic
+    ↓
+Controller → Receives List<RideHistory>
+    ↓
+View → Displays ride history in TableView
+```
 
 ### **Architecture Benefits**
 
@@ -349,15 +1454,23 @@ Tracks all financial transactions for business analytics and accounting.
 - **Transaction Types**: 'COMPLETED', 'CANCELLED_BY_PASSENGER'
 
 #### **Profile Photos Table**
-Stores profile image paths separately to avoid NULL values in main user tables.
+Stores profile image paths using a **polymorphic association pattern**, allowing both passengers and drivers to have profile photos without table duplication.
 - **Primary Key**: `id`
 - **Unique Constraint**: `(user_id, user_type)`
-- **Attributes**: `user_id`, `user_type` (enum: 'passenger', 'driver'), `profile_image_path`
+- **Polymorphic Keys**: 
+  - `user_id` – References either `passengers.id` or `drivers.id`
+  - `user_type` – ENUM('PASSENGER', 'DRIVER') determining which table `user_id` refers to
+- **Attributes**: `profile_image_path`, `created_at`, `updated_at`
+- **Design Rationale**: This approach avoids creating separate `passenger_photos` and `driver_photos` tables, reducing redundancy and maintaining a single source of truth for profile images
 
 #### **Reports Table**
-Stores general app issue reports from users.
+Stores general app issue reports using a **polymorphic association pattern**, allowing both passengers and drivers to submit reports through a unified system.
 - **Primary Key**: `id`
-- **Attributes**: `user_id`, `description`, `type`, `created_at`
+- **Polymorphic Keys**: 
+  - `user_id` – References either `passengers.id` or `drivers.id`
+  - `user_type` – ENUM('PASSENGER', 'DRIVER') determining which table `user_id` refers to
+- **Attributes**: `type`, `description`, `created_at`
+- **Design Rationale**: By using a polymorphic association, any user type can report issues without requiring separate report tables, improving maintainability and enabling future user type extensions
 
 ### **Key Relationships**
 
@@ -370,6 +1483,48 @@ Stores general app issue reports from users.
 - **Problem Reports ↔ Problem Types**: Many-to-Many (a report can have multiple problem types)
 - **Edges ↔ Locations**: Two Many-to-One relationships (forming a directed graph)
 
+### **Polymorphic Associations**
+
+MiniGo uses **polymorphic associations** for shared resources between passengers and drivers, specifically for Profile Photos and Reports. This design pattern provides significant advantages:
+
+#### **What is Polymorphic Association?**
+A polymorphic association allows a single table to reference multiple parent tables through a combination of:
+- `user_id`: The ID of the associated user
+- `user_type`: An ENUM indicating which table the ID refers to (PASSENGER or DRIVER)
+
+#### **Why Use Polymorphic Associations?**
+
+**Avoiding Table Duplication**
+- Without polymorphism: We would need `passenger_photos`, `driver_photos`, `passenger_reports`, and `driver_reports` tables
+- With polymorphism: Two tables (`profile_photos` and `reports`) serve both user types
+- **Result**: Reduced redundancy and simpler schema
+
+**Scalability & Extensibility**
+- Adding new user types (e.g., ADMIN, SUPPORT_AGENT) requires no new tables
+- Business logic for photo management and reporting remains centralized
+- Query patterns are consistent across all user types
+
+**Data Integrity**
+- Single source of truth for shared functionality
+- Consistent validation rules and constraints
+- Easier to maintain and audit
+
+**Example Query**:
+```sql
+-- Retrieve profile photo for any user type
+SELECT * FROM profile_photos 
+WHERE user_id = ? AND user_type = 'PASSENGER';
+
+-- Retrieve all reports regardless of reporter type
+SELECT * FROM reports 
+WHERE user_type IN ('PASSENGER', 'DRIVER');
+```
+
+#### **Trade-offs**
+- **Advantage**: Flexibility, reduced duplication, easier maintenance
+- **Consideration**: Foreign key constraints cannot be enforced at the database level (handled in application layer)
+- **Mitigation**: Application-level validation ensures referential integrity
+
 ### **Referential Integrity**
 
 The database enforces referential integrity through:
@@ -377,6 +1532,7 @@ The database enforces referential integrity through:
 - **SET NULL on delete**: If a location is deleted, user current_location fields are set to NULL
 - **Cascade delete**: Deleting a problem report removes associated problem_report_types entries
 - **Check constraints**: Ensures valid ranges for ratings (0-5) and positive distances
+- **Application-level validation**: Polymorphic associations are validated in the DAO layer to ensure user_id references exist
 
 ---
 
@@ -492,6 +1648,7 @@ erDiagram
     REPORTS {
         BIGINT id PK
         BIGINT user_id
+        ENUM user_type
         VARCHAR description
         VARCHAR type
         DATETIME created_at
@@ -519,6 +1676,12 @@ erDiagram
     PROBLEM_TYPES ||--o{ PROBLEM_REPORT_TYPES : "categorizes"
     
     RIDE_REQUESTS ||--o{ COMPANY_TRANSACTIONS : "generates"
+    
+    %% Polymorphic Associations
+    PASSENGERS ||--o{ PROFILE_PHOTOS : "has_profile_photo (polymorphic)"
+    DRIVERS ||--o{ PROFILE_PHOTOS : "has_profile_photo (polymorphic)"
+    PASSENGERS ||--o{ REPORTS : "submits_report (polymorphic)"
+    DRIVERS ||--o{ REPORTS : "submits_report (polymorphic)"
 ```
 
 ### **Relationship Summary**
@@ -535,6 +1698,8 @@ erDiagram
 | **Driver → Ride History** | 1:N | One driver has multiple ride history entries |
 | **Problem Report → Problem Types** | N:M | A report can have multiple problem types, and each type can appear in multiple reports |
 | **Ride Request → Company Transactions** | 1:N | Each ride can generate multiple transaction records |
+| **Passenger/Driver → Profile Photos** | 1:1 (Polymorphic) | Each user (passenger or driver) can have one profile photo via polymorphic association |
+| **Passenger/Driver → Reports** | 1:N (Polymorphic) | Each user (passenger or driver) can submit multiple reports via polymorphic association |
 
 ---
 
